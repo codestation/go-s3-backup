@@ -1,0 +1,11 @@
+pipeline:
+  publish:
+    image: plugins/docker
+    repo: registry.megpoid.xyz/gogs-s3-backup
+    registry: registry.megpoid.xyz
+    mirror: https://registry-proxy.megpoid.xyz
+    secrets: [ docker_username, docker_password ]
+    tags:
+      - latest
+
+branches: master
