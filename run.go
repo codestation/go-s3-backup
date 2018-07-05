@@ -19,20 +19,23 @@ package main
 import (
 	"fmt"
 	"log"
+	"math/rand"
 	"os"
 	"os/exec"
 	"os/signal"
+	"path"
+	"sort"
+	"strings"
 	"syscall"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/robfig/cron"
 	"github.com/urfave/cli"
-	"math/rand"
-	"path"
 )
 
 var saveDir = "/tmp"
@@ -52,7 +55,7 @@ func gogsBackup() (string, error) {
 	return filename, nil
 }
 
-func uploadFile(c *cli.Context, filename string, key string) error {
+func getS3Session(c *cli.Context) *session.Session {
 	s3Config := &aws.Config{
 		Credentials: credentials.NewSharedCredentials("", "default"),
 		Endpoint:    aws.String(c.String("endpoint")),
@@ -64,8 +67,10 @@ func uploadFile(c *cli.Context, filename string, key string) error {
 	}
 
 	// The session the S3 Uploader will use
-	sess := session.Must(session.NewSession(s3Config))
+	return session.Must(session.NewSession(s3Config))
+}
 
+func uploadFile(c *cli.Context, sess *session.Session, filename string, key string) error {
 	// Create an uploader with the session and default options
 	uploader := s3manager.NewUploader(sess)
 
@@ -89,6 +94,55 @@ func uploadFile(c *cli.Context, filename string, key string) error {
 	return nil
 }
 
+func removeOlderBackups(sess *session.Session, c *cli.Context) error {
+	svc := s3.New(sess)
+
+	var files []string
+
+	err := svc.ListObjectsPages(&s3.ListObjectsInput{
+		Bucket: aws.String(c.String("bucket")),
+		// make sure that the prefix ends with "/"
+		Prefix: aws.String(path.Clean(c.String("prefix")) + "/"),
+	}, func(p *s3.ListObjectsOutput, last bool) (shouldContinue bool) {
+
+		for _, obj := range p.Contents {
+			if !strings.HasSuffix(*obj.Key, "/") {
+				files = append(files, aws.StringValue(obj.Key))
+			}
+		}
+		return true
+	})
+
+	if err != nil {
+		return fmt.Errorf("couldn't list S3 objects, %v", err)
+	}
+
+	sort.Strings(files)
+
+	var items s3.Delete
+	count := len(files) - c.Int("max-backups")
+	var objs = make([]*s3.ObjectIdentifier, count)
+
+	for i, file := range files[:count] {
+		objs[i] = &s3.ObjectIdentifier{Key: aws.String(file)}
+		log.Printf("marked to delete: %s", file)
+	}
+
+	items.SetObjects(objs)
+
+	out, err := svc.DeleteObjects(&s3.DeleteObjectsInput{
+		Bucket: aws.String(c.String("bucket")),
+		Delete: &items})
+
+	if err != nil {
+		return fmt.Errorf("couldn't delete the S3 objects, %v", err)
+	} else {
+		fmt.Printf("deleted %d objects from S3", len(out.Deleted))
+	}
+
+	return nil
+}
+
 func runTask(c *cli.Context) error {
 	filename, err := gogsBackup()
 	if err != nil {
@@ -102,10 +156,19 @@ func runTask(c *cli.Context) error {
 		}
 	}()
 
+	sess := getS3Session(c)
+
 	key := fmt.Sprintf("%s/%s", c.String("prefix"), filename)
-	err = uploadFile(c, path.Join(saveDir, filename), key)
+	err = uploadFile(c, sess, path.Join(saveDir, filename), key)
 	if err != nil {
 		return fmt.Errorf("couldn't upload the file to S3, %v", err)
+	}
+
+	if c.Int("max-backups") > 0 {
+		err = removeOlderBackups(sess, c)
+		if err != nil {
+			return fmt.Errorf("couldn't remove olderbackups from S3, %v", err)
+		}
 	}
 
 	return nil

@@ -25,7 +25,6 @@ import (
 )
 
 var build = "0" // build number set at compile-time
-var backupPrefix = "gogs"
 var appPath = "/app/gogs/gogs"
 
 func main() {
@@ -64,6 +63,12 @@ func main() {
 			Usage:  "cron schedule",
 			Value:  "@daily",
 			EnvVar: "CRON_SCHEDULE",
+		},
+		cli.IntFlag{
+			Name:   "max-backups",
+			Usage:  "max backups to keep (0 to disable the feature)",
+			Value:  5,
+			EnvVar: "MAX_BACKUPS",
 		},
 	}
 
