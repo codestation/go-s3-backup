@@ -22,53 +22,41 @@ import (
 	"os"
 
 	"github.com/urfave/cli"
+	"megpoid.xyz/go/postgres-s3-backup/s3"
 )
 
 var build = "0" // build number set at compile-time
+var saveDir = "/tmp"
 var appPath = "/app/gogs/gogs"
+
+func setBackupFunc(_ *cli.Context) error {
+	s3.DoBackup = gogsBackup
+	return nil
+}
+
+func setRestoreFunc(_ *cli.Context) error {
+	s3.DoRestore = gogsRestore
+	return nil
+}
 
 func main() {
 	app := cli.NewApp()
-	app.Usage = "drone-stack plugin"
-	app.Action = run
+	app.Usage = "gogs-s3-backup"
 	app.Version = fmt.Sprintf("1.0.%s", build)
-	app.Flags = []cli.Flag{
-		cli.StringFlag{
-			Name:   "endpoint",
-			Usage:  "s3 endpoint",
-			EnvVar: "S3_ENDPOINT",
+	app.Commands = []cli.Command{
+		{
+			Name:   "backup",
+			Usage:  "run a backup task",
+			Before: setBackupFunc,
+			Action: s3.RunBackup,
+			Flags:  append(s3.Flags, s3.BackupFlags...),
 		},
-		cli.StringFlag{
-			Name:   "region",
-			Usage:  "s3 region",
-			EnvVar: "S3_REGION",
-		},
-		cli.StringFlag{
-			Name:   "bucket",
-			Usage:  "s3 bucket",
-			EnvVar: "S3_BUCKET",
-		},
-		cli.StringFlag{
-			Name:   "prefix",
-			Usage:  "s3 prefix",
-			EnvVar: "S3_PREFIX",
-		},
-		cli.BoolFlag{
-			Name:   "force-path-style",
-			Usage:  "s3 force path style (needed for minio)",
-			EnvVar: "S3_FORCE_PATH_STYLE",
-		},
-		cli.StringFlag{
-			Name:   "schedule",
-			Usage:  "cron schedule",
-			Value:  "@daily",
-			EnvVar: "CRON_SCHEDULE",
-		},
-		cli.IntFlag{
-			Name:   "max-backups",
-			Usage:  "max backups to keep (0 to disable the feature)",
-			Value:  5,
-			EnvVar: "MAX_BACKUPS",
+		{
+			Name:   "restore",
+			Usage:  "run a restore task",
+			Before: setRestoreFunc,
+			Action: s3.RunRestore,
+			Flags:  s3.Flags,
 		},
 	}
 
