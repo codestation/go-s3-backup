@@ -21,19 +21,22 @@ import (
 	"os"
 	"os/exec"
 	"time"
+
+	"github.com/urfave/cli"
 )
 
-func gogsBackup() (string, error) {
-	filename := fmt.Sprintf("gogs-backup-%s.zip", time.Now().Format("20060102150405"))
-	cmd := exec.Command("gosu", "git", appPath, "backup", "--target", saveDir, "--archive-name", filename)
+func gogsBackup(_ *cli.Context) (string, error) {
+	filepath := fmt.Sprintf("gogs-backup-%s.zip", time.Now().Format("20060102150405"))
+	cmd := exec.Command("gosu", "git", appPath, "backup", "--target", saveDir, "--archive-name", filepath)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	cmd.Env = os.Environ()
-	cmd.Env = append(cmd.Env, "USER=git")
-	err := cmd.Run()
-	if err != nil {
+
+	env := os.Environ()
+	cmd.Env = append(env, "USER=git")
+
+	if err := cmd.Run(); err != nil {
 		return "", fmt.Errorf("couldn't execute %s, %v", appPath, err)
 	}
 
-	return filename, nil
+	return filepath, nil
 }

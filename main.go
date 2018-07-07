@@ -21,8 +21,9 @@ import (
 	"log"
 	"os"
 
+	"megpoid.xyz/go/gogs-s3-backup/s3"
+
 	"github.com/urfave/cli"
-	"megpoid.xyz/go/postgres-s3-backup/s3"
 )
 
 var build = "0" // build number set at compile-time
@@ -56,7 +57,7 @@ func main() {
 			Usage:  "run a restore task",
 			Before: setRestoreFunc,
 			Action: s3.RunRestore,
-			Flags:  s3.Flags,
+			Flags:  append(s3.Flags, s3.RestoreFlags...),
 		},
 	}
 

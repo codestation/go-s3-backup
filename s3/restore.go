@@ -31,7 +31,7 @@ import (
 	"github.com/urfave/cli"
 )
 
-type RestoreFunc func(path string) error
+type RestoreFunc func(c *cli.Context, filepath string) error
 
 var DoRestore RestoreFunc
 var saveDir = "/tmp"
@@ -40,11 +40,12 @@ func downloadFile(c *cli.Context, sess *session.Session, s3path string) (string,
 	// Create an uploader with the session and default options
 	downloader := s3manager.NewDownloader(sess)
 
-	file := path.Join(saveDir, path.Base(s3path))
-	f, err := os.Open(file)
+	filepath := path.Join(saveDir, path.Base(s3path))
+	f, err := os.Open(filepath)
 	if err != nil {
-		return "", fmt.Errorf("failed to open file %q, %v", file, err)
+		return "", fmt.Errorf("failed to open file %q, %v", filepath, err)
 	}
+
 	defer f.Close()
 
 	// Upload the file to S3.
@@ -52,13 +53,14 @@ func downloadFile(c *cli.Context, sess *session.Session, s3path string) (string,
 		Bucket: aws.String(c.String("bucket")),
 		Key:    aws.String(s3path),
 	})
+
 	if err != nil {
 		return "", fmt.Errorf("failed to download S3 object, %v", err)
 	}
 
-	fmt.Printf("file downloaded to %s\n", file)
+	fmt.Printf("file downloaded to %s\n", filepath)
 
-	return file, nil
+	return filepath, nil
 }
 
 func findLatestBackup(sess *session.Session, c *cli.Context) (string, error) {
@@ -85,7 +87,7 @@ func findLatestBackup(sess *session.Session, c *cli.Context) (string, error) {
 	}
 
 	if len(files) == 0 {
-		return "", fmt.Errorf("cannot find a resent backup on s3://%s/%s",
+		return "", fmt.Errorf("cannot find a recent backup on s3://%s/%s",
 			c.String("bucket"), c.String("prefix"))
 	}
 
@@ -100,25 +102,32 @@ func runRestoreTask(c *cli.Context) error {
 	}
 
 	sess := getS3Session(c)
-	s3path, err := findLatestBackup(sess, c)
-	if err != nil {
-		return fmt.Errorf("cannot find the latest backup, %v", err)
+	var s3path string
+	var err error
+
+	if key := c.String("s3key"); key != "" {
+		// restore directly from this S3 object
+		s3path = key
+	} else {
+		// find the latest S3 object
+		s3path, err = findLatestBackup(sess, c)
+		if err != nil {
+			return fmt.Errorf("cannot find the latest backup, %v", err)
+		}
 	}
 
-	file, err := downloadFile(c, sess, s3path)
+	filepath, err := downloadFile(c, sess, s3path)
 	if err != nil {
 		return fmt.Errorf("cannot download S3 object %s, %v", s3path, err)
 	}
 
 	defer func() {
-		err = os.Remove(file)
-		if err != nil {
-			log.Printf("cannot remove file %s, %v", file, err)
+		if err := os.Remove(filepath); err != nil {
+			log.Printf("cannot remove file %s, %v", filepath, err)
 		}
 	}()
 
-	err = DoRestore(file)
-	if err != nil {
+	if err = DoRestore(c, filepath); err != nil {
 		return fmt.Errorf("couldn't complete the restore, %v", err)
 	}
 

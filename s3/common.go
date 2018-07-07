@@ -37,16 +37,12 @@ var runTask taskFunc
 
 func getS3Session(c *cli.Context) *session.Session {
 	s3Config := &aws.Config{
-		Credentials: credentials.NewSharedCredentials("", "default"),
-		Endpoint:    aws.String(c.String("endpoint")),
-		Region:      aws.String(c.String("region")),
+		Credentials:      credentials.NewSharedCredentials("", "default"),
+		Endpoint:         aws.String(c.String("endpoint")),
+		Region:           aws.String(c.String("region")),
+		S3ForcePathStyle: aws.Bool(c.Bool("force-path-style")),
 	}
 
-	if c.Bool("force-path-style") {
-		s3Config.S3ForcePathStyle = aws.Bool(true)
-	}
-
-	// The session the S3 Uploader will use
 	return session.Must(session.NewSession(s3Config))
 }
 
@@ -68,22 +64,30 @@ func runScheduler(c *cli.Context) error {
 	timeoutchan := make(chan bool, 1)
 
 	cr.AddFunc(schedule, func() {
-		minutes := rand.Intn(60)
-		log.Printf("waiting for %d minutes before starting scheduled job", minutes)
+		seconds := rand.Intn(c.Int("random-delay"))
+
+		// run immediately is no delay is configured
+		if seconds == 0 {
+			if err := runTask(c); err != nil {
+				log.Printf("failed to run scheduled task, %v", err)
+			}
+			return
+		}
+
+		log.Printf("waiting for %d seconds before starting scheduled job", seconds)
 
 		select {
 		case <-timeoutchan:
 			log.Printf("random timeout cancelled")
 			break
-		case <-time.After(time.Duration(minutes) * time.Minute):
+		case <-time.After(time.Duration(seconds) * time.Second):
 			log.Printf("running backup job")
 
 			if runTask == nil {
 				panic("runTask function isn't defined")
 			}
 
-			err := runTask(c)
-			if err != nil {
+			if err := runTask(c); err != nil {
 				log.Printf("failed to run scheduled task, %v", err)
 			}
 			break

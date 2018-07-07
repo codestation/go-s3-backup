@@ -18,30 +18,32 @@ package s3
 
 import (
 	"fmt"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/aws/aws-sdk-go/service/s3/s3manager"
-	"github.com/urfave/cli"
 	"log"
 	"os"
 	"path"
 	"sort"
 	"strings"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	"github.com/urfave/cli"
 )
 
-type BackupFunc func() (string, error)
+type BackupFunc func(c *cli.Context) (string, error)
 
 var DoBackup BackupFunc
 
-func uploadFile(c *cli.Context, sess *session.Session, filename string, key string) error {
+func uploadFile(c *cli.Context, sess *session.Session, filepath string, key string) error {
 	// Create an uploader with the session and default options
 	uploader := s3manager.NewUploader(sess)
 
-	f, err := os.Open(filename)
+	f, err := os.Open(filepath)
 	if err != nil {
-		return fmt.Errorf("failed to open file %q, %v", filename, err)
+		return fmt.Errorf("failed to open file %q, %v", filepath, err)
 	}
+
 	defer f.Close()
 
 	// Upload the file to S3.
@@ -53,6 +55,7 @@ func uploadFile(c *cli.Context, sess *session.Session, filename string, key stri
 	if err != nil {
 		return fmt.Errorf("failed to upload file, %v", err)
 	}
+
 	fmt.Printf("file uploaded to %s\n", result.Location)
 
 	return nil
@@ -112,29 +115,28 @@ func runBackupTask(c *cli.Context) error {
 		return fmt.Errorf("no backup function defined")
 	}
 
-	filename, err := DoBackup()
+	filepath, err := DoBackup(c)
 	if err != nil {
 		return fmt.Errorf("couldn't complete the backup, %v", err)
 	}
 
 	defer func() {
-		err = os.Remove(filename)
+		err = os.Remove(filepath)
 		if err != nil {
-			log.Printf("cannot remove file %s, %v", filename, err)
+			log.Printf("cannot remove file %s, %v", filepath, err)
 		}
 	}()
 
 	sess := getS3Session(c)
 
-	key := fmt.Sprintf("%s/%s", c.String("prefix"), path.Base(filename))
-	err = uploadFile(c, sess, filename, key)
+	key := fmt.Sprintf("%s/%s", c.String("prefix"), path.Base(filepath))
+	err = uploadFile(c, sess, filepath, key)
 	if err != nil {
 		return fmt.Errorf("couldn't upload the file to S3, %v", err)
 	}
 
 	if c.Int("max-backups") > 0 {
-		err = removeOlderBackups(sess, c)
-		if err != nil {
+		if err = removeOlderBackups(sess, c); err != nil {
 			return fmt.Errorf("couldn't remove olderbackups from S3, %v", err)
 		}
 	}

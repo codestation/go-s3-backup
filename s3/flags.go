@@ -44,19 +44,39 @@ var Flags = []cli.Flag{
 		Usage:  "s3 force path style (needed for minio)",
 		EnvVar: "S3_FORCE_PATH_STYLE",
 	},
-	cli.StringFlag{
-		Name:   "schedule",
-		Usage:  "cron schedule",
-		Value:  "@daily",
-		EnvVar: "CRON_SCHEDULE",
+	cli.IntFlag{
+		Name:   "schedle-delay",
+		Usage:  "schedule random delay",
+		Value:  0,
+		EnvVar: "SCHEDULE_RANDOM_DELAY",
 	},
 }
 
 var BackupFlags = []cli.Flag{
+	cli.StringFlag{
+		Name:   "schedule",
+		Usage:  "cron schedule",
+		Value:  "@daily",
+		EnvVar: "SCHEDULE",
+	},
 	cli.IntFlag{
 		Name:   "max-backups",
 		Usage:  "max backups to keep (0 to disable the feature)",
 		Value:  5,
 		EnvVar: "MAX_BACKUPS",
+	},
+}
+
+var RestoreFlags = []cli.Flag{
+	cli.StringFlag{
+		Name:   "schedule",
+		Usage:  "cron schedule",
+		Value:  "none",
+		EnvVar: "SCHEDULE",
+	},
+	cli.StringFlag{
+		Name:   "s3key",
+		Usage:  "s3 key",
+		EnvVar: "S3_KEY",
 	},
 }

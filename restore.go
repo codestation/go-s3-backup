@@ -4,16 +4,18 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"github.com/urfave/cli"
 )
 
-func gogsRestore(path string) error {
-	cmd := exec.Command("gosu", "git", appPath, "restore", "--from", path)
+func gogsRestore(_ *cli.Context, filepath string) error {
+	cmd := exec.Command("gosu", "git", appPath, "restore", "--from", filepath)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	cmd.Env = os.Environ()
-	cmd.Env = append(cmd.Env, "USER=git")
-	err := cmd.Run()
-	if err != nil {
+
+	env := os.Environ()
+	cmd.Env = append(env, "USER=git")
+
+	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("couldn't execute %s, %v", appPath, err)
 	}
 
