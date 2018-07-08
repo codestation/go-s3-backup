@@ -21,28 +21,27 @@ import (
 	"log"
 	"os"
 
-	"megpoid.xyz/go/gogs-s3-backup/s3"
+	"megpoid.xyz/go/go-s3-backup/postgres"
+	"megpoid.xyz/go/go-s3-backup/s3"
 
 	"github.com/urfave/cli"
 )
 
 var build = "0" // build number set at compile-time
-var saveDir = "/tmp"
-var appPath = "/app/gogs/gogs"
 
 func setBackupFunc(_ *cli.Context) error {
-	s3.DoBackup = gogsBackup
+	s3.DoBackup = postgres.Backup
 	return nil
 }
 
 func setRestoreFunc(_ *cli.Context) error {
-	s3.DoRestore = gogsRestore
+	s3.DoRestore = postgres.Restore
 	return nil
 }
 
 func main() {
 	app := cli.NewApp()
-	app.Usage = "gogs-s3-backup"
+	app.Usage = "postgres-s3-backup"
 	app.Version = fmt.Sprintf("1.0.%s", build)
 	app.Commands = []cli.Command{
 		{

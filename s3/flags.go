@@ -50,6 +50,31 @@ var Flags = []cli.Flag{
 		Value:  0,
 		EnvVar: "SCHEDULE_RANDOM_DELAY",
 	},
+	cli.StringFlag{
+		Name:   "host",
+		Usage:  "database host",
+		EnvVar: "DATABASE_HOST",
+	},
+	cli.StringFlag{
+		Name:   "port",
+		Usage:  "database port",
+		EnvVar: "DATABASE_PORT",
+	},
+	cli.StringFlag{
+		Name:   "database",
+		Usage:  "database name",
+		EnvVar: "DATABASE_NAME",
+	},
+	cli.StringFlag{
+		Name:   "user",
+		Usage:  "database user",
+		EnvVar: "DATABASE_USER",
+	},
+	cli.StringFlag{
+		Name:   "dpassword",
+		Usage:  "database password",
+		EnvVar: "DATABASE_PASSWORD",
+	},
 }
 
 var BackupFlags = []cli.Flag{

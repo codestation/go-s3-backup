@@ -1,6 +1,12 @@
-# Gogs S3 Backup
+# Go S3 Backup
 
-This application can be used to make regular backups of Gogs installations and restores from S3. It will perform daily backups unless configured to do otherwise.
+This application can be used to make regular backups of various applications and restores from S3. It will perform daily backups unless configured to do otherwise.
+
+## Supported apps
+
+* PostgreSQL
+* MySQL
+* Gogs
 
 The schedule function can also be used on restore if you need to test your backups regularly.
 

@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package main
+package gogs
 
 import (
 	"fmt"
@@ -25,9 +25,9 @@ import (
 	"github.com/urfave/cli"
 )
 
-func gogsBackup(_ *cli.Context) (string, error) {
+func Backup(_ *cli.Context) (string, error) {
 	filepath := fmt.Sprintf("gogs-backup-%s.zip", time.Now().Format("20060102150405"))
-	cmd := exec.Command("gosu", "git", appPath, "backup", "--target", saveDir, "--archive-name", filepath)
+	cmd := exec.Command("gosu", "git", AppPath, "backup", "--target", SaveDir, "--archive-name", filepath)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
@@ -35,7 +35,7 @@ func gogsBackup(_ *cli.Context) (string, error) {
 	cmd.Env = append(env, "USER=git")
 
 	if err := cmd.Run(); err != nil {
-		return "", fmt.Errorf("couldn't execute %s, %v", appPath, err)
+		return "", fmt.Errorf("couldn't execute %s, %v", AppPath, err)
 	}
 
 	return filepath, nil
