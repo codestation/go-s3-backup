@@ -54,11 +54,11 @@ func NewPostgresConfig(c *cli.Context) *services.Postgres {
 
 func NewS3Config(c *cli.Context) *stores.S3 {
 	return &stores.S3{
-		Endpoint:       c.String("endpoint"),
-		Region:         c.String("region"),
-		Bucket:         c.String("bucket"),
-		AccessKey:      c.String("access-key"),
-		ClientSecret:   c.String("client-secret"),
-		ForcePathStyle: c.Bool("force-path-style"),
+		Endpoint:       c.GlobalString("endpoint"),
+		Region:         c.GlobalString("region"),
+		Bucket:         c.GlobalString("bucket"),
+		AccessKey:      c.GlobalString("access-key"),
+		ClientSecret:   c.GlobalString("client-secret"),
+		ForcePathStyle: c.GlobalBool("force-path-style"),
 	}
 }

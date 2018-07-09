@@ -51,7 +51,7 @@ func (g *Gogs) Backup() (string, error) {
 	cmd.Env = append(env, "USER=git")
 
 	if err := cmd.Run(); err != nil {
-		return "", fmt.Errorf("couldn't execute gogs backup, %v", err)
+		return "", fmt.Errorf("couldn't execute %s, %v", GogsAppPath, err)
 	}
 
 	return filepath, nil

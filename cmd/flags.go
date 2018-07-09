@@ -50,6 +50,17 @@ var Flags = []cli.Flag{
 		Value:  0,
 		EnvVar: "SCHEDULE_RANDOM_DELAY",
 	},
+}
+
+var GogsFlags = []cli.Flag{
+	cli.StringFlag{
+		Name:   "gogs-config",
+		Usage:  "gogs config path",
+		EnvVar: "GOGS_CONFIG",
+	},
+}
+
+var DatabaseFlags = []cli.Flag{
 	cli.StringFlag{
 		Name:   "host",
 		Usage:  "database host",

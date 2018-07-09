@@ -38,20 +38,20 @@ type Task func(c *cli.Context) error
 func BackupTask(c *cli.Context, service services.Service, store stores.Storer) error {
 	filepath, err := service.Backup()
 	if err != nil {
-		return fmt.Errorf("couldn't make a gogs backup, %v", err)
+		return fmt.Errorf("service backup failed: %v", err)
 	}
 
 	defer func() {
 		os.Remove(filepath)
 	}()
 
-	key := fmt.Sprintf("%s/%s", c.String("prefix"), path.Base(filepath))
+	key := fmt.Sprintf("%s/%s", c.GlobalString("prefix"), path.Base(filepath))
 
 	if err = store.Store(filepath, key); err != nil {
 		return fmt.Errorf("couldn't upload file to S3, %v", err)
 	}
 
-	err = store.RemoveOlderBackups(c.String(c.String("prefix")), c.Int("max-backups"))
+	err = store.RemoveOlderBackups(c.GlobalString("prefix"), c.GlobalInt("max-backups"))
 	if err != nil {
 		fmt.Errorf("couldn't remove old backups from S3, %v", err)
 	}
@@ -61,22 +61,22 @@ func BackupTask(c *cli.Context, service services.Service, store stores.Storer) e
 
 func RestoreTask(c *cli.Context, service services.Service, store stores.Storer) error {
 	var err error
-	var s3path = c.String("s3path")
+	var s3key string
 
-	if key := c.String("s3key"); key != "" {
+	if key := c.GlobalString("s3key"); key != "" {
 		// restore directly from this S3 object
-		s3path = key
+		s3key = key
 	} else {
 		// find the latest S3 object
-		s3path, err = store.FindLatestBackup(c.String("prefix"))
+		s3key, err = store.FindLatestBackup(c.GlobalString("prefix"))
 		if err != nil {
 			return fmt.Errorf("cannot find the latest backup, %v", err)
 		}
 	}
 
-	filepath, err := store.Retrieve(s3path)
+	filepath, err := store.Retrieve(s3key)
 	if err != nil {
-		return fmt.Errorf("cannot download S3 object %s, %v", s3path, err)
+		return fmt.Errorf("cannot download S3 object %s, %v", s3key, err)
 	}
 
 	defer func() {
@@ -86,7 +86,7 @@ func RestoreTask(c *cli.Context, service services.Service, store stores.Storer) 
 	}()
 
 	if err = service.Restore(filepath); err != nil {
-		return fmt.Errorf("couldn't complete the restore, %v", err)
+		return fmt.Errorf("service restore failed: %v", err)
 	}
 
 	return nil
@@ -94,7 +94,7 @@ func RestoreTask(c *cli.Context, service services.Service, store stores.Storer) 
 
 func RunScheduler(c *cli.Context, task Task) error {
 	cr := cron.New()
-	schedule := c.String("schedule")
+	schedule := c.GlobalString("schedule")
 
 	if schedule == "" || schedule == "none" {
 		log.Printf("running job directly")
@@ -105,7 +105,7 @@ func RunScheduler(c *cli.Context, task Task) error {
 	timeoutchan := make(chan bool, 1)
 
 	cr.AddFunc(schedule, func() {
-		seconds := rand.Intn(c.Int("random-delay"))
+		seconds := rand.Intn(c.GlobalInt("random-delay"))
 
 		// run immediately is no delay is configured
 		if seconds == 0 {

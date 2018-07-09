@@ -31,13 +31,15 @@ var build = "0" // build number set at compile-time
 
 func getService(c *cli.Context) services.Service {
 	var serv services.Service
-	switch c.Args().First() {
+	switch c.Command.Name {
 	case "gogs":
 		serv = cmd.NewGogsConfig(c)
 	case "mysql":
 		serv = cmd.NewMysqlConfig(c)
 	case "postgres":
 		serv = cmd.NewPostgresConfig(c)
+	default:
+		log.Fatalf("unsopported service: %s", c.Args().Get(1))
 	}
 
 	return serv
@@ -72,14 +74,17 @@ func main() {
 				{
 					Name:   "gogs",
 					Action: backupJob,
+					Flags:  cmd.GogsFlags,
 				},
 				{
 					Name:   "mysql",
 					Action: backupJob,
+					Flags:  cmd.DatabaseFlags,
 				},
 				{
 					Name:   "postgres",
 					Action: backupJob,
+					Flags:  cmd.DatabaseFlags,
 				},
 			},
 		},
@@ -91,14 +96,17 @@ func main() {
 				{
 					Name:   "gogs",
 					Action: restoreJob,
+					Flags:  cmd.GogsFlags,
 				},
 				{
 					Name:   "mysql",
 					Action: restoreJob,
+					Flags:  cmd.DatabaseFlags,
 				},
 				{
 					Name:   "postgres",
 					Action: restoreJob,
+					Flags:  cmd.DatabaseFlags,
 				},
 			},
 		},
