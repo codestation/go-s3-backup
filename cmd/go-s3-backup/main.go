@@ -24,42 +24,83 @@ import (
 	"megpoid.xyz/go/go-s3-backup/cmd"
 
 	"github.com/urfave/cli"
+	"megpoid.xyz/go/go-s3-backup/services"
 )
 
 var build = "0" // build number set at compile-time
 
+func getService(c *cli.Context) services.Service {
+	var serv services.Service
+	switch c.Args().First() {
+	case "gogs":
+		serv = cmd.NewGogsConfig(c)
+	case "mysql":
+		serv = cmd.NewMysqlConfig(c)
+	case "postgres":
+		serv = cmd.NewPostgresConfig(c)
+	}
+
+	return serv
+}
+
 func backupJob(c *cli.Context) error {
 	return cmd.RunScheduler(c, func(c *cli.Context) error {
-		postgres := cmd.NewPostgresConfig(c)
+		serv := getService(c)
 		s3 := cmd.NewS3Config(c)
-		return cmd.BackupTask(c, postgres, s3)
+		return cmd.BackupTask(c, serv, s3)
 	})
 }
 
 func restoreJob(c *cli.Context) error {
 	return cmd.RunScheduler(c, func(c *cli.Context) error {
-		postgres := cmd.NewPostgresConfig(c)
+		serv := getService(c)
 		s3 := cmd.NewS3Config(c)
-		return cmd.RestoreTask(c, postgres, s3)
+		return cmd.RestoreTask(c, serv, s3)
 	})
 }
 
 func main() {
 	app := cli.NewApp()
-	app.Usage = "postgres-s3-backup"
+	app.Usage = "gogs-s3-backup"
 	app.Version = fmt.Sprintf("1.0.%s", build)
 	app.Commands = []cli.Command{
 		{
-			Name:   "backup",
-			Usage:  "run a backup task",
-			Action: backupJob,
-			Flags:  append(cmd.Flags, cmd.BackupFlags...),
+			Name:  "backup",
+			Usage: "run a backup task",
+			Flags: append(cmd.Flags, cmd.BackupFlags...),
+			Subcommands: []cli.Command{
+				{
+					Name:   "gogs",
+					Action: backupJob,
+				},
+				{
+					Name:   "mysql",
+					Action: backupJob,
+				},
+				{
+					Name:   "postgres",
+					Action: backupJob,
+				},
+			},
 		},
 		{
-			Name:   "restore",
-			Usage:  "run a restore task",
-			Action: restoreJob,
-			Flags:  append(cmd.Flags, cmd.RestoreFlags...),
+			Name:  "restore",
+			Usage: "run a restore task",
+			Flags: append(cmd.Flags, cmd.RestoreFlags...),
+			Subcommands: []cli.Command{
+				{
+					Name:   "gogs",
+					Action: restoreJob,
+				},
+				{
+					Name:   "mysql",
+					Action: restoreJob,
+				},
+				{
+					Name:   "postgres",
+					Action: restoreJob,
+				},
+			},
 		},
 	}
 

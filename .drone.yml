@@ -1,10 +1,49 @@
 pipeline:
   publish:
     image: plugins/docker
-    repo: registry.megpoid.xyz/gogs-s3-backup
+    repo: registry.megpoid.xyz/go-s3-backup
     registry: registry.megpoid.xyz
     mirror: https://registry-proxy.megpoid.xyz
     secrets: [ docker_username, docker_password ]
+    build_args:
+      - BUILD_NUMBER=$DRONE_BUILD_NUMBER
+      - COMMIT_SHA=$DRONE_COMMIT_SHA
+    tags:
+      - latest
+
+  publish-gogs:
+    image: plugins/docker
+    repo: registry.megpoid.xyz/gogs-s3-backup
+    dockerfile: docker/gogs/Dockerfile
+    registry: registry.megpoid.xyz
+    mirror: https://registry-proxy.megpoid.xyz
+    secrets: [ docker_username, docker_password ]
+    build_args:
+      - APP_IMAGE=registry.megpoid.xyz/go-s3-backup
+    tags:
+      - latest
+
+  publish-mysql:
+    image: plugins/docker
+    repo: registry.megpoid.xyz/mysql-s3-backup
+    dockerfile: docker/mysql/Dockerfile
+    registry: registry.megpoid.xyz
+    mirror: https://registry-proxy.megpoid.xyz
+    secrets: [ docker_username, docker_password ]
+    build_args:
+      - APP_IMAGE=registry.megpoid.xyz/go-s3-backup
+    tags:
+      - latest
+
+  publish-postgres:
+    image: plugins/docker
+    repo: registry.megpoid.xyz/postgres-s3-backup
+    dockerfile: docker/postgres/Dockerfile
+    registry: registry.megpoid.xyz
+    mirror: https://registry-proxy.megpoid.xyz
+    secrets: [ docker_username, docker_password ]
+    build_args:
+      - APP_IMAGE=registry.megpoid.xyz/go-s3-backup
     tags:
       - latest
 
