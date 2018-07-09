@@ -84,7 +84,7 @@ func main() {
 				{
 					Name:   "postgres",
 					Action: backupJob,
-					Flags:  cmd.DatabaseFlags,
+					Flags:  append(cmd.DatabaseFlags, cmd.PostgresFlags...),
 				},
 			},
 		},

@@ -120,7 +120,7 @@ func (s *S3) RemoveOlderBackups(prefix string, keep int) error {
 
 		for i, file := range files[:count] {
 			objs[i] = &s3.ObjectIdentifier{Key: aws.String(file)}
-			log.Printf("marked to delete: %s", file)
+			log.Printf("marked to delete: s3://%s/%s", s.Bucket, file)
 		}
 
 		items.SetObjects(objs)
