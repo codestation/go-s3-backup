@@ -92,7 +92,7 @@ var DatabaseFlags = []cli.Flag{
 		Usage:  "database password",
 		EnvVar: "DATABASE_PASSWORD",
 	},
-	cli.BoolFlag{
+	cli.StringSliceFlag{
 		Name:   "options",
 		Usage:  "extra options to pass to database service",
 		EnvVar: "DATABASE_OPTIONS",
