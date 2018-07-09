@@ -37,8 +37,8 @@ func NewMysqlConfig(c *cli.Context) *services.MySQL {
 		User:     c.String("user"),
 		Password: c.String("password"),
 		Database: c.String("database"),
-		Options:  c.StringSlice("mysql-options"),
-		Compress: c.Bool("backup-compress"),
+		Options:  c.StringSlice("options"),
+		Compress: c.Bool("compress"),
 	}
 }
 
@@ -49,9 +49,9 @@ func NewPostgresConfig(c *cli.Context) *services.Postgres {
 		User:     c.String("user"),
 		Password: c.String("password"),
 		Database: c.String("database"),
-		Options:  c.StringSlice("mysql-options"),
-		Compress: c.Bool("backup-compress"),
-		Custom:   c.Bool("postgres-custom"),
+		Options:  c.StringSlice("options"),
+		Compress: c.Bool("compress"),
+		Custom:   c.Bool("custom"),
 	}
 }
 

@@ -40,7 +40,7 @@ var PostgresRestoreApp = "/usr/bin/pg_restore"
 var PostgresTermApp = "/usr/bin/psql"
 
 func (p *Postgres) Backup() (string, error) {
-	filepath := fmt.Sprintf("%s/postgres-backup-%s.dump", SaveDir, time.Now().Format("20060102150405"))
+	filepath := fmt.Sprintf("%s/postgres-backup-%s", SaveDir, time.Now().Format("20060102150405"))
 	args := []string{
 		"-h", p.Host,
 		"-p", p.Port,
@@ -63,10 +63,14 @@ func (p *Postgres) Backup() (string, error) {
 	}
 
 	if p.Custom {
+		filepath += ".dump"
 		args = append(args, "-f", filepath)
 		args = append(args, "-Fc")
 	} else if !p.Compress {
+		filepath += ".sql"
 		args = append(args, "-f", filepath)
+	} else {
+		filepath += ".sql.gz"
 	}
 
 	cmd := exec.Command(app, args...)
@@ -82,10 +86,6 @@ func (p *Postgres) Backup() (string, error) {
 		if err := cmd.Run(); err != nil {
 			return "", fmt.Errorf("couldn't execute %s, %v", PostgresDumpApp, err)
 		}
-	}
-
-	if err := cmd.Run(); err != nil {
-		return "", fmt.Errorf("couldn't execute pg_dump, %v", err)
 	}
 
 	return filepath, nil

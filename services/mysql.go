@@ -37,7 +37,7 @@ var MysqlDumpApp = "/usr/bin/mysqldump"
 var MysqlRestoreApp = "/usr/bin/mysql"
 
 func (m MySQL) Backup() (string, error) {
-	filepath := fmt.Sprintf("%s/mysql-backup-%s.sql.gz", SaveDir, time.Now().Format("20060102150405"))
+	filepath := fmt.Sprintf("%s/mysql-backup-%s", SaveDir, time.Now().Format("20060102150405"))
 
 	args := []string{
 		"-h", m.Host,
@@ -56,7 +56,10 @@ func (m MySQL) Backup() (string, error) {
 	}
 
 	if !m.Compress {
+		filepath += ".sql"
 		args = append(args, "-r", filepath)
+	} else {
+		filepath += ".sql.gz"
 	}
 
 	cmd := exec.Command(MysqlDumpApp, args...)

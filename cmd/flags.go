@@ -92,6 +92,16 @@ var DatabaseFlags = []cli.Flag{
 		Usage:  "database password",
 		EnvVar: "DATABASE_PASSWORD",
 	},
+	cli.BoolFlag{
+		Name:   "options",
+		Usage:  "extra options to pass to database service",
+		EnvVar: "DATABASE_OPTIONS",
+	},
+	cli.BoolFlag{
+		Name:   "compress",
+		Usage:  "compress sql with gzip",
+		EnvVar: "DATABASE_COMPRESS",
+	},
 }
 
 var BackupFlags = []cli.Flag{
@@ -106,6 +116,14 @@ var BackupFlags = []cli.Flag{
 		Usage:  "max backups to keep (0 to disable the feature)",
 		Value:  5,
 		EnvVar: "MAX_BACKUPS",
+	},
+}
+
+var PostgresFlags = []cli.Flag{
+	cli.BoolFlag{
+		Name:   "custom",
+		Usage:  "use custom format",
+		EnvVar: "POSTGRES_CUSTOM_FORMAT",
 	},
 }
 
