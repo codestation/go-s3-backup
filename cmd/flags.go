@@ -58,6 +58,12 @@ var GogsFlags = []cli.Flag{
 		Usage:  "gogs config path",
 		EnvVar: "GOGS_CONFIG",
 	},
+	cli.StringFlag{
+		Name:   "gogs-data",
+		Usage:  "gogs data path",
+		Value:  "/data",
+		EnvVar: "GOGS_DATA",
+	},
 }
 
 var DatabaseFlags = []cli.Flag{

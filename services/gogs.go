@@ -29,6 +29,7 @@ import (
 
 type Gogs struct {
 	ConfigPath string
+	DataPath   string
 }
 
 var GogsAppPath = "/app/gogs/gogs"
@@ -78,7 +79,8 @@ func (g *Gogs) Backup() (string, error) {
 	}
 
 	env := os.Environ()
-	cmd.Env = append(env, "USER=git")
+	home := fmt.Sprintf("HOME=%s", path.Join(g.DataPath, "git"))
+	cmd.Env = append(env, "USER=git", home)
 
 	if err := cmd.Run(); err != nil {
 		return "", fmt.Errorf("couldn't execute %s, %v", GogsAppPath, err)
@@ -114,7 +116,8 @@ func (g *Gogs) Restore(filepath string) error {
 	}
 
 	env := os.Environ()
-	cmd.Env = append(env, "USER=git")
+	home := fmt.Sprintf("HOME=%s", path.Join(g.DataPath, "git"))
+	cmd.Env = append(env, "USER=git", home)
 
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("couldn't execute gogs restore, %v", err)

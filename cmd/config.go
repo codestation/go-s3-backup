@@ -24,7 +24,10 @@ import (
 )
 
 func NewGogsConfig(c *cli.Context) *services.Gogs {
-	return &services.Gogs{ConfigPath: c.String("gogs-config")}
+	return &services.Gogs{
+		ConfigPath: c.String("gogs-config"),
+		DataPath:   c.String("gogs-data"),
+	}
 }
 
 func NewMysqlConfig(c *cli.Context) *services.MySQL {

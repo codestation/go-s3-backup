@@ -16,4 +16,4 @@ FROM scratch
 
 COPY --from=builder /go/bin/go-s3-backup /go-s3-backup
 
-CMD ["/go-s3-backup"]
+ENTRYPOINT ["/go-s3-backup"]
