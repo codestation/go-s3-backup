@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path"
 	"time"
 )
 
@@ -54,7 +55,7 @@ func (g *Gogs) Backup() (string, error) {
 		return "", fmt.Errorf("couldn't execute %s, %v", GogsAppPath, err)
 	}
 
-	return filepath, nil
+	return path.Join(SaveDir, filepath), nil
 }
 
 func (g *Gogs) Restore(filepath string) error {
