@@ -5,6 +5,8 @@ ARG COMMIT_SHA
 ARG SOURCE_COMMIT
 ENV BUILD_COMMIT=${COMMIT_SHA:-${SOURCE_COMMIT:-unknown}}
 
+RUN apk add --no-cache ca-certificates
+
 COPY . $GOPATH/src/megpoid.xyz/go/go-s3-backup/
 WORKDIR $GOPATH/src/megpoid.xyz/go/go-s3-backup/
 
@@ -14,6 +16,7 @@ RUN CGO_ENABLED=0 go install -ldflags \
 
 FROM scratch
 
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /go/bin/go-s3-backup /go-s3-backup
 
 ENTRYPOINT ["/go-s3-backup"]
