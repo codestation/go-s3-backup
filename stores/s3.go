@@ -112,26 +112,28 @@ func (s *S3) RemoveOlderBackups(prefix string, keep int) error {
 	}
 
 	sort.Strings(files)
-
-	var items s3.Delete
 	count := len(files) - keep
-	var objs = make([]*s3.ObjectIdentifier, count)
 
-	for i, file := range files[:count] {
-		objs[i] = &s3.ObjectIdentifier{Key: aws.String(file)}
-		log.Printf("marked to delete: %s", file)
-	}
+	if count > 0 {
+		var items s3.Delete
+		var objs = make([]*s3.ObjectIdentifier, count)
 
-	items.SetObjects(objs)
+		for i, file := range files[:count] {
+			objs[i] = &s3.ObjectIdentifier{Key: aws.String(file)}
+			log.Printf("marked to delete: %s", file)
+		}
 
-	out, err := svc.DeleteObjects(&s3.DeleteObjectsInput{
-		Bucket: aws.String(s.Bucket),
-		Delete: &items})
+		items.SetObjects(objs)
 
-	if err != nil {
-		return fmt.Errorf("couldn't delete the S3 objects, %v", err)
-	} else {
-		log.Printf("deleted %d objects from S3", len(out.Deleted))
+		out, err := svc.DeleteObjects(&s3.DeleteObjectsInput{
+			Bucket: aws.String(s.Bucket),
+			Delete: &items})
+
+		if err != nil {
+			return fmt.Errorf("couldn't delete the S3 objects, %v", err)
+		} else {
+			log.Printf("deleted %d objects from S3", len(out.Deleted))
+		}
 	}
 
 	return nil
