@@ -21,3 +21,7 @@ The schedule function can also be used on restore if you need to test your backu
 * `SCHEDULE_RANDOM_DELAY`: maximum number of seconds (value choosen at random) to wait before starting a task. There is no random delay by default.
 * `MAX_BACKUPS`: maximum number of backups to keep on S3. Only used with the `backup` command.
 * `S3_KEY`: Restore directly from this S3 object instead of searching for the most recent one. Only used with the `restore` command.
+* `DATABASE_HOST`: database host.
+* `DATABASE_PORT`: database port.
+* `DATABASE_USER`:  database user.
+* `DATABASE_PASSWORD`:  database password.

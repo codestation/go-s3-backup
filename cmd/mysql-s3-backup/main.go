@@ -21,22 +21,27 @@ import (
 	"log"
 	"os"
 
-	"megpoid.xyz/go/go-s3-backup/mysql"
-	"megpoid.xyz/go/go-s3-backup/s3"
+	"megpoid.xyz/go/go-s3-backup/cmd"
 
 	"github.com/urfave/cli"
 )
 
 var build = "0" // build number set at compile-time
 
-func setBackupFunc(_ *cli.Context) error {
-	s3.DoBackup = mysql.Backup
-	return nil
+func backupJob(c *cli.Context) error {
+	return cmd.RunScheduler(c, func(c *cli.Context) error {
+		mysql := cmd.NewMysqlConfig(c)
+		s3 := cmd.NewS3Config(c)
+		return cmd.BackupTask(c, mysql, s3)
+	})
 }
 
-func setRestoreFunc(_ *cli.Context) error {
-	s3.DoRestore = mysql.Restore
-	return nil
+func restoreJob(c *cli.Context) error {
+	return cmd.RunScheduler(c, func(c *cli.Context) error {
+		mysql := cmd.NewMysqlConfig(c)
+		s3 := cmd.NewS3Config(c)
+		return cmd.RestoreTask(c, mysql, s3)
+	})
 }
 
 func main() {
@@ -47,16 +52,14 @@ func main() {
 		{
 			Name:   "backup",
 			Usage:  "run a backup task",
-			Before: setBackupFunc,
-			Action: s3.RunBackup,
-			Flags:  append(s3.Flags, s3.BackupFlags...),
+			Action: backupJob,
+			Flags:  append(cmd.Flags, cmd.BackupFlags...),
 		},
 		{
 			Name:   "restore",
 			Usage:  "run a restore task",
-			Before: setRestoreFunc,
-			Action: s3.RunRestore,
-			Flags:  append(s3.Flags, s3.RestoreFlags...),
+			Action: restoreJob,
+			Flags:  append(cmd.Flags, cmd.RestoreFlags...),
 		},
 	}
 
