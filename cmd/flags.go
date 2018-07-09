@@ -45,7 +45,7 @@ var Flags = []cli.Flag{
 		EnvVar: "S3_FORCE_PATH_STYLE",
 	},
 	cli.IntFlag{
-		Name:   "schedle-delay",
+		Name:   "random-delay",
 		Usage:  "schedule random delay",
 		Value:  0,
 		EnvVar: "SCHEDULE_RANDOM_DELAY",
