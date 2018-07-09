@@ -1,4 +1,4 @@
-ARGARG APP_IMAGE=codestation/go-s3-backup
+ARG APP_IMAGE=codestation/go-s3-backup
 FROM $APP_IMAGE AS binary
 
 FROM mysql:5.7
