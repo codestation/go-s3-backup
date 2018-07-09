@@ -83,7 +83,7 @@ func (s *S3) Store(filepath string, key string) error {
 		return fmt.Errorf("failed to upload file, %v", err)
 	}
 
-	fmt.Printf("file uploaded to %s\n", res.Location)
+	log.Printf("file uploaded to %s\n", res.Location)
 
 	return nil
 }
@@ -131,7 +131,7 @@ func (s *S3) RemoveOlderBackups(prefix string, keep int) error {
 	if err != nil {
 		return fmt.Errorf("couldn't delete the S3 objects, %v", err)
 	} else {
-		fmt.Printf("deleted %d objects from S3", len(out.Deleted))
+		log.Printf("deleted %d objects from S3", len(out.Deleted))
 	}
 
 	return nil
@@ -192,7 +192,7 @@ func (s *S3) Retrieve(s3path string) (string, error) {
 		return "", fmt.Errorf("failed to download S3 object, %v", err)
 	}
 
-	fmt.Printf("file downloaded to %s\n", filepath)
+	log.Printf("file downloaded to %s\n", filepath)
 
 	return filepath, nil
 }
