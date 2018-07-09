@@ -62,6 +62,11 @@ func (m MySQL) Backup() (string, error) {
 		filepath += ".sql.gz"
 	}
 
+	// add extra options
+	if len(m.Options) > 0 {
+		args = append(args, m.Options...)
+	}
+
 	cmd := exec.Command(MysqlDumpApp, args...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -95,6 +100,11 @@ func (m *MySQL) Restore(filepath string) error {
 
 	if m.Password != "" {
 		args = append(args, "-p", m.Password)
+	}
+
+	// add extra options
+	if len(m.Options) > 0 {
+		args = append(args, m.Options...)
 	}
 
 	cmd := exec.Command(MysqlRestoreApp, args...)

@@ -73,6 +73,11 @@ func (p *Postgres) Backup() (string, error) {
 		filepath += ".sql.gz"
 	}
 
+	// add extra options
+	if len(p.Options) > 0 {
+		args = append(args, p.Options...)
+	}
+
 	cmd := exec.Command(app, args...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -106,6 +111,11 @@ func (p *Postgres) Restore(filepath string) error {
 
 	if p.Password != "" {
 		env = append(env, "PGPASSWORD="+p.Password)
+	}
+
+	// add extra options
+	if len(p.Options) > 0 {
+		args = append(args, p.Options...)
 	}
 
 	var App string
