@@ -88,7 +88,7 @@ var DatabaseFlags = []cli.Flag{
 		EnvVar: "DATABASE_USER",
 	},
 	cli.StringFlag{
-		Name:   "dpassword",
+		Name:   "password",
 		Usage:  "database password",
 		EnvVar: "DATABASE_PASSWORD",
 	},
