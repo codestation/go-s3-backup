@@ -35,7 +35,7 @@ type Service interface {
 }
 
 func CompressAppOutput(cmd *exec.Cmd, filepath string) error {
-	f, err := os.Open(filepath)
+	f, err := os.Create(filepath)
 	if err != nil {
 		return fmt.Errorf("cannot open file %s, %v", filepath, err)
 	}
