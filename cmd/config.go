@@ -18,9 +18,9 @@ package cmd
 
 import (
 	"megpoid.xyz/go/go-s3-backup/services"
+	"megpoid.xyz/go/go-s3-backup/stores"
 
 	"github.com/urfave/cli"
-	"megpoid.xyz/go/go-s3-backup/stores"
 )
 
 func NewGogsConfig(c *cli.Context) *services.Gogs {

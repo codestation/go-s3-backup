@@ -18,13 +18,14 @@ package services
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"path"
 	"strconv"
 	"syscall"
 	"time"
+
+	log "gopkg.in/clog.v1"
 )
 
 type Gogs struct {
@@ -42,7 +43,7 @@ func getEnvInt(key string, def int) int {
 		if err == nil {
 			return val
 		} else {
-			log.Printf("cannot parse env key %s with value %s", key, value)
+			log.Warn("cannot parse env key %s with value %s", key, value)
 		}
 	}
 
@@ -75,7 +76,7 @@ func (g *Gogs) Backup() (string, error) {
 		cmd.SysProcAttr = &syscall.SysProcAttr{}
 		cmd.SysProcAttr.Credential = &syscall.Credential{Uid: uid, Gid: gid}
 	} else {
-		log.Printf("not runnign as root, starting %s with UID %d", GogsAppPath, os.Geteuid())
+		log.Info("not runnign as root, starting %s with UID %d", GogsAppPath, os.Geteuid())
 	}
 
 	env := os.Environ()
@@ -112,7 +113,7 @@ func (g *Gogs) Restore(filepath string) error {
 		cmd.SysProcAttr = &syscall.SysProcAttr{}
 		cmd.SysProcAttr.Credential = &syscall.Credential{Uid: uid, Gid: gid}
 	} else {
-		log.Printf("not runnign as root, starting %s with UID %d", GogsAppPath, os.Geteuid())
+		log.Info("not runnign as root, starting %s with UID %d", GogsAppPath, os.Geteuid())
 	}
 
 	env := os.Environ()

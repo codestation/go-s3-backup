@@ -18,7 +18,6 @@ package stores
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path"
 	"sort"
@@ -29,6 +28,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	log "gopkg.in/clog.v1"
 )
 
 type S3 struct {
@@ -83,7 +83,7 @@ func (s *S3) Store(filepath string, key string) error {
 		return fmt.Errorf("failed to upload file, %v", err)
 	}
 
-	log.Printf("file uploaded to %s\n", res.Location)
+	log.Trace("file uploaded to %s\n", res.Location)
 
 	return nil
 }
@@ -120,7 +120,7 @@ func (s *S3) RemoveOlderBackups(prefix string, keep int) error {
 
 		for i, file := range files[:count] {
 			objs[i] = &s3.ObjectIdentifier{Key: aws.String(file)}
-			log.Printf("marked to delete: s3://%s/%s", s.Bucket, file)
+			log.Trace("marked to delete: s3://%s/%s", s.Bucket, file)
 		}
 
 		items.SetObjects(objs)
@@ -132,7 +132,7 @@ func (s *S3) RemoveOlderBackups(prefix string, keep int) error {
 		if err != nil {
 			return fmt.Errorf("couldn't delete the S3 objects, %v", err)
 		} else {
-			log.Printf("deleted %d objects from S3", len(out.Deleted))
+			log.Trace("deleted %d objects from S3", len(out.Deleted))
 		}
 	}
 
@@ -194,7 +194,7 @@ func (s *S3) Retrieve(s3path string) (string, error) {
 		return "", fmt.Errorf("failed to download S3 object, %v", err)
 	}
 
-	log.Printf("file downloaded to %s\n", filepath)
+	log.Trace("file downloaded to %s\n", filepath)
 
 	return filepath, nil
 }

@@ -18,7 +18,6 @@ package cmd
 
 import (
 	"fmt"
-	"log"
 	"math/rand"
 	"os"
 	"os/signal"
@@ -31,6 +30,7 @@ import (
 
 	"github.com/robfig/cron"
 	"github.com/urfave/cli"
+	log "gopkg.in/clog.v1"
 )
 
 type Task func(c *cli.Context) error
@@ -40,6 +40,8 @@ func BackupTask(c *cli.Context, service services.Service, store stores.Storer) e
 	if err != nil {
 		return fmt.Errorf("service backup failed: %v", err)
 	}
+
+	log.Trace("backup saved to %s", filepath)
 
 	defer func() {
 		os.Remove(filepath)
@@ -79,9 +81,11 @@ func RestoreTask(c *cli.Context, service services.Service, store stores.Storer) 
 		return fmt.Errorf("cannot download S3 object %s, %v", s3key, err)
 	}
 
+	log.Trace("backup retrieved to %s", filepath)
+
 	defer func() {
 		if err := os.Remove(filepath); err != nil {
-			log.Printf("cannot remove file %s, %v", filepath, err)
+			log.Warn("cannot remove file %s, %v", filepath, err)
 		}
 	}()
 
@@ -97,11 +101,11 @@ func RunScheduler(c *cli.Context, task Task) error {
 	schedule := c.GlobalString("schedule")
 
 	if schedule == "" || schedule == "none" {
-		log.Printf("running job directly")
+		log.Trace("running job directly")
 		return task(c)
 	}
 
-	log.Printf("starting scheduled backup jobs")
+	log.Trace("starting scheduled backup jobs")
 	timeoutchan := make(chan bool, 1)
 
 	cr.AddFunc(schedule, func() {
@@ -110,22 +114,22 @@ func RunScheduler(c *cli.Context, task Task) error {
 		// run immediately is no delay is configured
 		if seconds == 0 {
 			if err := task(c); err != nil {
-				log.Printf("failed to run scheduled task, %v", err)
+				log.Error(0, "failed to run scheduled task, %v", err)
 			}
 			return
 		}
 
-		log.Printf("waiting for %d seconds before starting scheduled job", seconds)
+		log.Trace("waiting for %d seconds before starting scheduled job", seconds)
 
 		select {
 		case <-timeoutchan:
-			log.Printf("random timeout cancelled")
+			log.Trace("random timeout cancelled")
 			break
 		case <-time.After(time.Duration(seconds) * time.Second):
-			log.Printf("running scheduled task")
+			log.Trace("running scheduled task")
 
 			if err := task(c); err != nil {
-				log.Printf("failed to run scheduled task, %v", err)
+				log.Error(0, "failed to run scheduled task, %v", err)
 			}
 			break
 		}
@@ -139,7 +143,7 @@ func RunScheduler(c *cli.Context, task Task) error {
 	timeoutchan <- true
 	close(timeoutchan)
 
-	log.Printf("stopping scheduled task")
+	log.Trace("stopping scheduled task")
 	cr.Stop()
 
 	return nil

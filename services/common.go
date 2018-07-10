@@ -20,11 +20,12 @@ import (
 	"compress/gzip"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"os/exec"
 	"strings"
 	"sync"
+
+	log "gopkg.in/clog.v1"
 )
 
 var SaveDir = "/tmp"
@@ -58,7 +59,7 @@ func CompressAppOutput(cmd *exec.Cmd, filepath string) error {
 		defer wg.Done()
 		err := cmd.Wait()
 		if err != nil {
-			log.Println(err)
+			log.Error(0, "error while waiting for process output: %v", err)
 		}
 		gzW.Close()
 		pw.Close()
@@ -105,7 +106,7 @@ func ReadFileToInput(cmd *exec.Cmd, filepath string) error {
 		defer wg.Done()
 		err := cmd.Wait()
 		if err != nil {
-			log.Println(err)
+			log.Error(0, "error while waiting for process input: %v", err)
 		}
 		pw.Close()
 	}()

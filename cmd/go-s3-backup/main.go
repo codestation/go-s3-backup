@@ -17,17 +17,21 @@ limitations under the License.
 package main
 
 import (
-	"fmt"
-	"log"
 	"os"
 
 	"megpoid.xyz/go/go-s3-backup/cmd"
+	"megpoid.xyz/go/go-s3-backup/services"
 
 	"github.com/urfave/cli"
-	"megpoid.xyz/go/go-s3-backup/services"
+	log "gopkg.in/clog.v1"
 )
 
-var build = "0" // build number set at compile-time
+var (
+	// Build information (set by -ldflags)
+	BuildTime   string
+	BuildCommit string
+	AppVersion  string
+)
 
 func getService(c *cli.Context) services.Service {
 	var serv services.Service
@@ -39,7 +43,7 @@ func getService(c *cli.Context) services.Service {
 	case "postgres":
 		serv = cmd.NewPostgresConfig(c)
 	default:
-		log.Fatalf("unsopported service: %s", c.Args().Get(1))
+		log.Fatal(0, "unsupported service: %s", c.Args().Get(1))
 	}
 
 	return serv
@@ -63,8 +67,8 @@ func restoreJob(c *cli.Context) error {
 
 func main() {
 	app := cli.NewApp()
-	app.Usage = "gogs-s3-backup"
-	app.Version = fmt.Sprintf("1.0.%s", build)
+	app.Usage = "run backups from various services to S3-like storage"
+	app.Version = AppVersion
 	app.Commands = []cli.Command{
 		{
 			Name:  "backup",
@@ -112,7 +116,15 @@ func main() {
 		},
 	}
 
+	log.New(log.CONSOLE, log.ConsoleConfig{})
+	log.Info("go-s3-backup %s", AppVersion)
+
+	if len(BuildTime) > 0 {
+		log.Trace("Build Time: %s", BuildTime)
+		log.Trace("Build Commit: %s", BuildCommit)
+	}
+
 	if err := app.Run(os.Args); err != nil {
-		log.Fatal(err)
+		log.Fatal(0, err.Error())
 	}
 }

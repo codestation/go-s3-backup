@@ -11,7 +11,7 @@ COPY . $GOPATH/src/megpoid.xyz/go/go-s3-backup/
 WORKDIR $GOPATH/src/megpoid.xyz/go/go-s3-backup/
 
 RUN CGO_ENABLED=0 go install -ldflags \
-  "-w -s -X main.build=${BUILD_NUMBER} -X main.commit=$(expr substr BUILD_COMMIT_SHORT 1 8)" \
+  "-w -s -X main.AppVersion=1.0.${BUILD_NUMBER:-0} -X main.BuildCommit=$(expr substr BUILD_COMMIT_SHORT 1 8) -X main.BuildTime=$(date -u '+%Y-%m-%d %I:%M:%S %Z')" \
   -a -tags netgo ./cmd/go-s3-backup
 
 FROM scratch
