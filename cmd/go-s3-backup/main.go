@@ -30,7 +30,7 @@ var (
 	// Build information (set by -ldflags)
 	BuildTime   string
 	BuildCommit string
-	AppVersion  = "0.0.0"
+	AppVersion  = "0.1.0"
 )
 
 func getService(c *cli.Context) services.Service {
