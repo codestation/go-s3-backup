@@ -30,7 +30,7 @@ var (
 	// Build information (set by -ldflags)
 	BuildTime   string
 	BuildCommit string
-	AppVersion  string
+	AppVersion  = "0.0.0"
 )
 
 func getService(c *cli.Context) services.Service {
@@ -116,12 +116,16 @@ func main() {
 		},
 	}
 
-	log.New(log.CONSOLE, log.ConsoleConfig{})
-	log.Info("go-s3-backup %s", AppVersion)
+	app.Before = func(c *cli.Context) error {
+		log.New(log.CONSOLE, log.ConsoleConfig{})
+		log.Info("go-s3-backup %s", AppVersion)
 
-	if len(BuildTime) > 0 {
-		log.Trace("Build Time: %s", BuildTime)
-		log.Trace("Build Commit: %s", BuildCommit)
+		if len(BuildTime) > 0 {
+			log.Trace("Build Time: %s", BuildTime)
+			log.Trace("Build Commit: %s", BuildCommit)
+		}
+
+		return nil
 	}
 
 	if err := app.Run(os.Args); err != nil {
