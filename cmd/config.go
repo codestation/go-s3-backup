@@ -55,6 +55,14 @@ func NewPostgresConfig(c *cli.Context) *services.Postgres {
 	}
 }
 
+func NewTarballConfig(c *cli.Context) *services.Tarball {
+	return &services.Tarball{
+		Path:     c.String("path"),
+		Name:     c.String("name"),
+		Compress: c.Bool("tarball-compress"),
+	}
+}
+
 func NewS3Config(c *cli.Context) *stores.S3 {
 	return &stores.S3{
 		Endpoint:       c.GlobalString("endpoint"),
@@ -63,5 +71,12 @@ func NewS3Config(c *cli.Context) *stores.S3 {
 		AccessKey:      c.GlobalString("access-key"),
 		ClientSecret:   c.GlobalString("client-secret"),
 		ForcePathStyle: c.GlobalBool("force-path-style"),
+	}
+}
+
+func NewFilesystemConfig(c *cli.Context) *stores.Filesystem {
+	return &stores.Filesystem{
+		Path:   c.GlobalString("path"),
+		Rename: c.GlobalBool("rename"),
 	}
 }

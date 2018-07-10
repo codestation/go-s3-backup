@@ -24,6 +24,7 @@ import (
 
 	"github.com/urfave/cli"
 	log "gopkg.in/clog.v1"
+	"megpoid.xyz/go/go-s3-backup/stores"
 )
 
 var (
@@ -42,6 +43,8 @@ func getService(c *cli.Context) services.Service {
 		serv = cmd.NewMysqlConfig(c)
 	case "postgres":
 		serv = cmd.NewPostgresConfig(c)
+	case "tarball":
+		serv = cmd.NewTarballConfig(c)
 	default:
 		log.Fatal(0, "unsupported service: %s", c.Args().Get(1))
 	}
@@ -50,6 +53,8 @@ func getService(c *cli.Context) services.Service {
 }
 
 func backupJob(c *cli.Context) error {
+	services.SaveDir = c.GlobalString("save-dir")
+
 	return cmd.RunScheduler(c, func(c *cli.Context) error {
 		serv := getService(c)
 		s3 := cmd.NewS3Config(c)
@@ -58,6 +63,8 @@ func backupJob(c *cli.Context) error {
 }
 
 func restoreJob(c *cli.Context) error {
+	stores.SaveDir = c.GlobalString("save-dir")
+
 	return cmd.RunScheduler(c, func(c *cli.Context) error {
 		serv := getService(c)
 		s3 := cmd.NewS3Config(c)
@@ -90,6 +97,11 @@ func main() {
 					Action: backupJob,
 					Flags:  append(cmd.DatabaseFlags, cmd.PostgresFlags...),
 				},
+				{
+					Name:   "tarball",
+					Action: backupJob,
+					Flags:  append(cmd.DatabaseFlags, cmd.TarballFlags...),
+				},
 			},
 		},
 		{
@@ -111,6 +123,11 @@ func main() {
 					Name:   "postgres",
 					Action: restoreJob,
 					Flags:  append(cmd.DatabaseFlags, cmd.PostgresFlags...),
+				},
+				{
+					Name:   "tarball",
+					Action: restoreJob,
+					Flags:  append(cmd.DatabaseFlags, cmd.TarballFlags...),
 				},
 			},
 		},

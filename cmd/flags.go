@@ -50,6 +50,17 @@ var Flags = []cli.Flag{
 		Value:  0,
 		EnvVar: "SCHEDULE_RANDOM_DELAY",
 	},
+	cli.BoolFlag{
+		Name:   "skip-s3",
+		Usage:  "use filesystem instead of S3",
+		EnvVar: "SKIP_S3",
+	},
+	cli.StringFlag{
+		Name:   "save-dir",
+		Usage:  "directory to save/read backups",
+		Value:  "/tmp",
+		EnvVar: "SAVE_DIR",
+	},
 }
 
 var GogsFlags = []cli.Flag{
@@ -124,6 +135,24 @@ var PostgresFlags = []cli.Flag{
 		Name:   "custom",
 		Usage:  "use custom format",
 		EnvVar: "POSTGRES_CUSTOM_FORMAT",
+	},
+}
+
+var TarballFlags = []cli.Flag{
+	cli.StringFlag{
+		Name:   "path",
+		Usage:  "path to backup/restore",
+		EnvVar: "TARBALL_PATH_SOURCE",
+	},
+	cli.StringFlag{
+		Name:   "name",
+		Usage:  "backup file prefix",
+		EnvVar: "TARBALL_NAME_PREFIX",
+	},
+	cli.BoolFlag{
+		Name:   "tarball-compress",
+		Usage:  "compress tarball with gzip",
+		EnvVar: "TARBALL_COMPRESS",
 	},
 }
 

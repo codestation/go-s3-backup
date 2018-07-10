@@ -43,9 +43,14 @@ func BackupTask(c *cli.Context, service services.Service, store stores.Storer) e
 
 	log.Trace("backup saved to %s", filepath)
 
-	defer func() {
-		os.Remove(filepath)
-	}()
+	if c.Bool("skip-s3") {
+		log.Trace("skipping S3 upload")
+		return nil
+	} else {
+		defer func() {
+			os.Remove(filepath)
+		}()
+	}
 
 	key := fmt.Sprintf("%s/%s", c.GlobalString("prefix"), path.Base(filepath))
 

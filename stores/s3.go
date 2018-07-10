@@ -40,8 +40,6 @@ type S3 struct {
 	ForcePathStyle bool
 }
 
-var SaveDir = "/tmp"
-
 func (s *S3) newSession() *session.Session {
 	var creds *credentials.Credentials
 

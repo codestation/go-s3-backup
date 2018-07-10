@@ -16,6 +16,8 @@ limitations under the License.
 
 package stores
 
+var SaveDir = "/tmp"
+
 type Storer interface {
 	Store(filepath string, key string) error
 	Retrieve(s3path string) (string, error)
