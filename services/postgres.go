@@ -37,10 +37,13 @@ type Postgres struct {
 
 // PostgresDumpApp points to the pg_dump binary location
 var PostgresDumpApp = "/usr/bin/pg_dump"
+
 // PostgresDumpallApp points to the pg_dumpall binary location
 var PostgresDumpallApp = "/usr/bin/pg_dumpall"
+
 // PostgresRestoreApp points to the pg_restore binary location
 var PostgresRestoreApp = "/usr/bin/pg_restore"
+
 // PostgresTermApp points to the psql binary location
 var PostgresTermApp = "/usr/bin/psql"
 

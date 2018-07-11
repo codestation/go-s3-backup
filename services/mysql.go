@@ -36,6 +36,7 @@ type MySQL struct {
 
 // MysqlDumpApp points to the mysqldump binary location
 var MysqlDumpApp = "/usr/bin/mysqldump"
+
 // MysqlRestoreApp points to the mysql binary location
 var MysqlRestoreApp = "/usr/bin/mysql"
 

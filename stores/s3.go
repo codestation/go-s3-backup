@@ -71,9 +71,14 @@ func (s *S3) Store(filepath string, filename string) error {
 		return fmt.Errorf("failed to open file %q, %v", filepath, err)
 	}
 
-	defer func() {
-		os.Remove(filepath)
-	}()
+	if s.RemoveAfterUpload {
+		defer func() {
+			log.Info("removing source file %s", filepath)
+			if err = os.Remove(filepath); err != nil {
+				log.Warn("cannot remove file %s, %v", filepath, err)
+			}
+		}()
+	}
 
 	key := path.Clean(path.Join(s.Prefix, filename))
 
@@ -88,13 +93,6 @@ func (s *S3) Store(filepath string, filename string) error {
 	}
 
 	log.Trace("file uploaded to %s\n", res.Location)
-
-	if s.RemoveAfterUpload {
-		log.Info("removing source file %s", filepath)
-		if err = os.Remove(filepath); err != nil {
-			log.Warn("cannot remove file %s, %v", filepath, err)
-		}
-	}
 
 	return nil
 }

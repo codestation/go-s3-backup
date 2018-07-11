@@ -25,11 +25,11 @@ import (
 
 var (
 	// BuildTime indicates the date when the binary was built (set by -ldflags)
-	BuildTime   string
+	BuildTime string
 	// BuildCommit indicates the git commit of the build
 	BuildCommit string
 	// AppVersion indicates the application version
-	AppVersion  = "0.1.0"
+	AppVersion = "0.1.0"
 )
 
 func main() {

@@ -47,12 +47,23 @@ func (f *Filesystem) Store(src string, filename string) error {
 		return nil
 	}
 
+	var removeSourceFile = false
+
 	srcFile, err := os.Open(src)
 	if err != nil {
 		return fmt.Errorf("cannot open source file %s, %v", src, err)
 	}
 
-	defer srcFile.Close()
+	defer func() {
+		srcFile.Close()
+
+		// if there aren't any errors on the file copy then delete the source file
+		if removeSourceFile {
+			if err = os.Remove(src); err != nil {
+				log.Warn("cannot remove source file %s", src)
+			}
+		}
+	}()
 
 	destFile, err := os.Create(dest)
 	if err != nil {
@@ -66,10 +77,11 @@ func (f *Filesystem) Store(src string, filename string) error {
 		return fmt.Errorf("error while copying file, %v", err)
 	}
 
-	err = destFile.Sync()
-	if err != nil {
+	if err = destFile.Sync(); err != nil {
 		return fmt.Errorf("cannot flush file contents, %v", err)
 	}
+
+	removeSourceFile = true
 
 	return nil
 }
