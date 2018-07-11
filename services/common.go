@@ -83,19 +83,19 @@ func readFileToInput(cmd *exec.Cmd, filepath string) error {
 
 	defer f.Close()
 
+	var gzR io.ReadCloser
 	pr, pw := io.Pipe()
-	var gzR io.Reader
 
 	if strings.HasSuffix(filepath, ".gz") {
-		gzR, err = gzip.NewReader(pr)
+		gzR, err = gzip.NewReader(f)
 		if err != nil {
-			return fmt.Errorf("cannot create gzip reader, %v", err)
+			return fmt.Errorf("cannot create gzip reader: %v", err)
 		}
 	} else {
-		gzR = pr
+		gzR = f
 	}
 
-	cmd.Stdin = gzR
+	cmd.Stdin = pr
 
 	if err := cmd.Start(); err != nil {
 		return fmt.Errorf("couldn't execute %s, %v", cmd.Args[0], err)
@@ -110,10 +110,11 @@ func readFileToInput(cmd *exec.Cmd, filepath string) error {
 		if err != nil {
 			log.Error(0, "error while waiting for process input: %v", err)
 		}
+		gzR.Close()
 		pw.Close()
 	}()
 
-	_, err = io.Copy(pw, f)
+	_, err = io.Copy(pw, gzR)
 	if err != nil {
 		return fmt.Errorf("couldn't pipe file contents to stdin, %v", err)
 	}
