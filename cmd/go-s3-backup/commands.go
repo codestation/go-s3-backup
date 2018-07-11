@@ -20,7 +20,7 @@ import (
 	"github.com/urfave/cli"
 )
 
-var Flags = []cli.Flag{
+var defaultFlags = []cli.Flag{
 	cli.IntFlag{
 		Name:   "random-delay",
 		Usage:  "schedule random delay",
@@ -35,7 +35,7 @@ var Flags = []cli.Flag{
 	},
 }
 
-var BackupFlags = []cli.Flag{
+var backupFlags = []cli.Flag{
 	cli.StringFlag{
 		Name:   "schedule",
 		Usage:  "cron schedule",
@@ -50,7 +50,7 @@ var BackupFlags = []cli.Flag{
 	},
 }
 
-var RestoreFlags = []cli.Flag{
+var restoreFlags = []cli.Flag{
 	cli.StringFlag{
 		Name:   "schedule",
 		Usage:  "cron schedule",
@@ -69,7 +69,7 @@ func backupCmd() cli.Command {
 	return cli.Command{
 		Name:  name,
 		Usage: "run a backup task",
-		Flags: append(Flags, BackupFlags...),
+		Flags: append(defaultFlags, backupFlags...),
 		Subcommands: []cli.Command{
 			gogsCmd(name),
 			postgresCmd(name),
@@ -84,7 +84,7 @@ func restoreCmd() cli.Command {
 	return cli.Command{
 		Name:  "restore",
 		Usage: "run a restore task",
-		Flags: append(Flags, RestoreFlags...),
+		Flags: append(defaultFlags, restoreFlags...),
 		Subcommands: []cli.Command{
 			gogsCmd(name),
 			postgresCmd(name),

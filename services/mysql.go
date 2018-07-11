@@ -23,6 +23,7 @@ import (
 	"time"
 )
 
+// MySQL has the config options for the MySQL service
 type MySQL struct {
 	Host     string
 	Port     string
@@ -33,9 +34,12 @@ type MySQL struct {
 	Compress bool
 }
 
+// MysqlDumpApp points to the mysqldump binary location
 var MysqlDumpApp = "/usr/bin/mysqldump"
+// MysqlRestoreApp points to the mysql binary location
 var MysqlRestoreApp = "/usr/bin/mysql"
 
+// Backup generates a dump of the database and returns the path where is stored
 func (m MySQL) Backup() (string, error) {
 	filepath := fmt.Sprintf("%s/mysql-backup-%s", SaveDir, time.Now().Format("20060102150405"))
 
@@ -73,7 +77,7 @@ func (m MySQL) Backup() (string, error) {
 	cmd.Env = os.Environ()
 
 	if m.Compress {
-		if err := CompressAppOutput(cmd, filepath); err != nil {
+		if err := compressAppOutput(cmd, filepath); err != nil {
 			return "", fmt.Errorf("couldn't compress app output, %v", err)
 		}
 	} else {
@@ -85,6 +89,7 @@ func (m MySQL) Backup() (string, error) {
 	return filepath, nil
 }
 
+// Restore takes a database dump and restores it
 func (m *MySQL) Restore(filepath string) error {
 	args := []string{
 		"-h", m.Host,
@@ -112,7 +117,7 @@ func (m *MySQL) Restore(filepath string) error {
 	cmd.Stdout = os.Stdout
 	cmd.Env = os.Environ()
 
-	if err := ReadFileToInput(cmd, filepath); err != nil {
+	if err := readFileToInput(cmd, filepath); err != nil {
 		return fmt.Errorf("couldn't decompress file to input, %v", err)
 	}
 

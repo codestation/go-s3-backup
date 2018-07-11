@@ -1,4 +1,16 @@
+workspace:
+  base: /go
+  path: src/megpoid.xyz/go/go-s3-backup
+
 pipeline:
+  test:
+    image: golang:1.10-alpine
+    commands:
+      - go get -u golang.org/x/lint/golint
+      - go vet ./...
+      - go test -v ./...
+      - golint -set_exit_status `find . -type d -not -path "./vendor*" -not -path "./.git*"`
+
   publish:
     image: plugins/docker
     repo: registry.megpoid.xyz/go-s3-backup

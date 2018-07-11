@@ -28,11 +28,13 @@ import (
 	log "gopkg.in/clog.v1"
 )
 
+// Gogs has the config options for the Gogs service
 type Gogs struct {
 	ConfigPath string
 	DataPath   string
 }
 
+// GogsAppPath points to the gogs binary location
 var GogsAppPath = "/app/gogs/gogs"
 
 func getEnvInt(key string, def int) int {
@@ -42,14 +44,15 @@ func getEnvInt(key string, def int) int {
 		val, err := strconv.Atoi(value)
 		if err == nil {
 			return val
-		} else {
-			log.Warn("cannot parse env key %s with value %s", key, value)
 		}
+
+		log.Warn("cannot parse env key %s with value %s", key, value)
 	}
 
 	return def
 }
 
+// Backup generates a tarball of the Gogs repositories and returns the path where is stored
 func (g *Gogs) Backup() (string, error) {
 	filepath := fmt.Sprintf("gogs-backup-%s.zip", time.Now().Format("20060102150405"))
 
@@ -90,6 +93,7 @@ func (g *Gogs) Backup() (string, error) {
 	return path.Join(SaveDir, filepath), nil
 }
 
+// Restore takes a Gogs backup and restores it to the service
 func (g *Gogs) Restore(filepath string) error {
 	args := []string{
 		"restore",

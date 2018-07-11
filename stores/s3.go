@@ -31,6 +31,7 @@ import (
 	log "gopkg.in/clog.v1"
 )
 
+// S3 has the config options for the S3 service
 type S3 struct {
 	Endpoint          string
 	Region            string
@@ -61,6 +62,7 @@ func (s *S3) newSession() *session.Session {
 	return session.Must(session.NewSession(s3Config))
 }
 
+// Store saves a file to a remote S3 service
 func (s *S3) Store(filepath string, filename string) error {
 	uploader := s3manager.NewUploader(s.newSession())
 
@@ -97,6 +99,7 @@ func (s *S3) Store(filepath string, filename string) error {
 	return nil
 }
 
+// RemoveOlderBackups keeps the most recent backups of the S3 service and deletes the old ones
 func (s *S3) RemoveOlderBackups(keep int) error {
 	svc := s3.New(s.newSession())
 
@@ -140,14 +143,15 @@ func (s *S3) RemoveOlderBackups(keep int) error {
 
 		if err != nil {
 			return fmt.Errorf("couldn't delete the S3 objects, %v", err)
-		} else {
-			log.Trace("deleted %d objects from S3", len(out.Deleted))
 		}
+
+		log.Trace("deleted %d objects from S3", len(out.Deleted))
 	}
 
 	return nil
 }
 
+// FindLatestBackup returns the most recent backup of the S3 store
 func (s *S3) FindLatestBackup() (string, error) {
 	svc := s3.New(s.newSession())
 
@@ -181,6 +185,7 @@ func (s *S3) FindLatestBackup() (string, error) {
 	return files[0], nil
 }
 
+// Retrieve downloads a S3 object to the local filesystem
 func (s *S3) Retrieve(s3path string) (string, error) {
 	// Create an uploader with the session and default options
 	downloader := s3manager.NewDownloader(s.newSession())

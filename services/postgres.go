@@ -23,6 +23,7 @@ import (
 	"time"
 )
 
+// Postgres has the config options for the Postgres service
 type Postgres struct {
 	Host     string
 	Port     string
@@ -34,11 +35,16 @@ type Postgres struct {
 	Custom   bool
 }
 
+// PostgresDumpApp points to the pg_dump binary location
 var PostgresDumpApp = "/usr/bin/pg_dump"
+// PostgresDumpallApp points to the pg_dumpall binary location
 var PostgresDumpallApp = "/usr/bin/pg_dumpall"
+// PostgresRestoreApp points to the pg_restore binary location
 var PostgresRestoreApp = "/usr/bin/pg_restore"
+// PostgresTermApp points to the psql binary location
 var PostgresTermApp = "/usr/bin/psql"
 
+// Backup generates a dump of the database and returns the path where is stored
 func (p *Postgres) Backup() (string, error) {
 	filepath := fmt.Sprintf("%s/postgres-backup-%s", SaveDir, time.Now().Format("20060102150405"))
 	args := []string{
@@ -84,7 +90,7 @@ func (p *Postgres) Backup() (string, error) {
 	cmd.Env = env
 
 	if p.Compress {
-		if err := CompressAppOutput(cmd, filepath); err != nil {
+		if err := compressAppOutput(cmd, filepath); err != nil {
 			return "", fmt.Errorf("couldn't pipe app output, %v", err)
 		}
 	} else {
@@ -96,6 +102,7 @@ func (p *Postgres) Backup() (string, error) {
 	return filepath, nil
 }
 
+// Restore takes a database dump and restores it
 func (p *Postgres) Restore(filepath string) error {
 	args := []string{
 		"-h", p.Host,
@@ -133,7 +140,7 @@ func (p *Postgres) Restore(filepath string) error {
 	cmd.Env = env
 
 	if !p.Custom {
-		if err := ReadFileToInput(cmd, filepath); err != nil {
+		if err := readFileToInput(cmd, filepath); err != nil {
 			return fmt.Errorf("couldn't pipe file to input, %v", err)
 		}
 	} else {

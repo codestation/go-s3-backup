@@ -21,7 +21,7 @@ import (
 	"megpoid.xyz/go/go-s3-backup/services"
 )
 
-var GogsFlags = []cli.Flag{
+var gogsFlags = []cli.Flag{
 	cli.StringFlag{
 		Name:   "gogs-config",
 		Usage:  "gogs config path",
@@ -35,7 +35,7 @@ var GogsFlags = []cli.Flag{
 	},
 }
 
-var DatabaseFlags = []cli.Flag{
+var databaseFlags = []cli.Flag{
 	cli.StringFlag{
 		Name:   "host",
 		Usage:  "database host",
@@ -73,7 +73,7 @@ var DatabaseFlags = []cli.Flag{
 	},
 }
 
-var PostgresFlags = []cli.Flag{
+var postgresFlags = []cli.Flag{
 	cli.BoolFlag{
 		Name:   "postgres-custom",
 		Usage:  "use custom format (always compressed)",
@@ -81,7 +81,7 @@ var PostgresFlags = []cli.Flag{
 	},
 }
 
-var TarballFlags = []cli.Flag{
+var tarballFlags = []cli.Flag{
 	cli.StringFlag{
 		Name:   "tarball-path",
 		Usage:  "path to backup/restore",
@@ -99,7 +99,7 @@ var TarballFlags = []cli.Flag{
 	},
 }
 
-func NewGogsConfig(c *cli.Context) *services.Gogs {
+func newGogsConfig(c *cli.Context) *services.Gogs {
 	c = c.Parent()
 
 	return &services.Gogs{
@@ -108,7 +108,7 @@ func NewGogsConfig(c *cli.Context) *services.Gogs {
 	}
 }
 
-func NewMysqlConfig(c *cli.Context) *services.MySQL {
+func newMysqlConfig(c *cli.Context) *services.MySQL {
 	c = c.Parent()
 
 	return &services.MySQL{
@@ -122,7 +122,7 @@ func NewMysqlConfig(c *cli.Context) *services.MySQL {
 	}
 }
 
-func NewPostgresConfig(c *cli.Context) *services.Postgres {
+func newPostgresConfig(c *cli.Context) *services.Postgres {
 	c = c.Parent()
 
 	return &services.Postgres{
@@ -137,7 +137,7 @@ func NewPostgresConfig(c *cli.Context) *services.Postgres {
 	}
 }
 
-func NewTarballConfig(c *cli.Context) *services.Tarball {
+func newTarballConfig(c *cli.Context) *services.Tarball {
 	c = c.Parent()
 
 	return &services.Tarball{
@@ -152,7 +152,7 @@ func gogsCmd(parent string) cli.Command {
 	return cli.Command{
 		Name:  name,
 		Usage: "connect to gogs service",
-		Flags: GogsFlags,
+		Flags: gogsFlags,
 		Subcommands: []cli.Command{
 			s3Cmd(parent, name),
 			filesystemCmd(parent, name),
@@ -165,7 +165,7 @@ func postgresCmd(parent string) cli.Command {
 	return cli.Command{
 		Name:  name,
 		Usage: "connect to postgres service",
-		Flags: append(DatabaseFlags, PostgresFlags...),
+		Flags: append(databaseFlags, postgresFlags...),
 		Subcommands: []cli.Command{
 			s3Cmd(parent, name),
 			filesystemCmd(parent, name),
@@ -178,7 +178,7 @@ func mysqlCmd(parent string) cli.Command {
 	return cli.Command{
 		Name:  name,
 		Usage: "connect to mysql service",
-		Flags: DatabaseFlags,
+		Flags: databaseFlags,
 		Subcommands: []cli.Command{
 			s3Cmd(parent, name),
 			filesystemCmd(parent, name),
@@ -191,7 +191,7 @@ func tarballCmd(parent string) cli.Command {
 	return cli.Command{
 		Name:  name,
 		Usage: "connect to tarball service",
-		Flags: TarballFlags,
+		Flags: tarballFlags,
 		Subcommands: []cli.Command{
 			s3Cmd(parent, name),
 			filesystemCmd(parent, name),

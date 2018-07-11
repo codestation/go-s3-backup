@@ -25,12 +25,14 @@ import (
 	"github.com/mholt/archiver"
 )
 
+// Tarball has the config options for the Tarball service
 type Tarball struct {
 	Name     string
 	Path     string
 	Compress bool
 }
 
+// Backup creates a tarball of the specified directory
 func (f *Tarball) Backup() (string, error) {
 	var name string
 
@@ -59,6 +61,7 @@ func (f *Tarball) Backup() (string, error) {
 	return filepath, nil
 }
 
+// Restore extracts a tarball to the specified directory
 func (f *Tarball) Restore(filepath string) error {
 	var err error
 

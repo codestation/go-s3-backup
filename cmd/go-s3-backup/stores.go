@@ -21,7 +21,7 @@ import (
 	"megpoid.xyz/go/go-s3-backup/stores"
 )
 
-var S3Flags = []cli.Flag{
+var s3Flags = []cli.Flag{
 	cli.StringFlag{
 		Name:   "s3-endpoint",
 		Usage:  "s3 endpoint",
@@ -64,7 +64,7 @@ var S3Flags = []cli.Flag{
 	},
 }
 
-func NewS3Config(c *cli.Context) *stores.S3 {
+func newS3Config(c *cli.Context) *stores.S3 {
 	return &stores.S3{
 		Endpoint:          c.String("s3-endpoint"),
 		Region:            c.String("s3-region"),
@@ -77,7 +77,7 @@ func NewS3Config(c *cli.Context) *stores.S3 {
 	}
 }
 
-func NewFilesystemConfig(c *cli.Context) *stores.Filesystem {
+func newFilesystemConfig(c *cli.Context) *stores.Filesystem {
 	return &stores.Filesystem{
 		SaveDir: c.GlobalString("savedir"),
 	}
@@ -88,7 +88,7 @@ func s3Cmd(command string, service string) cli.Command {
 	return cli.Command{
 		Name:  name,
 		Usage: "use S3 as store",
-		Flags: S3Flags,
+		Flags: s3Flags,
 		Action: func(c *cli.Context) error {
 			return runTask(c, command, service, name)
 		},

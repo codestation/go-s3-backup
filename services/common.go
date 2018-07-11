@@ -28,14 +28,16 @@ import (
 	log "gopkg.in/clog.v1"
 )
 
+// SaveDir is default directory to save service backups
 var SaveDir = "/tmp"
 
+// Service represents the methods to backup/restore a service
 type Service interface {
 	Backup() (string, error)
 	Restore(path string) error
 }
 
-func CompressAppOutput(cmd *exec.Cmd, filepath string) error {
+func compressAppOutput(cmd *exec.Cmd, filepath string) error {
 	f, err := os.Create(filepath)
 	if err != nil {
 		return fmt.Errorf("cannot open file %s, %v", filepath, err)
@@ -73,7 +75,7 @@ func CompressAppOutput(cmd *exec.Cmd, filepath string) error {
 	return nil
 }
 
-func ReadFileToInput(cmd *exec.Cmd, filepath string) error {
+func readFileToInput(cmd *exec.Cmd, filepath string) error {
 	f, err := os.Open(filepath)
 	if err != nil {
 		return fmt.Errorf("cannot open file %s, %v", filepath, err)

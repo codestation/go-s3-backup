@@ -26,10 +26,12 @@ import (
 	log "gopkg.in/clog.v1"
 )
 
+// Filesystem has the config options for the Filesystem service
 type Filesystem struct {
 	SaveDir string
 }
 
+// Store moves/copies a file to another directory
 func (f *Filesystem) Store(src string, filename string) error {
 	dest := path.Clean(path.Join(f.SaveDir, filename))
 
@@ -72,6 +74,7 @@ func (f *Filesystem) Store(src string, filename string) error {
 	return nil
 }
 
+// RemoveOlderBackups keeps the most recent backups of a directory and deletes the old ones
 func (f *Filesystem) RemoveOlderBackups(keep int) error {
 	files, err := ioutil.ReadDir(f.SaveDir)
 	if err != nil {
@@ -87,7 +90,7 @@ func (f *Filesystem) RemoveOlderBackups(keep int) error {
 			if err != nil {
 				log.Error(0, "failed to remove file %s", file.Name())
 			} else {
-				deleted += 1
+				deleted++
 			}
 		}
 
@@ -97,6 +100,7 @@ func (f *Filesystem) RemoveOlderBackups(keep int) error {
 	return nil
 }
 
+// FindLatestBackup returns the most recent backup of the specified directory
 func (f *Filesystem) FindLatestBackup() (string, error) {
 	files, err := ioutil.ReadDir(f.SaveDir)
 	if err != nil {
@@ -110,6 +114,7 @@ func (f *Filesystem) FindLatestBackup() (string, error) {
 	return files[len(files)-1].Name(), nil
 }
 
+// Retrieve returns the path of the requested file
 func (f *Filesystem) Retrieve(path string) (string, error) {
 	return path, nil
 }

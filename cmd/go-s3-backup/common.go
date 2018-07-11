@@ -32,19 +32,19 @@ import (
 	"megpoid.xyz/go/go-s3-backup/stores"
 )
 
-type Task func(c *cli.Context) error
+type task func(c *cli.Context) error
 
 func getService(c *cli.Context, service string) services.Service {
 	var config services.Service
 	switch service {
 	case "gogs":
-		config = NewGogsConfig(c)
+		config = newGogsConfig(c)
 	case "mysql":
-		config = NewMysqlConfig(c)
+		config = newMysqlConfig(c)
 	case "postgres":
-		config = NewPostgresConfig(c)
+		config = newPostgresConfig(c)
 	case "tarball":
-		config = NewTarballConfig(c)
+		config = newTarballConfig(c)
 	default:
 		log.Fatal(0, "unsupported service: %s", service)
 	}
@@ -56,9 +56,9 @@ func getStore(c *cli.Context, store string) stores.Storer {
 	var config stores.Storer
 	switch store {
 	case "s3":
-		config = NewS3Config(c)
+		config = newS3Config(c)
 	case "filesystem":
-		config = NewFilesystemConfig(c)
+		config = newFilesystemConfig(c)
 	default:
 		log.Fatal(0, "unsupported store: %s", store)
 	}
@@ -72,12 +72,12 @@ func runTask(c *cli.Context, command string, serviceName string, storeName strin
 
 	switch command {
 	case "backup":
-		return RunScheduler(c, func(c *cli.Context) error {
-			return BackupTask(c, service, store)
+		return runScheduler(c, func(c *cli.Context) error {
+			return backupTask(c, service, store)
 		})
 	case "restore":
-		return RunScheduler(c, func(c *cli.Context) error {
-			return RestoreTask(c, service, store)
+		return runScheduler(c, func(c *cli.Context) error {
+			return restoreTask(c, service, store)
 		})
 	default:
 		log.Fatal(0, "unsupported command: %s", command)
@@ -85,7 +85,7 @@ func runTask(c *cli.Context, command string, serviceName string, storeName strin
 	return nil
 }
 
-func BackupTask(c *cli.Context, service services.Service, store stores.Storer) error {
+func backupTask(c *cli.Context, service services.Service, store stores.Storer) error {
 	filepath, err := service.Backup()
 	if err != nil {
 		return fmt.Errorf("service backup failed: %v", err)
@@ -107,7 +107,7 @@ func BackupTask(c *cli.Context, service services.Service, store stores.Storer) e
 	return nil
 }
 
-func RestoreTask(c *cli.Context, service services.Service, store stores.Storer) error {
+func restoreTask(c *cli.Context, service services.Service, store stores.Storer) error {
 	var err error
 	var s3key string
 
@@ -142,7 +142,7 @@ func RestoreTask(c *cli.Context, service services.Service, store stores.Storer) 
 	return nil
 }
 
-func RunScheduler(c *cli.Context, task Task) error {
+func runScheduler(c *cli.Context, task task) error {
 	cr := cron.New()
 	schedule := c.GlobalString("schedule")
 

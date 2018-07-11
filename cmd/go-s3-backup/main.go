@@ -24,9 +24,11 @@ import (
 )
 
 var (
-	// Build information (set by -ldflags)
+	// BuildTime indicates the date when the binary was built (set by -ldflags)
 	BuildTime   string
+	// BuildCommit indicates the git commit of the build
 	BuildCommit string
+	// AppVersion indicates the application version
 	AppVersion  = "0.1.0"
 )
 
