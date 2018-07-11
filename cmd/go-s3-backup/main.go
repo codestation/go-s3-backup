@@ -19,12 +19,8 @@ package main
 import (
 	"os"
 
-	"megpoid.xyz/go/go-s3-backup/cmd"
-	"megpoid.xyz/go/go-s3-backup/services"
-
 	"github.com/urfave/cli"
 	log "gopkg.in/clog.v1"
-	"megpoid.xyz/go/go-s3-backup/stores"
 )
 
 var (
@@ -34,103 +30,14 @@ var (
 	AppVersion  = "0.1.0"
 )
 
-func getService(c *cli.Context) services.Service {
-	var serv services.Service
-	switch c.Command.Name {
-	case "gogs":
-		serv = cmd.NewGogsConfig(c)
-	case "mysql":
-		serv = cmd.NewMysqlConfig(c)
-	case "postgres":
-		serv = cmd.NewPostgresConfig(c)
-	case "tarball":
-		serv = cmd.NewTarballConfig(c)
-	default:
-		log.Fatal(0, "unsupported service: %s", c.Args().Get(1))
-	}
-
-	return serv
-}
-
-func backupJob(c *cli.Context) error {
-	services.SaveDir = c.GlobalString("save-dir")
-
-	return cmd.RunScheduler(c, func(c *cli.Context) error {
-		serv := getService(c)
-		s3 := cmd.NewS3Config(c)
-		return cmd.BackupTask(c, serv, s3)
-	})
-}
-
-func restoreJob(c *cli.Context) error {
-	stores.SaveDir = c.GlobalString("save-dir")
-
-	return cmd.RunScheduler(c, func(c *cli.Context) error {
-		serv := getService(c)
-		s3 := cmd.NewS3Config(c)
-		return cmd.RestoreTask(c, serv, s3)
-	})
-}
-
 func main() {
 	app := cli.NewApp()
 	app.Usage = "run backups from various services to S3-like storage"
 	app.Version = AppVersion
+
 	app.Commands = []cli.Command{
-		{
-			Name:  "backup",
-			Usage: "run a backup task",
-			Flags: append(cmd.Flags, cmd.BackupFlags...),
-			Subcommands: []cli.Command{
-				{
-					Name:   "gogs",
-					Action: backupJob,
-					Flags:  cmd.GogsFlags,
-				},
-				{
-					Name:   "mysql",
-					Action: backupJob,
-					Flags:  cmd.DatabaseFlags,
-				},
-				{
-					Name:   "postgres",
-					Action: backupJob,
-					Flags:  append(cmd.DatabaseFlags, cmd.PostgresFlags...),
-				},
-				{
-					Name:   "tarball",
-					Action: backupJob,
-					Flags:  append(cmd.DatabaseFlags, cmd.TarballFlags...),
-				},
-			},
-		},
-		{
-			Name:  "restore",
-			Usage: "run a restore task",
-			Flags: append(cmd.Flags, cmd.RestoreFlags...),
-			Subcommands: []cli.Command{
-				{
-					Name:   "gogs",
-					Action: restoreJob,
-					Flags:  cmd.GogsFlags,
-				},
-				{
-					Name:   "mysql",
-					Action: restoreJob,
-					Flags:  cmd.DatabaseFlags,
-				},
-				{
-					Name:   "postgres",
-					Action: restoreJob,
-					Flags:  append(cmd.DatabaseFlags, cmd.PostgresFlags...),
-				},
-				{
-					Name:   "tarball",
-					Action: restoreJob,
-					Flags:  append(cmd.DatabaseFlags, cmd.TarballFlags...),
-				},
-			},
-		},
+		backupCmd(),
+		restoreCmd(),
 	}
 
 	app.Before = func(c *cli.Context) error {

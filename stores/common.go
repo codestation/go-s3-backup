@@ -19,8 +19,8 @@ package stores
 var SaveDir = "/tmp"
 
 type Storer interface {
-	Store(filepath string, key string) error
+	Store(filepath string, filename string) error
 	Retrieve(s3path string) (string, error)
-	RemoveOlderBackups(prefix string, keep int) error
-	FindLatestBackup(prefix string) (string, error)
+	RemoveOlderBackups(keep int) error
+	FindLatestBackup() (string, error)
 }

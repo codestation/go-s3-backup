@@ -32,12 +32,14 @@ import (
 )
 
 type S3 struct {
-	Endpoint       string
-	Region         string
-	Bucket         string
-	AccessKey      string
-	ClientSecret   string
-	ForcePathStyle bool
+	Endpoint          string
+	Region            string
+	Bucket            string
+	AccessKey         string
+	ClientSecret      string
+	Prefix            string
+	ForcePathStyle    bool
+	RemoveAfterUpload bool
 }
 
 func (s *S3) newSession() *session.Session {
@@ -59,7 +61,7 @@ func (s *S3) newSession() *session.Session {
 	return session.Must(session.NewSession(s3Config))
 }
 
-func (s *S3) Store(filepath string, key string) error {
+func (s *S3) Store(filepath string, filename string) error {
 	uploader := s3manager.NewUploader(s.newSession())
 
 	f, err := os.Open(filepath)
@@ -70,6 +72,8 @@ func (s *S3) Store(filepath string, key string) error {
 	defer func() {
 		os.Remove(filepath)
 	}()
+
+	key := path.Clean(path.Join(s.Prefix, filename))
 
 	// Upload the file to S3.
 	res, err := uploader.Upload(&s3manager.UploadInput{
@@ -83,10 +87,17 @@ func (s *S3) Store(filepath string, key string) error {
 
 	log.Trace("file uploaded to %s\n", res.Location)
 
+	if s.RemoveAfterUpload {
+		log.Info("removing source file %s", filepath)
+		if err = os.Remove(filepath); err != nil {
+			log.Warn("cannot remove file %s, %v", filepath, err)
+		}
+	}
+
 	return nil
 }
 
-func (s *S3) RemoveOlderBackups(prefix string, keep int) error {
+func (s *S3) RemoveOlderBackups(keep int) error {
 	svc := s3.New(s.newSession())
 
 	var files []string
@@ -94,7 +105,7 @@ func (s *S3) RemoveOlderBackups(prefix string, keep int) error {
 	err := svc.ListObjectsPages(&s3.ListObjectsInput{
 		Bucket: aws.String(s.Bucket),
 		// make sure that the prefix ends with "/"
-		Prefix: aws.String(path.Clean(prefix) + "/"),
+		Prefix: aws.String(path.Clean(s.Prefix) + "/"),
 	}, func(p *s3.ListObjectsOutput, last bool) (shouldContinue bool) {
 
 		for _, obj := range p.Contents {
@@ -137,7 +148,7 @@ func (s *S3) RemoveOlderBackups(prefix string, keep int) error {
 	return nil
 }
 
-func (s *S3) FindLatestBackup(prefix string) (string, error) {
+func (s *S3) FindLatestBackup() (string, error) {
 	svc := s3.New(s.newSession())
 
 	var files []string
@@ -145,7 +156,7 @@ func (s *S3) FindLatestBackup(prefix string) (string, error) {
 	err := svc.ListObjectsPages(&s3.ListObjectsInput{
 		Bucket: aws.String(s.Bucket),
 		// make sure that the prefix ends with "/"
-		Prefix: aws.String(path.Clean(prefix) + "/"),
+		Prefix: aws.String(path.Clean(s.Prefix) + "/"),
 	}, func(p *s3.ListObjectsOutput, last bool) (shouldContinue bool) {
 
 		for _, obj := range p.Contents {
@@ -162,7 +173,7 @@ func (s *S3) FindLatestBackup(prefix string) (string, error) {
 
 	if len(files) == 0 {
 		return "", fmt.Errorf("cannot find a recent backup on s3://%s/%s",
-			s.Bucket, prefix)
+			s.Bucket, s.Prefix)
 	}
 
 	sort.Sort(sort.Reverse(sort.StringSlice(files)))

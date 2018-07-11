@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package cmd
+package main
 
 import (
 	"fmt"
@@ -35,6 +35,57 @@ import (
 
 type Task func(c *cli.Context) error
 
+func getService(c *cli.Context, service string) services.Service {
+	var serv services.Service
+	switch service {
+	case "gogs":
+		serv = NewGogsConfig(c)
+	case "mysql":
+		serv = NewMysqlConfig(c)
+	case "postgres":
+		serv = NewPostgresConfig(c)
+	case "tarball":
+		serv = NewTarballConfig(c)
+	default:
+		log.Fatal(0, "unsupported service: %s", service)
+	}
+
+	return serv
+}
+
+func getStore(c *cli.Context, store string) stores.Storer {
+	var serv stores.Storer
+	switch store {
+	case "s3":
+		serv = NewS3Config(c)
+	case "filesystem":
+		serv = NewFilesystemConfig(c)
+	default:
+		log.Fatal(0, "unsupported store: %s", store)
+	}
+
+	return serv
+}
+
+func runTask(c *cli.Context, command string, serviceName string, storeName string) error {
+	service := getService(c, serviceName)
+	store := getStore(c, storeName)
+
+	switch command {
+	case "backup":
+		return RunScheduler(c, func(c *cli.Context) error {
+			return BackupTask(c, service, store)
+		})
+	case "restore":
+		return RunScheduler(c, func(c *cli.Context) error {
+			return RestoreTask(c, service, store)
+		})
+	default:
+		log.Fatal(0, "unsupported command: %s", command)
+	}
+	return nil
+}
+
 func BackupTask(c *cli.Context, service services.Service, store stores.Storer) error {
 	filepath, err := service.Backup()
 	if err != nil {
@@ -43,24 +94,15 @@ func BackupTask(c *cli.Context, service services.Service, store stores.Storer) e
 
 	log.Trace("backup saved to %s", filepath)
 
-	if c.Bool("skip-s3") {
-		log.Trace("skipping S3 upload")
-		return nil
-	} else {
-		defer func() {
-			os.Remove(filepath)
-		}()
-	}
+	filename := path.Base(filepath)
 
-	key := fmt.Sprintf("%s/%s", c.GlobalString("prefix"), path.Base(filepath))
-
-	if err = store.Store(filepath, key); err != nil {
+	if err = store.Store(filepath, filename); err != nil {
 		return fmt.Errorf("couldn't upload file to S3, %v", err)
 	}
 
-	err = store.RemoveOlderBackups(c.GlobalString("prefix"), c.GlobalInt("max-backups"))
+	err = store.RemoveOlderBackups(c.GlobalInt("max-backups"))
 	if err != nil {
-		fmt.Errorf("couldn't remove old backups from S3, %v", err)
+		return fmt.Errorf("couldn't remove old backups from S3, %v", err)
 	}
 
 	return nil
@@ -75,7 +117,7 @@ func RestoreTask(c *cli.Context, service services.Service, store stores.Storer) 
 		s3key = key
 	} else {
 		// find the latest S3 object
-		s3key, err = store.FindLatestBackup(c.GlobalString("prefix"))
+		s3key, err = store.FindLatestBackup()
 		if err != nil {
 			return fmt.Errorf("cannot find the latest backup, %v", err)
 		}

@@ -23,33 +23,38 @@ import (
 	"path"
 
 	log "gopkg.in/clog.v1"
+	"io/ioutil"
 )
 
 type Filesystem struct {
-	Path   string
-	Rename bool
+	SaveDir string
 }
 
-func (f *Filesystem) Store(filepath string, key string) error {
-	dest := path.Join(f.Path, key)
+func (f *Filesystem) Store(src string, filename string) error {
+	dest := path.Clean(path.Join(f.SaveDir, filename))
 
-	err := os.Rename(dest, filepath)
+	if src == dest {
+		log.Trace("using the same path as source and destination, do nothing")
+		return nil
+	}
+
+	err := os.Rename(dest, src)
 	if err != nil {
-		log.Warn("cannot rename %s to %s, trying to copy instead", filepath, dest)
+		log.Warn("cannot rename %s to %s, trying to copy instead", src, dest)
 	} else {
 		return nil
 	}
 
-	srcFile, err := os.Open(filepath)
+	srcFile, err := os.Open(src)
 	if err != nil {
-		return fmt.Errorf("cannot open file %s, %v", filepath, err)
+		return fmt.Errorf("cannot open source file %s, %v", src, err)
 	}
 
 	defer srcFile.Close()
 
 	destFile, err := os.Create(dest)
 	if err != nil {
-		return fmt.Errorf("cannot create file %s, %v", dest, err)
+		return fmt.Errorf("cannot create destination file %s, %v", dest, err)
 	}
 
 	defer destFile.Close()
@@ -67,12 +72,42 @@ func (f *Filesystem) Store(filepath string, key string) error {
 	return nil
 }
 
-func (f *Filesystem) RemoveOlderBackups(prefix string, keep int) error {
-	return fmt.Errorf("not implemented")
+func (f *Filesystem) RemoveOlderBackups(keep int) error {
+	files, err := ioutil.ReadDir(f.SaveDir)
+	if err != nil {
+		return fmt.Errorf("cannot list contents of directory %s, %v", f.SaveDir, err)
+	}
+
+	count := len(files) - keep
+	deleted := 0
+
+	if count > 0 {
+		for _, file := range files[:count] {
+			err = os.Remove(file.Name())
+			if err != nil {
+				log.Error(0, "failed to remove file %s", file.Name())
+			} else {
+				deleted += 1
+			}
+		}
+
+		log.Trace("deleted %d objects from %s", deleted, f.SaveDir)
+	}
+
+	return nil
 }
 
-func (f *Filesystem) FindLatestBackup(prefix string) (string, error) {
-	return "", fmt.Errorf("not implemented")
+func (f *Filesystem) FindLatestBackup() (string, error) {
+	files, err := ioutil.ReadDir(f.SaveDir)
+	if err != nil {
+		return "", fmt.Errorf("cannot list contents of directory %s, %v", f.SaveDir, err)
+	}
+
+	if len(files) == 0 {
+		return "", fmt.Errorf("cannot find a recent backup on %s", f.SaveDir)
+	}
+
+	return files[len(files)-1].Name(), nil
 }
 
 func (f *Filesystem) Retrieve(path string) (string, error) {
