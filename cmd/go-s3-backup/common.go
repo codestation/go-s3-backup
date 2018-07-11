@@ -25,46 +25,45 @@ import (
 	"syscall"
 	"time"
 
-	"megpoid.xyz/go/go-s3-backup/services"
-	"megpoid.xyz/go/go-s3-backup/stores"
-
 	"github.com/robfig/cron"
 	"github.com/urfave/cli"
 	log "gopkg.in/clog.v1"
+	"megpoid.xyz/go/go-s3-backup/services"
+	"megpoid.xyz/go/go-s3-backup/stores"
 )
 
 type Task func(c *cli.Context) error
 
 func getService(c *cli.Context, service string) services.Service {
-	var serv services.Service
+	var config services.Service
 	switch service {
 	case "gogs":
-		serv = NewGogsConfig(c)
+		config = NewGogsConfig(c)
 	case "mysql":
-		serv = NewMysqlConfig(c)
+		config = NewMysqlConfig(c)
 	case "postgres":
-		serv = NewPostgresConfig(c)
+		config = NewPostgresConfig(c)
 	case "tarball":
-		serv = NewTarballConfig(c)
+		config = NewTarballConfig(c)
 	default:
 		log.Fatal(0, "unsupported service: %s", service)
 	}
 
-	return serv
+	return config
 }
 
 func getStore(c *cli.Context, store string) stores.Storer {
-	var serv stores.Storer
+	var config stores.Storer
 	switch store {
 	case "s3":
-		serv = NewS3Config(c)
+		config = NewS3Config(c)
 	case "filesystem":
-		serv = NewFilesystemConfig(c)
+		config = NewFilesystemConfig(c)
 	default:
 		log.Fatal(0, "unsupported store: %s", store)
 	}
 
-	return serv
+	return config
 }
 
 func runTask(c *cli.Context, command string, serviceName string, storeName string) error {

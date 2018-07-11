@@ -19,11 +19,11 @@ package stores
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"path"
 
 	log "gopkg.in/clog.v1"
-	"io/ioutil"
 )
 
 type Filesystem struct {
