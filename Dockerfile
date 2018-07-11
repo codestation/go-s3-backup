@@ -19,5 +19,6 @@ LABEL maintainer="codestation <codestation404@gmail.com>"
 
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /go/bin/go-s3-backup /go-s3-backup
+RUN mkdir /tmp && chmod 1777 /tmp
 
 ENTRYPOINT ["/go-s3-backup"]
