@@ -115,6 +115,6 @@ func (f *Filesystem) FindLatestBackup() (string, error) {
 }
 
 // Retrieve returns the path of the requested file
-func (f *Filesystem) Retrieve(path string) (string, error) {
-	return path, nil
+func (f *Filesystem) Retrieve(filename string) (string, error) {
+	return path.Clean(path.Join(f.SaveDir, filename)), nil
 }
