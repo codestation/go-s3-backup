@@ -32,6 +32,7 @@ type MySQL struct {
 	Database string
 	Options  []string
 	Compress bool
+	SaveDir  string
 }
 
 // MysqlDumpApp points to the mysqldump binary location
@@ -42,7 +43,7 @@ var MysqlRestoreApp = "/usr/bin/mysql"
 
 // Backup generates a dump of the database and returns the path where is stored
 func (m MySQL) Backup() (string, error) {
-	filepath := fmt.Sprintf("%s/mysql-backup-%s", SaveDir, time.Now().Format("20060102150405"))
+	filepath := fmt.Sprintf("%s/mysql-backup-%s", m.SaveDir, time.Now().Format("20060102150405"))
 
 	args := []string{
 		"-h", m.Host,

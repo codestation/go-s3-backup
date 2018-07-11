@@ -41,6 +41,7 @@ type S3 struct {
 	Prefix            string
 	ForcePathStyle    bool
 	RemoveAfterUpload bool
+	SaveDir           string
 	retrievedFile     string
 }
 
@@ -189,7 +190,7 @@ func (s *S3) Retrieve(s3path string) (string, error) {
 	// Create an uploader with the session and default options
 	downloader := s3manager.NewDownloader(s.newSession())
 
-	filepath := path.Join(SaveDir, path.Base(s3path))
+	filepath := path.Join(s.SaveDir, path.Base(s3path))
 	f, err := os.Open(filepath)
 	if err != nil {
 		return "", fmt.Errorf("failed to open file %q, %v", filepath, err)

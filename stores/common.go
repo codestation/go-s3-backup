@@ -16,9 +16,6 @@ limitations under the License.
 
 package stores
 
-// SaveDir is the directory where the store saves the retrieved backup
-var SaveDir = "/tmp"
-
 // Storer represents the methods to store/retrieve a backup from another location
 type Storer interface {
 	Store(filepath string, filename string) error

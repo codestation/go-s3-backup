@@ -105,6 +105,7 @@ func newGogsConfig(c *cli.Context) *services.Gogs {
 	return &services.Gogs{
 		ConfigPath: c.String("gogs-config"),
 		DataPath:   c.String("gogs-data"),
+		SaveDir:    c.GlobalString("savedir"),
 	}
 }
 
@@ -119,6 +120,7 @@ func newMysqlConfig(c *cli.Context) *services.MySQL {
 		Database: c.String("database"),
 		Options:  c.StringSlice("options"),
 		Compress: c.Bool("compress"),
+		SaveDir:  c.GlobalString("savedir"),
 	}
 }
 
@@ -134,6 +136,7 @@ func newPostgresConfig(c *cli.Context) *services.Postgres {
 		Options:  c.StringSlice("options"),
 		Compress: c.Bool("compress"),
 		Custom:   c.Bool("postgres-custom"),
+		SaveDir:  c.GlobalString("savedir"),
 	}
 }
 
@@ -144,6 +147,7 @@ func newTarballConfig(c *cli.Context) *services.Tarball {
 		Path:     c.String("tarball-path"),
 		Name:     c.String("tarball-name"),
 		Compress: c.Bool("tarball-compress"),
+		SaveDir:  c.GlobalString("savedir"),
 	}
 }
 

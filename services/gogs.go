@@ -32,6 +32,7 @@ import (
 type Gogs struct {
 	ConfigPath string
 	DataPath   string
+	SaveDir    string
 }
 
 // GogsAppPath points to the gogs binary location
@@ -58,7 +59,7 @@ func (g *Gogs) Backup() (string, error) {
 
 	args := []string{
 		"backup",
-		"--target", SaveDir,
+		"--target", g.SaveDir,
 		"--archive-name", filepath,
 	}
 
@@ -90,7 +91,7 @@ func (g *Gogs) Backup() (string, error) {
 		return "", fmt.Errorf("couldn't execute %s, %v", GogsAppPath, err)
 	}
 
-	return path.Join(SaveDir, filepath), nil
+	return path.Join(g.SaveDir, filepath), nil
 }
 
 // Restore takes a Gogs backup and restores it to the service

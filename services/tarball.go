@@ -30,6 +30,7 @@ type Tarball struct {
 	Name     string
 	Path     string
 	Compress bool
+	SaveDir  string
 }
 
 // Backup creates a tarball of the specified directory
@@ -42,7 +43,7 @@ func (f *Tarball) Backup() (string, error) {
 		name = path.Base(f.Path) + "-backup"
 	}
 
-	filepath := fmt.Sprintf("%s/%s-%s.tar", SaveDir, name, time.Now().Format("20060102150405"))
+	filepath := fmt.Sprintf("%s/%s-%s.tar", f.SaveDir, name, time.Now().Format("20060102150405"))
 	filepath = path.Clean(filepath)
 
 	var err error

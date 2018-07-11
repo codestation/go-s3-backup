@@ -28,9 +28,6 @@ import (
 	log "gopkg.in/clog.v1"
 )
 
-// SaveDir is default directory to save service backups
-var SaveDir = "/tmp"
-
 // Service represents the methods to backup/restore a service
 type Service interface {
 	Backup() (string, error)

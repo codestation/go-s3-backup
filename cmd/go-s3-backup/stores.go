@@ -74,6 +74,7 @@ func newS3Config(c *cli.Context) *stores.S3 {
 		Prefix:            c.String("s3-prefix"),
 		ForcePathStyle:    c.Bool("s3-force-path-style"),
 		RemoveAfterUpload: c.Bool("s3-remove-after"),
+		SaveDir:           c.GlobalString("savedir"),
 	}
 }
 

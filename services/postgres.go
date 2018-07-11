@@ -33,6 +33,7 @@ type Postgres struct {
 	Options  []string
 	Compress bool
 	Custom   bool
+	SaveDir  string
 }
 
 // PostgresDumpApp points to the pg_dump binary location
@@ -49,7 +50,7 @@ var PostgresTermApp = "/usr/bin/psql"
 
 // Backup generates a dump of the database and returns the path where is stored
 func (p *Postgres) Backup() (string, error) {
-	filepath := fmt.Sprintf("%s/postgres-backup-%s", SaveDir, time.Now().Format("20060102150405"))
+	filepath := fmt.Sprintf("%s/postgres-backup-%s", p.SaveDir, time.Now().Format("20060102150405"))
 	args := []string{
 		"-h", p.Host,
 		"-p", p.Port,
