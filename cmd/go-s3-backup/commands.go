@@ -58,9 +58,9 @@ var restoreFlags = []cli.Flag{
 		EnvVar: "SCHEDULE",
 	},
 	cli.StringFlag{
-		Name:   "s3key",
-		Usage:  "s3 key",
-		EnvVar: "S3_KEY",
+		Name:   "restore-file",
+		Usage:  "restore from this file instead of searching for the most recent",
+		EnvVar: "RESTORE_FILE",
 	},
 }
 

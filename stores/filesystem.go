@@ -131,3 +131,7 @@ func (f *Filesystem) FindLatestBackup() (string, error) {
 func (f *Filesystem) Retrieve(filename string) (string, error) {
 	return path.Clean(path.Join(f.SaveDir, filename)), nil
 }
+
+// Close deinitializes the store (no dothing)
+func (f *Filesystem) Close() {
+}

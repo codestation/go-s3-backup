@@ -109,31 +109,27 @@ func backupTask(c *cli.Context, service services.Service, store stores.Storer) e
 
 func restoreTask(c *cli.Context, service services.Service, store stores.Storer) error {
 	var err error
-	var s3key string
+	var filename string
 
-	if key := c.GlobalString("s3key"); key != "" {
-		// restore directly from this S3 object
-		s3key = key
+	if key := c.GlobalString("restore-file"); key != "" {
+		// restore directly from this file
+		filename = key
 	} else {
-		// find the latest S3 object
-		s3key, err = store.FindLatestBackup()
+		// find the latest file in the store
+		filename, err = store.FindLatestBackup()
 		if err != nil {
 			return fmt.Errorf("cannot find the latest backup, %v", err)
 		}
 	}
 
-	filepath, err := store.Retrieve(s3key)
+	filepath, err := store.Retrieve(filename)
 	if err != nil {
-		return fmt.Errorf("cannot download S3 object %s, %v", s3key, err)
+		return fmt.Errorf("cannot download file %s, %v", filename, err)
 	}
 
-	log.Trace("backup retrieved to %s", filepath)
+	defer store.Close()
 
-	defer func() {
-		if err := os.Remove(filepath); err != nil {
-			log.Warn("cannot remove file %s, %v", filepath, err)
-		}
-	}()
+	log.Trace("backup retrieved to %s", filepath)
 
 	if err = service.Restore(filepath); err != nil {
 		return fmt.Errorf("service restore failed: %v", err)

@@ -25,4 +25,5 @@ type Storer interface {
 	Retrieve(s3path string) (string, error)
 	RemoveOlderBackups(keep int) error
 	FindLatestBackup() (string, error)
+	Close()
 }

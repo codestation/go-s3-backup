@@ -41,6 +41,7 @@ type S3 struct {
 	Prefix            string
 	ForcePathStyle    bool
 	RemoveAfterUpload bool
+	retrievedFile     string
 }
 
 func (s *S3) newSession() *session.Session {
@@ -207,6 +208,18 @@ func (s *S3) Retrieve(s3path string) (string, error) {
 	}
 
 	log.Trace("file downloaded to %s\n", filepath)
+	s.retrievedFile = filepath
 
 	return filepath, nil
+}
+
+// Close deinitializes the store (remove downloaded file)
+func (s *S3) Close() {
+	if s.retrievedFile != "" {
+		if err := os.Remove(s.retrievedFile); err != nil {
+			log.Warn("cannot remove file %s", s.retrievedFile)
+		}
+
+		s.retrievedFile = ""
+	}
 }
