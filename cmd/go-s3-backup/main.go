@@ -57,4 +57,6 @@ func main() {
 	if err := app.Run(os.Args); err != nil {
 		log.Fatal(0, err.Error())
 	}
+
+	log.Info("shutdown complete")
 }

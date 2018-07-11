@@ -98,9 +98,10 @@ func (f *Filesystem) RemoveOlderBackups(keep int) error {
 
 	if count > 0 {
 		for _, file := range files[:count] {
-			err = os.Remove(file.Name())
+			fullpath := path.Clean(path.Join(f.SaveDir, file.Name()))
+			err = os.Remove(fullpath)
 			if err != nil {
-				log.Error(0, "failed to remove file %s", file.Name())
+				log.Error(0, "failed to remove file %s", fullpath)
 			} else {
 				deleted++
 			}
