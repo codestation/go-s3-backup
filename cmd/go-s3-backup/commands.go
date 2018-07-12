@@ -24,7 +24,7 @@ var defaultFlags = []cli.Flag{
 	cli.IntFlag{
 		Name:   "random-delay",
 		Usage:  "schedule random delay",
-		Value:  0,
+		Value:  1,
 		EnvVar: "SCHEDULE_RANDOM_DELAY",
 	},
 	cli.StringFlag{

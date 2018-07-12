@@ -151,7 +151,13 @@ func runScheduler(c *cli.Context, task task) error {
 	timeoutchan := make(chan bool, 1)
 
 	cr.AddFunc(schedule, func() {
-		seconds := rand.Intn(c.GlobalInt("random-delay"))
+		delay := c.GlobalInt("random-delay")
+		if delay <= 0 {
+			log.Warn("schedule random delay was set to a number <= 0, using 1 as default")
+			delay = 1
+		}
+
+		seconds := rand.Intn(delay)
 
 		// run immediately is no delay is configured
 		if seconds == 0 {
