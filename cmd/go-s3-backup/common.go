@@ -17,6 +17,7 @@ limitations under the License.
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"math/rand"
 	"os"
@@ -195,4 +196,24 @@ func runScheduler(c *cli.Context, task task) error {
 	cr.Stop()
 
 	return nil
+}
+
+func fileOrString(c *cli.Context, name string) string {
+	if filepath := c.String(name + "-file"); filepath != "" {
+		f, err := os.Open(filepath)
+		if err != nil {
+			log.Error(0, "cannot open password file, %v", err)
+			return ""
+		}
+
+		scanner := bufio.NewScanner(f)
+		if scanner.Scan() {
+			return scanner.Text()
+		}
+
+		log.Warn("using empty password file")
+		return ""
+	}
+
+	return c.String(name)
 }

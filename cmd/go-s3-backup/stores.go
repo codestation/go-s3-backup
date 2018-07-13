@@ -52,6 +52,11 @@ var s3Flags = []cli.Flag{
 		Usage:  "s3 secret key",
 		EnvVar: "S3_SECRET_KEY",
 	},
+	cli.StringFlag{
+		Name:   "s3-secret-key-file",
+		Usage:  "s3 secret key",
+		EnvVar: "S3_SECRET_KEY_FILE",
+	},
 	cli.BoolFlag{
 		Name:   "s3-force-path-style",
 		Usage:  "s3 force path style (needed for minio)",
@@ -70,7 +75,7 @@ func newS3Config(c *cli.Context) *stores.S3 {
 		Region:            c.String("s3-region"),
 		Bucket:            c.String("s3-bucket"),
 		AccessKey:         c.String("s3-access-key"),
-		ClientSecret:      c.String("s3-secret-key"),
+		ClientSecret:      fileOrString(c, "s3-secret-key"),
 		Prefix:            c.String("s3-prefix"),
 		ForcePathStyle:    c.Bool("s3-force-path-style"),
 		RemoveAfterUpload: c.Bool("s3-remove-after"),
