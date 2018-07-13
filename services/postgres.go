@@ -72,7 +72,8 @@ func (p *Postgres) Backup() (string, error) {
 		env = append(env, "PGPASSWORD="+p.Password)
 	}
 
-	if p.Custom {
+	// only allow custom format when dumping a single database
+	if p.Custom && p.Database != "" {
 		filepath += ".dump"
 		args = append(args, "-f", filepath)
 		args = append(args, "-Fc")
@@ -131,7 +132,8 @@ func (p *Postgres) Restore(filepath string) error {
 
 	var App string
 
-	if p.Custom {
+	// only allow custom format when restoring a single database
+	if p.Custom && p.Database != "" {
 		args = append(args, filepath)
 		App = PostgresRestoreApp
 	} else {

@@ -81,7 +81,7 @@ var databaseFlags = []cli.Flag{
 var postgresFlags = []cli.Flag{
 	cli.BoolFlag{
 		Name:   "postgres-custom",
-		Usage:  "use custom format (always compressed)",
+		Usage:  "use custom format (always compressed), ignored when database name is not set",
 		EnvVar: "POSTGRES_CUSTOM_FORMAT",
 	},
 }
