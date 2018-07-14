@@ -38,6 +38,7 @@ type S3 struct {
 	Bucket            string
 	AccessKey         string
 	ClientSecret      string
+	Token             string
 	Prefix            string
 	ForcePathStyle    bool
 	RemoveAfterUpload bool
@@ -49,7 +50,7 @@ func (s *S3) newSession() *session.Session {
 	var creds *credentials.Credentials
 
 	if s.AccessKey != "" && s.ClientSecret != "" {
-		creds = credentials.NewStaticCredentials(s.AccessKey, s.ClientSecret, "")
+		creds = credentials.NewStaticCredentials(s.AccessKey, s.ClientSecret, s.Token)
 	} else {
 		creds = credentials.NewSharedCredentials("", "default")
 	}

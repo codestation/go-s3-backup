@@ -53,6 +53,11 @@ var s3Flags = []cli.Flag{
 		EnvVar: "S3_SECRET_KEY",
 	},
 	cli.StringFlag{
+		Name:   "s3-session-token",
+		Usage:  "s3 session token",
+		EnvVar: "S3_SESSION_TOKEN",
+	},
+	cli.StringFlag{
 		Name:   "s3-secret-key-file",
 		Usage:  "s3 secret key",
 		EnvVar: "S3_SECRET_KEY_FILE",
@@ -76,6 +81,7 @@ func newS3Config(c *cli.Context) *stores.S3 {
 		Bucket:            c.String("s3-bucket"),
 		AccessKey:         c.String("s3-access-key"),
 		ClientSecret:      fileOrString(c, "s3-secret-key"),
+		Token:             c.String("s3-session-token"),
 		Prefix:            c.String("s3-prefix"),
 		ForcePathStyle:    c.Bool("s3-force-path-style"),
 		RemoveAfterUpload: c.Bool("s3-remove-after"),
