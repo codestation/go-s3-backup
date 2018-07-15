@@ -61,16 +61,20 @@ func (f *TarballConfig) Backup() (string, error) {
 
 // Restore extracts a tarball to the specified directory
 func (f *TarballConfig) Restore(filepath string) error {
-	var err error
+	err := removeDirectoryContents(f.Path)
+	if err != nil {
+		return fmt.Errorf("failed to empty directory contents before restoring: %v", err)
+	}
 
+	// use the parent directory to unpack as the current directory is already in the tarball
 	if strings.HasSuffix(filepath, ".gz") {
-		err = archiver.TarGz.Open(filepath, f.Path)
+		err = archiver.TarGz.Open(filepath, path.Dir(f.Path))
 	} else {
-		err = archiver.Tar.Open(filepath, f.Path)
+		err = archiver.Tar.Open(filepath, path.Dir(f.Path))
 	}
 
 	if err != nil {
-		return fmt.Errorf("cannot unpack tarball on %s, %v", filepath, err)
+		return fmt.Errorf("cannot unpack tarball: %v", err)
 	}
 
 	return nil

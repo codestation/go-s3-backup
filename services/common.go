@@ -23,6 +23,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"path/filepath"
 	"strconv"
 	"syscall"
 	"time"
@@ -140,4 +141,26 @@ func getEnvInt(key string, def int) int {
 func generateFilename(dir, prefix string) string {
 	now := time.Now().Format("20060102150405")
 	return path.Join(dir, prefix+"-"+now)
+}
+
+func removeDirectoryContents(dir string) error {
+	d, err := os.Open(dir)
+	if err != nil {
+		return fmt.Errorf("cannot open directory: %v", err)
+	}
+	defer d.Close()
+
+	names, err := d.Readdirnames(-1)
+	if err != nil {
+		return fmt.Errorf("cannot read files on directory: %v", err)
+	}
+
+	for _, name := range names {
+		err = os.RemoveAll(filepath.Join(dir, name))
+		if err != nil {
+			return fmt.Errorf("failed to remove %s: %v", name, err)
+		}
+	}
+
+	return nil
 }

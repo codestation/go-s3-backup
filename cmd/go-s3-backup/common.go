@@ -130,8 +130,6 @@ func restoreTask(c *cli.Context, service services.Service, store stores.Storer) 
 
 	defer store.Close()
 
-	log.Trace("Backup retrieved to %s", filepath)
-
 	if err = service.Restore(filepath); err != nil {
 		return fmt.Errorf("service restore failed: %v", err)
 	}
