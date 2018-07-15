@@ -17,14 +17,14 @@ limitations under the License.
 package services
 
 import (
+	"compress/gzip"
 	"fmt"
 	"os"
-	"os/exec"
-	"time"
+	"strings"
 )
 
-// Postgres has the config options for the Postgres service
-type Postgres struct {
+// PostgresConfig has the config options for the PostgresConfig service
+type PostgresConfig struct {
 	Host     string
 	Port     string
 	User     string
@@ -48,28 +48,47 @@ var PostgresRestoreApp = "/usr/bin/pg_restore"
 // PostgresTermApp points to the psql binary location
 var PostgresTermApp = "/usr/bin/psql"
 
-// Backup generates a dump of the database and returns the path where is stored
-func (p *Postgres) Backup() (string, error) {
-	filepath := fmt.Sprintf("%s/postgres-backup-%s", p.SaveDir, time.Now().Format("20060102150405"))
+func (p *PostgresConfig) newBaseArgs() []string {
 	args := []string{
 		"-h", p.Host,
 		"-p", p.Port,
 		"-U", p.User,
 	}
 
-	var app string
-
 	if p.Database != "" {
 		args = append(args, "-d", p.Database)
-		app = PostgresDumpApp
-	} else {
-		app = PostgresDumpallApp
 	}
 
-	env := os.Environ()
+	// add extra options
+	if len(p.Options) > 0 {
+		args = append(args, p.Options...)
+	}
+
+	return args
+}
+
+func (p *PostgresConfig) newPostgresCmd() *CmdConfig {
+	var env []string
 
 	if p.Password != "" {
 		env = append(env, "PGPASSWORD="+p.Password)
+	}
+
+	return &CmdConfig{
+		Env: env,
+	}
+}
+
+// Backup generates a dump of the database and returns the path where is stored
+func (p *PostgresConfig) Backup() (string, error) {
+	filepath := generateFilename(p.SaveDir, "postgres-backup")
+	args := p.newBaseArgs()
+
+	var appPath string
+	if p.Database != "" {
+		appPath = PostgresDumpApp
+	} else {
+		appPath = PostgresDumpallApp
 	}
 
 	// only allow custom format when dumping a single database
@@ -84,75 +103,69 @@ func (p *Postgres) Backup() (string, error) {
 		filepath += ".sql.gz"
 	}
 
-	// add extra options
-	if len(p.Options) > 0 {
-		args = append(args, p.Options...)
-	}
-
-	cmd := exec.Command(app, args...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Env = env
+	app := p.newPostgresCmd()
 
 	if p.Compress {
-		if err := compressAppOutput(cmd, filepath); err != nil {
-			return "", fmt.Errorf("couldn't pipe app output, %v", err)
+		f, err := os.Create(filepath)
+		if err != nil {
+			return "", fmt.Errorf("cannot create file: %v", err)
 		}
-	} else {
-		if err := cmd.Run(); err != nil {
-			return "", fmt.Errorf("couldn't execute %s, %v", PostgresDumpApp, err)
-		}
+
+		defer f.Close()
+
+		writer := gzip.NewWriter(f)
+		defer writer.Close()
+
+		app.OutputFile = writer
+	}
+
+	if err := app.CmdRun(appPath, args...); err != nil {
+		return "", fmt.Errorf("couldn't execute %s, %v", PostgresDumpApp, err)
 	}
 
 	return filepath, nil
 }
 
 // Restore takes a database dump and restores it
-func (p *Postgres) Restore(filepath string) error {
-	args := []string{
-		"-h", p.Host,
-		"-p", p.Port,
-		"-U", p.User,
-	}
-
-	if p.Database != "" {
-		args = append(args, "-d", p.Database)
-	}
-
-	env := os.Environ()
-
-	if p.Password != "" {
-		env = append(env, "PGPASSWORD="+p.Password)
-	}
-
-	// add extra options
-	if len(p.Options) > 0 {
-		args = append(args, p.Options...)
-	}
-
-	var App string
+func (p *PostgresConfig) Restore(filepath string) error {
+	args := p.newBaseArgs()
+	var appPath string
 
 	// only allow custom format when restoring a single database
 	if p.Custom && p.Database != "" {
 		args = append(args, filepath)
-		App = PostgresRestoreApp
+		appPath = PostgresRestoreApp
 	} else {
-		App = PostgresTermApp
+		appPath = PostgresTermApp
 	}
 
-	cmd := exec.Command(App, args...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Env = env
+	app := p.newPostgresCmd()
 
 	if !p.Custom {
-		if err := readFileToInput(cmd, filepath); err != nil {
-			return fmt.Errorf("couldn't pipe file to input, %v", err)
+		f, err := os.Open(filepath)
+		if err != nil {
+			return fmt.Errorf("cannot open file: %v", err)
 		}
-	} else {
-		if err := cmd.Run(); err != nil {
-			return fmt.Errorf("couldn't execute pg_restore, %v", err)
+
+		defer f.Close()
+
+		if strings.HasSuffix(filepath, ".gz") {
+			reader, err := gzip.NewReader(f)
+			if err != nil {
+				return fmt.Errorf("cannot create gzip reader: %v", err)
+			}
+
+			defer reader.Close()
+
+			app.InputFile = reader
+		} else {
+			app.InputFile = f
 		}
+		defer f.Close()
+	}
+
+	if err := app.CmdRun(appPath, args...); err != nil {
+		return fmt.Errorf("couldn't execute %s, %v", appPath, err)
 	}
 
 	return nil

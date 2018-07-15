@@ -20,13 +20,12 @@ import (
 	"fmt"
 	"path"
 	"strings"
-	"time"
 
 	"github.com/mholt/archiver"
 )
 
-// Tarball has the config options for the Tarball service
-type Tarball struct {
+// TarballConfig has the config options for the TarballConfig service
+type TarballConfig struct {
 	Name     string
 	Path     string
 	Compress bool
@@ -34,17 +33,15 @@ type Tarball struct {
 }
 
 // Backup creates a tarball of the specified directory
-func (f *Tarball) Backup() (string, error) {
+func (f *TarballConfig) Backup() (string, error) {
 	var name string
-
 	if f.Name != "" {
 		name = f.Name + "-backup"
 	} else {
 		name = path.Base(f.Path) + "-backup"
 	}
 
-	filepath := fmt.Sprintf("%s/%s-%s.tar", f.SaveDir, name, time.Now().Format("20060102150405"))
-	filepath = path.Clean(filepath)
+	filepath := generateFilename(f.SaveDir, name) + ".tar"
 
 	var err error
 
@@ -63,7 +60,7 @@ func (f *Tarball) Backup() (string, error) {
 }
 
 // Restore extracts a tarball to the specified directory
-func (f *Tarball) Restore(filepath string) error {
+func (f *TarballConfig) Restore(filepath string) error {
 	var err error
 
 	if strings.HasSuffix(filepath, ".gz") {

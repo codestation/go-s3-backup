@@ -104,20 +104,20 @@ var tarballFlags = []cli.Flag{
 	},
 }
 
-func newGogsConfig(c *cli.Context) *services.Gogs {
+func newGogsConfig(c *cli.Context) *services.GogsConfig {
 	c = c.Parent()
 
-	return &services.Gogs{
+	return &services.GogsConfig{
 		ConfigPath: c.String("gogs-config"),
 		DataPath:   c.String("gogs-data"),
 		SaveDir:    c.GlobalString("savedir"),
 	}
 }
 
-func newMysqlConfig(c *cli.Context) *services.MySQL {
+func newMysqlConfig(c *cli.Context) *services.MySQLConfig {
 	c = c.Parent()
 
-	return &services.MySQL{
+	return &services.MySQLConfig{
 		Host:     c.String("host"),
 		Port:     c.String("port"),
 		User:     c.String("user"),
@@ -129,10 +129,10 @@ func newMysqlConfig(c *cli.Context) *services.MySQL {
 	}
 }
 
-func newPostgresConfig(c *cli.Context) *services.Postgres {
+func newPostgresConfig(c *cli.Context) *services.PostgresConfig {
 	c = c.Parent()
 
-	return &services.Postgres{
+	return &services.PostgresConfig{
 		Host:     c.String("host"),
 		Port:     c.String("port"),
 		User:     c.String("user"),
@@ -145,10 +145,10 @@ func newPostgresConfig(c *cli.Context) *services.Postgres {
 	}
 }
 
-func newTarballConfig(c *cli.Context) *services.Tarball {
+func newTarballConfig(c *cli.Context) *services.TarballConfig {
 	c = c.Parent()
 
-	return &services.Tarball{
+	return &services.TarballConfig{
 		Path:     c.String("tarball-path"),
 		Name:     c.String("tarball-name"),
 		Compress: c.Bool("tarball-compress"),

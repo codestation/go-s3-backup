@@ -17,14 +17,14 @@ limitations under the License.
 package services
 
 import (
+	"compress/gzip"
 	"fmt"
 	"os"
-	"os/exec"
-	"time"
+	"strings"
 )
 
-// MySQL has the config options for the MySQL service
-type MySQL struct {
+// MySQLConfig has the config options for the MySQLConfig service
+type MySQLConfig struct {
 	Host     string
 	Port     string
 	User     string
@@ -41,24 +41,34 @@ var MysqlDumpApp = "/usr/bin/mysqldump"
 // MysqlRestoreApp points to the mysql binary location
 var MysqlRestoreApp = "/usr/bin/mysql"
 
-// Backup generates a dump of the database and returns the path where is stored
-func (m MySQL) Backup() (string, error) {
-	filepath := fmt.Sprintf("%s/mysql-backup-%s", m.SaveDir, time.Now().Format("20060102150405"))
-
+func (m *MySQLConfig) newBaseArgs() []string {
 	args := []string{
 		"-h", m.Host,
 		"-P", m.Port,
 		"-u", m.User,
 	}
 
+	if m.Password != "" {
+		args = append(args, "-p"+m.Password)
+	}
+
+	// add extra options
+	if len(m.Options) > 0 {
+		args = append(args, m.Options...)
+	}
+
+	return args
+}
+
+// Backup generates a dump of the database and returns the path where is stored
+func (m *MySQLConfig) Backup() (string, error) {
+	filepath := generateFilename(m.SaveDir, "mysql-backup")
+	args := m.newBaseArgs()
+
 	if m.Database != "" {
 		args = append(args, "-B", m.Database)
 	} else {
 		args = append(args, "--all-databases")
-	}
-
-	if m.Password != "" {
-		args = append(args, "-p", m.Password)
 	}
 
 	if !m.Compress {
@@ -68,59 +78,59 @@ func (m MySQL) Backup() (string, error) {
 		filepath += ".sql.gz"
 	}
 
-	// add extra options
-	if len(m.Options) > 0 {
-		args = append(args, m.Options...)
-	}
-
-	cmd := exec.Command(MysqlDumpApp, args...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Env = os.Environ()
+	app := CmdConfig{}
 
 	if m.Compress {
-		if err := compressAppOutput(cmd, filepath); err != nil {
-			return "", fmt.Errorf("couldn't compress app output, %v", err)
+		f, err := os.Create(filepath)
+		if err != nil {
+			return "", fmt.Errorf("cannot create file: %v", err)
 		}
-	} else {
-		if err := cmd.Run(); err != nil {
-			return "", fmt.Errorf("couldn't run mysql dump, %v", err)
-		}
+
+		defer f.Close()
+
+		writer := gzip.NewWriter(f)
+		defer writer.Close()
+
+		app.OutputFile = writer
+	}
+
+	if err := app.CmdRun(MysqlDumpApp, args...); err != nil {
+		return "", fmt.Errorf("couldn't execute %s, %v", MysqlDumpApp, err)
 	}
 
 	return filepath, nil
 }
 
 // Restore takes a database dump and restores it
-func (m *MySQL) Restore(filepath string) error {
-	args := []string{
-		"-h", m.Host,
-		"-P", m.Port,
-		"-u", m.User,
-	}
+func (m *MySQLConfig) Restore(filepath string) error {
+	args := m.newBaseArgs()
+	app := CmdConfig{}
 
 	if m.Database != "" {
-		args = append(args, "-B", m.Database)
+		args = append(args, "-D", m.Database)
+	}
+
+	f, err := os.Open(filepath)
+	if err != nil {
+		return fmt.Errorf("cannot open file: %v", err)
+	}
+
+	defer f.Close()
+
+	if strings.HasSuffix(filepath, ".gz") {
+		reader, err := gzip.NewReader(f)
+		if err != nil {
+			return fmt.Errorf("cannot create gzip reader: %v", err)
+		}
+
+		defer reader.Close()
+		app.InputFile = reader
 	} else {
-		args = append(args, "--all-databases")
+		app.InputFile = f
 	}
 
-	if m.Password != "" {
-		args = append(args, "-p", m.Password)
-	}
-
-	// add extra options
-	if len(m.Options) > 0 {
-		args = append(args, m.Options...)
-	}
-
-	cmd := exec.Command(MysqlRestoreApp, args...)
-	cmd.Stderr = os.Stderr
-	cmd.Stdout = os.Stdout
-	cmd.Env = os.Environ()
-
-	if err := readFileToInput(cmd, filepath); err != nil {
-		return fmt.Errorf("couldn't decompress file to input, %v", err)
+	if err := app.CmdRun(MysqlRestoreApp, args...); err != nil {
+		return fmt.Errorf("couldn't execute %s, %v", MysqlRestoreApp, err)
 	}
 
 	return nil

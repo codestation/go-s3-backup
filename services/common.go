@@ -17,13 +17,15 @@ limitations under the License.
 package services
 
 import (
-	"compress/gzip"
+	"bufio"
 	"fmt"
 	"io"
 	"os"
 	"os/exec"
-	"strings"
-	"sync"
+	"path"
+	"strconv"
+	"syscall"
+	"time"
 
 	log "gopkg.in/clog.v1"
 )
@@ -34,87 +36,108 @@ type Service interface {
 	Restore(path string) error
 }
 
-func compressAppOutput(cmd *exec.Cmd, filepath string) error {
-	f, err := os.Create(filepath)
-	if err != nil {
-		return fmt.Errorf("cannot open file %s, %v", filepath, err)
+// CmdConfig has the configuration needed to run an external executable
+type CmdConfig struct {
+	Env        []string
+	InputFile  io.Reader
+	OutputFile io.Writer
+	Credential *syscall.Credential
+}
+
+// CmdRun executes an external executable
+func (app *CmdConfig) CmdRun(name string, arg ...string) error {
+	cmd := exec.Command(name, arg...)
+	cmd.Stderr = os.Stderr
+	cmd.Env = app.Env
+
+	// only switch user when running as root
+	if os.Geteuid() == 0 && app.Credential != nil {
+		cmd.SysProcAttr = &syscall.SysProcAttr{}
+		cmd.SysProcAttr.Credential = app.Credential
+	} else {
+		log.Info("Not running as root, starting %s with UID %d", name, os.Geteuid())
 	}
 
-	defer f.Close()
+	if app.InputFile == nil && app.OutputFile == nil {
+		cmd.Stdout = os.Stdout
+		return cmd.Run()
+	}
 
-	pr, pw := io.Pipe()
-	gzW := gzip.NewWriter(pw)
+	var readErr, writeErr error
 
-	cmd.Stdout = gzW
+	doneWrite := make(chan error)
+	doneRead := make(chan error)
+
+	if app.OutputFile != nil {
+		outPipe, err := cmd.StdoutPipe()
+		if err != nil {
+			return fmt.Errorf("cannot create stdout pipe: %v", err)
+		}
+
+		reader := bufio.NewReader(outPipe)
+
+		go func() {
+			_, err := io.Copy(app.OutputFile, reader)
+			doneWrite <- err
+		}()
+	} else {
+		cmd.Stdout = os.Stdout
+		close(doneWrite)
+	}
+
+	if app.InputFile != nil {
+		inPipe, err := cmd.StdinPipe()
+		if err != nil {
+			return fmt.Errorf("cannot create stdin pipe: %v", err)
+		}
+
+		go func() {
+			_, err := io.Copy(inPipe, app.InputFile)
+			inPipe.Close()
+			doneRead <- err
+		}()
+	} else {
+		close(doneRead)
+	}
 
 	if err := cmd.Start(); err != nil {
-		return fmt.Errorf("couldn't execute %s, %v", cmd.Args[0], err)
+		return fmt.Errorf("cannot start process: %v", err)
 	}
 
-	var wg sync.WaitGroup
-	wg.Add(1)
+	writeErr = <-doneWrite
+	readErr = <-doneRead
 
-	go func() {
-		defer wg.Done()
-		err := cmd.Wait()
-		if err != nil {
-			log.Error(0, "error while waiting for process output: %v", err)
-		}
-		gzW.Close()
-		pw.Close()
-	}()
+	if err := cmd.Wait(); err != nil {
+		return fmt.Errorf("failed to wait for process: %v", err)
+	}
 
-	_, err = io.Copy(f, pr)
-	if err != nil {
-		return fmt.Errorf("couldn't pipe command stdout to file, %v", err)
+	if readErr != nil {
+		return fmt.Errorf("failed to read process stdin: %v", readErr)
+	}
+
+	if writeErr != nil {
+		return fmt.Errorf("failed to write process stdout: %v", writeErr)
 	}
 
 	return nil
 }
 
-func readFileToInput(cmd *exec.Cmd, filepath string) error {
-	f, err := os.Open(filepath)
-	if err != nil {
-		return fmt.Errorf("cannot open file %s, %v", filepath, err)
-	}
+func getEnvInt(key string, def int) int {
+	value := os.Getenv(key)
 
-	defer f.Close()
-
-	var gzR io.ReadCloser
-	pr, pw := io.Pipe()
-
-	if strings.HasSuffix(filepath, ".gz") {
-		gzR, err = gzip.NewReader(f)
-		if err != nil {
-			return fmt.Errorf("cannot create gzip reader: %v", err)
+	if value != "" {
+		val, err := strconv.Atoi(value)
+		if err == nil {
+			return val
 		}
-	} else {
-		gzR = f
+
+		log.Warn("Cannot parse env key %s with value %s", key, value)
 	}
 
-	cmd.Stdin = pr
+	return def
+}
 
-	if err := cmd.Start(); err != nil {
-		return fmt.Errorf("couldn't execute %s, %v", cmd.Args[0], err)
-	}
-
-	var wg sync.WaitGroup
-	wg.Add(1)
-
-	go func() {
-		defer wg.Done()
-		err := cmd.Wait()
-		if err != nil {
-			log.Error(0, "error while waiting for process input: %v", err)
-		}
-		gzR.Close()
-		pw.Close()
-	}()
-
-	_, err = io.Copy(pw, gzR)
-	if err != nil {
-		return fmt.Errorf("couldn't pipe file contents to stdin, %v", err)
-	}
-
-	return nil
+func generateFilename(dir, prefix string) string {
+	now := time.Now().Format("20060102150405")
+	return path.Join(dir, prefix+"-"+now)
 }

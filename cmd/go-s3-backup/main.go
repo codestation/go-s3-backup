@@ -44,7 +44,7 @@ func main() {
 
 	app.Before = func(c *cli.Context) error {
 		log.New(log.CONSOLE, log.ConsoleConfig{})
-		log.Info("go-s3-backup %s", AppVersion)
+		log.Info("Starting go-s3-backup %s", AppVersion)
 
 		if len(BuildTime) > 0 {
 			log.Trace("Build Time: %s", BuildTime)
@@ -55,8 +55,9 @@ func main() {
 	}
 
 	if err := app.Run(os.Args); err != nil {
-		log.Fatal(0, err.Error())
+		log.Fatal(0, "Unrecoverable error: %v", err)
 	}
 
-	log.Info("shutdown complete")
+	log.Info("Shutdown complete")
+	log.Shutdown()
 }

@@ -68,29 +68,29 @@ var s3Flags = []cli.Flag{
 		EnvVar: "S3_FORCE_PATH_STYLE",
 	},
 	cli.BoolFlag{
-		Name:   "s3-remove-after",
-		Usage:  "remove file after successful upload",
-		EnvVar: "S3_REMOVE_AFTER_UPLOAD",
+		Name:   "s3-keep-file",
+		Usage:  "keep local file after successful upload",
+		EnvVar: "S3_KEEP_FILE",
 	},
 }
 
-func newS3Config(c *cli.Context) *stores.S3 {
-	return &stores.S3{
-		Endpoint:          c.String("s3-endpoint"),
-		Region:            c.String("s3-region"),
-		Bucket:            c.String("s3-bucket"),
-		AccessKey:         c.String("s3-access-key"),
-		ClientSecret:      fileOrString(c, "s3-secret-key"),
-		Token:             c.String("s3-session-token"),
-		Prefix:            c.String("s3-prefix"),
-		ForcePathStyle:    c.Bool("s3-force-path-style"),
-		RemoveAfterUpload: c.Bool("s3-remove-after"),
-		SaveDir:           c.GlobalString("savedir"),
+func newS3Config(c *cli.Context) *stores.S3Config {
+	return &stores.S3Config{
+		Endpoint:        c.String("s3-endpoint"),
+		Region:          c.String("s3-region"),
+		Bucket:          c.String("s3-bucket"),
+		AccessKey:       c.String("s3-access-key"),
+		ClientSecret:    fileOrString(c, "s3-secret-key"),
+		Token:           c.String("s3-session-token"),
+		Prefix:          c.String("s3-prefix"),
+		ForcePathStyle:  c.Bool("s3-force-path-style"),
+		KeepAfterUpload: c.Bool("s3-keep-file"),
+		SaveDir:         c.GlobalString("savedir"),
 	}
 }
 
-func newFilesystemConfig(c *cli.Context) *stores.Filesystem {
-	return &stores.Filesystem{
+func newFilesystemConfig(c *cli.Context) *stores.FilesystemConfig {
+	return &stores.FilesystemConfig{
 		SaveDir: c.GlobalString("savedir"),
 	}
 }
@@ -99,7 +99,7 @@ func s3Cmd(command string, service string) cli.Command {
 	name := "s3"
 	return cli.Command{
 		Name:  name,
-		Usage: "use S3 as store",
+		Usage: "use S3Config as store",
 		Flags: s3Flags,
 		Action: func(c *cli.Context) error {
 			return runTask(c, command, service, name)

@@ -47,7 +47,7 @@ func getService(c *cli.Context, service string) services.Service {
 	case "tarball":
 		config = newTarballConfig(c)
 	default:
-		log.Fatal(0, "unsupported service: %s", service)
+		log.Fatal(0, "Unsupported service: %s", service)
 	}
 
 	return config
@@ -61,7 +61,7 @@ func getStore(c *cli.Context, store string) stores.Storer {
 	case "filesystem":
 		config = newFilesystemConfig(c)
 	default:
-		log.Fatal(0, "unsupported store: %s", store)
+		log.Fatal(0, "Unsupported store: %s", store)
 	}
 
 	return config
@@ -81,7 +81,7 @@ func runTask(c *cli.Context, command string, serviceName string, storeName strin
 			return restoreTask(c, service, store)
 		})
 	default:
-		log.Fatal(0, "unsupported command: %s", command)
+		log.Fatal(0, "Unsupported command: %s", command)
 	}
 	return nil
 }
@@ -92,17 +92,17 @@ func backupTask(c *cli.Context, service services.Service, store stores.Storer) e
 		return fmt.Errorf("service backup failed: %v", err)
 	}
 
-	log.Trace("backup saved to %s", filepath)
+	log.Trace("Backup saved to %s", filepath)
 
 	filename := path.Base(filepath)
 
 	if err = store.Store(filepath, filename); err != nil {
-		return fmt.Errorf("couldn't upload file to S3, %v", err)
+		return fmt.Errorf("couldn't upload file to store: %v", err)
 	}
 
 	err = store.RemoveOlderBackups(c.GlobalInt("max-backups"))
 	if err != nil {
-		return fmt.Errorf("couldn't remove old backups from S3, %v", err)
+		return fmt.Errorf("couldn't remove old backups from store: %v", err)
 	}
 
 	return nil
@@ -119,18 +119,18 @@ func restoreTask(c *cli.Context, service services.Service, store stores.Storer) 
 		// find the latest file in the store
 		filename, err = store.FindLatestBackup()
 		if err != nil {
-			return fmt.Errorf("cannot find the latest backup, %v", err)
+			return fmt.Errorf("cannot find the latest backup: %v", err)
 		}
 	}
 
 	filepath, err := store.Retrieve(filename)
 	if err != nil {
-		return fmt.Errorf("cannot download file %s, %v", filename, err)
+		return fmt.Errorf("cannot download file %s: %v", filename, err)
 	}
 
 	defer store.Close()
 
-	log.Trace("backup retrieved to %s", filepath)
+	log.Trace("Backup retrieved to %s", filepath)
 
 	if err = service.Restore(filepath); err != nil {
 		return fmt.Errorf("service restore failed: %v", err)
@@ -144,17 +144,17 @@ func runScheduler(c *cli.Context, task task) error {
 	schedule := c.GlobalString("schedule")
 
 	if schedule == "" || schedule == "none" {
-		log.Trace("running job directly")
+		log.Trace("Running task directly")
 		return task(c)
 	}
 
-	log.Trace("starting scheduled backup jobs")
+	log.Trace("Starting scheduled backup task")
 	timeoutchan := make(chan bool, 1)
 
 	cr.AddFunc(schedule, func() {
 		delay := c.GlobalInt("random-delay")
 		if delay <= 0 {
-			log.Warn("schedule random delay was set to a number <= 0, using 1 as default")
+			log.Warn("Schedule random delay was set to a number <= 0, using 1 as default")
 			delay = 1
 		}
 
@@ -163,22 +163,22 @@ func runScheduler(c *cli.Context, task task) error {
 		// run immediately is no delay is configured
 		if seconds == 0 {
 			if err := task(c); err != nil {
-				log.Error(0, "failed to run scheduled task, %v", err)
+				log.Error(0, "Failed to run scheduled task: %v", err)
 			}
 			return
 		}
 
-		log.Trace("waiting for %d seconds before starting scheduled job", seconds)
+		log.Trace("Waiting for %d seconds before starting scheduled job", seconds)
 
 		select {
 		case <-timeoutchan:
-			log.Trace("random timeout cancelled")
+			log.Trace("Random timeout cancelled")
 			break
 		case <-time.After(time.Duration(seconds) * time.Second):
-			log.Trace("running scheduled task")
+			log.Trace("Running scheduled task")
 
 			if err := task(c); err != nil {
-				log.Error(0, "failed to run scheduled task, %v", err)
+				log.Error(0, "Failed to run scheduled task: %v", err)
 			}
 			break
 		}
@@ -192,7 +192,7 @@ func runScheduler(c *cli.Context, task task) error {
 	timeoutchan <- true
 	close(timeoutchan)
 
-	log.Trace("stopping scheduled task")
+	log.Trace("Stopping scheduled task")
 	cr.Stop()
 
 	return nil
@@ -202,7 +202,7 @@ func fileOrString(c *cli.Context, name string) string {
 	if filepath := c.String(name + "-file"); filepath != "" {
 		f, err := os.Open(filepath)
 		if err != nil {
-			log.Error(0, "cannot open password file, %v", err)
+			log.Error(0, "Cannot open password file: %v", err)
 			return ""
 		}
 
@@ -211,7 +211,7 @@ func fileOrString(c *cli.Context, name string) string {
 			return scanner.Text()
 		}
 
-		log.Warn("using empty password file")
+		log.Warn("Using empty password file")
 		return ""
 	}
 
