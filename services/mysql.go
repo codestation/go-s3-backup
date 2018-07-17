@@ -30,7 +30,7 @@ type MySQLConfig struct {
 	User     string
 	Password string
 	Database string
-	Options  []string
+	Options  string
 	Compress bool
 	SaveDir  string
 }
@@ -52,9 +52,11 @@ func (m *MySQLConfig) newBaseArgs() []string {
 		args = append(args, "-p"+m.Password)
 	}
 
+	options := strings.Fields(m.Options)
+
 	// add extra options
-	if len(m.Options) > 0 {
-		args = append(args, m.Options...)
+	if len(options) > 0 {
+		args = append(args, options...)
 	}
 
 	return args

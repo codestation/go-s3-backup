@@ -30,7 +30,7 @@ type PostgresConfig struct {
 	User     string
 	Password string
 	Database string
-	Options  []string
+	Options  string
 	Compress bool
 	Custom   bool
 	SaveDir  string
@@ -59,9 +59,11 @@ func (p *PostgresConfig) newBaseArgs() []string {
 		args = append(args, "-d", p.Database)
 	}
 
+	options := strings.Fields(p.Options)
+
 	// add extra options
-	if len(p.Options) > 0 {
-		args = append(args, p.Options...)
+	if len(options) > 0 {
+		args = append(args, options...)
 	}
 
 	return args

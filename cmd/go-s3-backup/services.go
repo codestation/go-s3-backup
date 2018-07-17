@@ -66,7 +66,7 @@ var databaseFlags = []cli.Flag{
 		Usage:  "database password file",
 		EnvVar: "DATABASE_PASSWORD_FILE",
 	},
-	cli.StringSliceFlag{
+	cli.StringFlag{
 		Name:   "options",
 		Usage:  "extra options to pass to database service",
 		EnvVar: "DATABASE_OPTIONS",
@@ -123,7 +123,7 @@ func newMysqlConfig(c *cli.Context) *services.MySQLConfig {
 		User:     c.String("user"),
 		Password: fileOrString(c, "password"),
 		Database: c.String("database"),
-		Options:  c.StringSlice("options"),
+		Options:  c.String("options"),
 		Compress: c.Bool("compress"),
 		SaveDir:  c.GlobalString("savedir"),
 	}
@@ -138,7 +138,7 @@ func newPostgresConfig(c *cli.Context) *services.PostgresConfig {
 		User:     c.String("user"),
 		Password: fileOrString(c, "password"),
 		Database: c.String("database"),
-		Options:  c.StringSlice("options"),
+		Options:  c.String("options"),
 		Compress: c.Bool("compress"),
 		Custom:   c.Bool("postgres-custom"),
 		SaveDir:  c.GlobalString("savedir"),
