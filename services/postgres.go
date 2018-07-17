@@ -20,20 +20,24 @@ import (
 	"compress/gzip"
 	"fmt"
 	"os"
+	"os/exec"
 	"strings"
+
+	log "gopkg.in/clog.v1"
 )
 
 // PostgresConfig has the config options for the PostgresConfig service
 type PostgresConfig struct {
-	Host     string
-	Port     string
-	User     string
-	Password string
-	Database string
-	Options  string
-	Compress bool
-	Custom   bool
-	SaveDir  string
+	Host           string
+	Port           string
+	User           string
+	Password       string
+	Database       string
+	Options        string
+	Compress       bool
+	Custom         bool
+	SaveDir        string
+	IgnoreExitCode bool
 }
 
 // PostgresDumpApp points to the pg_dump binary location
@@ -167,7 +171,13 @@ func (p *PostgresConfig) Restore(filepath string) error {
 	}
 
 	if err := app.CmdRun(appPath, args...); err != nil {
-		return fmt.Errorf("couldn't execute %s, %v", appPath, err)
+		serr, ok := err.(*exec.ExitError)
+
+		if ok && p.IgnoreExitCode {
+			log.Info("Ignored exit code of restore process: %v", serr)
+		} else {
+			return fmt.Errorf("couldn't execute %s, %v", MysqlRestoreApp, err)
+		}
 	}
 
 	return nil

@@ -76,6 +76,11 @@ var databaseFlags = []cli.Flag{
 		Usage:  "compress sql with gzip",
 		EnvVar: "DATABASE_COMPRESS",
 	},
+	cli.BoolFlag{
+		Name:   "ignore-exit-code",
+		Usage:  "ignore restore process exit code",
+		EnvVar: "DATABASE_IGNORE_EXIT_CODE",
+	},
 }
 
 var postgresFlags = []cli.Flag{
@@ -118,14 +123,15 @@ func newMysqlConfig(c *cli.Context) *services.MySQLConfig {
 	c = c.Parent()
 
 	return &services.MySQLConfig{
-		Host:     c.String("host"),
-		Port:     c.String("port"),
-		User:     c.String("user"),
-		Password: fileOrString(c, "password"),
-		Database: c.String("database"),
-		Options:  c.String("options"),
-		Compress: c.Bool("compress"),
-		SaveDir:  c.GlobalString("savedir"),
+		Host:           c.String("host"),
+		Port:           c.String("port"),
+		User:           c.String("user"),
+		Password:       fileOrString(c, "password"),
+		Database:       c.String("database"),
+		Options:        c.String("options"),
+		Compress:       c.Bool("compress"),
+		SaveDir:        c.GlobalString("savedir"),
+		IgnoreExitCode: c.Bool("ignore-exit-code"),
 	}
 }
 
@@ -133,15 +139,16 @@ func newPostgresConfig(c *cli.Context) *services.PostgresConfig {
 	c = c.Parent()
 
 	return &services.PostgresConfig{
-		Host:     c.String("host"),
-		Port:     c.String("port"),
-		User:     c.String("user"),
-		Password: fileOrString(c, "password"),
-		Database: c.String("database"),
-		Options:  c.String("options"),
-		Compress: c.Bool("compress"),
-		Custom:   c.Bool("postgres-custom"),
-		SaveDir:  c.GlobalString("savedir"),
+		Host:           c.String("host"),
+		Port:           c.String("port"),
+		User:           c.String("user"),
+		Password:       fileOrString(c, "password"),
+		Database:       c.String("database"),
+		Options:        c.String("options"),
+		Compress:       c.Bool("compress"),
+		Custom:         c.Bool("postgres-custom"),
+		SaveDir:        c.GlobalString("savedir"),
+		IgnoreExitCode: c.Bool("ignore-exit-code"),
 	}
 }
 

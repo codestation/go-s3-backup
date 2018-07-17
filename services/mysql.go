@@ -20,19 +20,23 @@ import (
 	"compress/gzip"
 	"fmt"
 	"os"
+	"os/exec"
 	"strings"
+
+	log "gopkg.in/clog.v1"
 )
 
 // MySQLConfig has the config options for the MySQLConfig service
 type MySQLConfig struct {
-	Host     string
-	Port     string
-	User     string
-	Password string
-	Database string
-	Options  string
-	Compress bool
-	SaveDir  string
+	Host           string
+	Port           string
+	User           string
+	Password       string
+	Database       string
+	Options        string
+	Compress       bool
+	SaveDir        string
+	IgnoreExitCode bool
 }
 
 // MysqlDumpApp points to the mysqldump binary location
@@ -132,7 +136,13 @@ func (m *MySQLConfig) Restore(filepath string) error {
 	}
 
 	if err := app.CmdRun(MysqlRestoreApp, args...); err != nil {
-		return fmt.Errorf("couldn't execute %s, %v", MysqlRestoreApp, err)
+		serr, ok := err.(*exec.ExitError)
+
+		if ok && m.IgnoreExitCode {
+			log.Info("Ignored exit code of restore process: %v", serr)
+		} else {
+			return fmt.Errorf("couldn't execute %s, %v", MysqlRestoreApp, err)
+		}
 	}
 
 	return nil
