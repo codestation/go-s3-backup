@@ -1,5 +1,4 @@
-ARG APP_IMAGE=codestation/go-s3-backup
-FROM $APP_IMAGE AS app
+FROM registry.megpoid.xyz/go-s3-backup AS app
 
 FROM alpine:3.8
 LABEL maintainer="codestation <codestation404@gmail.com>"

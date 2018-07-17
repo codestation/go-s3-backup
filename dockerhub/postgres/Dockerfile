@@ -1,4 +1,4 @@
-FROM registry.megpoid.xyz/go-s3-backup AS app
+FROM codestation/go-s3-backup AS app
 
 FROM alpine:3.8
 LABEL maintainer="codestation <codestation404@gmail.com>"

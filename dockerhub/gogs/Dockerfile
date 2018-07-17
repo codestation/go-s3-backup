@@ -1,9 +1,8 @@
-FROM registry.megpoid.xyz/go-s3-backup AS app
+FROM codestation/go-s3-backup AS app
 
-FROM alpine:3.8
+FROM gogs/gogs:0.11.53
 LABEL maintainer="codestation <codestation404@gmail.com>"
 
-RUN apk add --no-cache ca-certificates postgresql-client
 COPY --from=app /bin/go-s3-backup /bin/go-s3-backup
 
 ENTRYPOINT ["/bin/go-s3-backup"]

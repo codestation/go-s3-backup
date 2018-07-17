@@ -30,8 +30,6 @@ pipeline:
     registry: registry.megpoid.xyz
     mirror: https://registry-proxy.megpoid.xyz
     secrets: [ docker_username, docker_password ]
-    build_args:
-      - APP_IMAGE=registry.megpoid.xyz/go-s3-backup
     tags:
       - latest
 
@@ -42,8 +40,6 @@ pipeline:
     registry: registry.megpoid.xyz
     mirror: https://registry-proxy.megpoid.xyz
     secrets: [ docker_username, docker_password ]
-    build_args:
-      - APP_IMAGE=registry.megpoid.xyz/go-s3-backup
     tags:
       - latest
 
@@ -54,8 +50,6 @@ pipeline:
     registry: registry.megpoid.xyz
     mirror: https://registry-proxy.megpoid.xyz
     secrets: [ docker_username, docker_password ]
-    build_args:
-      - APP_IMAGE=registry.megpoid.xyz/go-s3-backup
     tags:
       - latest
 
