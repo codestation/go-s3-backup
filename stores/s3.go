@@ -87,10 +87,7 @@ func (s *S3Config) Store(filepath string, filename string) error {
 	return nil
 }
 
-// RemoveOlderBackups keeps the most recent backups of the S3 service and deletes the old ones
-func (s *S3Config) RemoveOlderBackups(keep int) error {
-	svc := s3.New(s.newSession())
-
+func (s *S3Config) getFileListing(svc *s3.S3) ([]string, error) {
 	var files []string
 
 	err := svc.ListObjectsPages(&s3.ListObjectsInput{
@@ -107,6 +104,14 @@ func (s *S3Config) RemoveOlderBackups(keep int) error {
 		return true
 	})
 
+	return files, err
+}
+
+// RemoveOlderBackups keeps the most recent backups of the S3 service and deletes the old ones
+func (s *S3Config) RemoveOlderBackups(keep int) error {
+	svc := s3.New(s.newSession())
+
+	files, err := s.getFileListing(svc)
 	if err != nil {
 		return fmt.Errorf("couldn't list S3 objects, %v", err)
 	}
@@ -143,22 +148,7 @@ func (s *S3Config) RemoveOlderBackups(keep int) error {
 func (s *S3Config) FindLatestBackup() (string, error) {
 	svc := s3.New(s.newSession())
 
-	var files []string
-
-	err := svc.ListObjectsPages(&s3.ListObjectsInput{
-		Bucket: aws.String(s.Bucket),
-		// make sure that the prefix ends with "/"
-		Prefix: aws.String(path.Clean(s.Prefix) + "/"),
-	}, func(p *s3.ListObjectsOutput, last bool) (shouldContinue bool) {
-
-		for _, obj := range p.Contents {
-			if !strings.HasSuffix(*obj.Key, "/") {
-				files = append(files, aws.StringValue(obj.Key))
-			}
-		}
-		return true
-	})
-
+	files, err := s.getFileListing(svc)
 	if err != nil {
 		return "", fmt.Errorf("couldn't list S3 objects, %v", err)
 	}
