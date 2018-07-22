@@ -31,7 +31,7 @@
 
 [[constraint]]
   name = "github.com/mholt/archiver"
-  version = "2.0.0"
+  branch = "master"
 
 [[constraint]]
   name = "github.com/robfig/cron"
@@ -48,3 +48,7 @@
 [prune]
   go-tests = true
   unused-packages = true
+
+[[constraint]]
+  name = "github.com/stretchr/testify"
+  version = "1.2.2"
