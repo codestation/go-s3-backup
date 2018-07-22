@@ -24,7 +24,6 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
@@ -36,9 +35,6 @@ type S3Config struct {
 	Endpoint        string
 	Region          string
 	Bucket          string
-	AccessKey       string
-	ClientSecret    string
-	Token           string
 	Prefix          string
 	ForcePathStyle  bool
 	KeepAfterUpload bool
@@ -47,16 +43,7 @@ type S3Config struct {
 }
 
 func (s *S3Config) newSession() *session.Session {
-	var creds *credentials.Credentials
-
-	if s.AccessKey != "" && s.ClientSecret != "" {
-		creds = credentials.NewStaticCredentials(s.AccessKey, s.ClientSecret, s.Token)
-	} else {
-		creds = credentials.NewSharedCredentials("", "default")
-	}
-
 	config := &aws.Config{
-		Credentials:      creds,
 		Endpoint:         aws.String(s.Endpoint),
 		Region:           aws.String(s.Region),
 		S3ForcePathStyle: aws.Bool(s.ForcePathStyle),
