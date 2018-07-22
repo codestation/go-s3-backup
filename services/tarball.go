@@ -19,7 +19,6 @@ package services
 import (
 	"fmt"
 	"path"
-	"strings"
 
 	"github.com/mholt/archiver"
 )
@@ -66,15 +65,15 @@ func (f *TarballConfig) Restore(filepath string) error {
 		return fmt.Errorf("failed to empty directory contents before restoring: %v", err)
 	}
 
-	// use the parent directory to unpack as the current directory is already in the tarball
-	if strings.HasSuffix(filepath, ".gz") {
-		err = archiver.TarGz.Open(filepath, path.Dir(f.Path))
-	} else {
-		err = archiver.Tar.Open(filepath, path.Dir(f.Path))
+	archive := archiver.MatchingFormat(filepath)
+	if archive == nil {
+		return fmt.Errorf("unsupported file extension: %s", path.Base(filepath))
 	}
 
+	// use the parent directory to unpack as the current directory is already in the tarball
+	err = archive.Open(filepath, path.Dir(f.Path))
 	if err != nil {
-		return fmt.Errorf("cannot unpack tarball: %v", err)
+		return fmt.Errorf("cannot unpack backup: %v", err)
 	}
 
 	return nil
