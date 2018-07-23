@@ -6,23 +6,24 @@ import (
 	"path"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestBackupRestore(t *testing.T) {
+	r := require.New(t)
 	tmp, err := ioutil.TempDir("", "archiver")
-	assert.Nil(t, err, "failed to create temp directory")
+	r.NoError(err, "failed to create temp directory")
 
 	defer os.RemoveAll(tmp)
 
 	backupDir := path.Join(tmp, "backup")
 	err = os.Mkdir(backupDir, 0755)
-	assert.Nil(t, err, "failed to create backup directory")
+	r.NoError(err, "failed to create backup directory")
 
 	filepath := path.Join(backupDir, "test.txt")
 	expected := []byte("test")
 	err = ioutil.WriteFile(filepath, expected, 0777)
-	assert.Nil(t, err, "failed to create backup file")
+	r.NoError(err, "failed to create backup file")
 
 	tar := TarballConfig{
 		Path:     backupDir,
@@ -32,12 +33,12 @@ func TestBackupRestore(t *testing.T) {
 	}
 
 	tarball, err := tar.Backup()
-	assert.Nil(t, err, "failed to create backup tarball")
+	r.NoError(err, "failed to create backup tarball")
 
 	err = tar.Restore(tarball)
-	assert.Nil(t, err, "failed to restore backup dir")
+	r.NoError(err, "failed to restore backup dir")
 
 	actual, err := ioutil.ReadFile(filepath)
-	assert.Nil(t, err, "failed to read restored file")
-	assert.Equal(t, expected, actual, "backup contents mismatch")
+	r.NoError(err, "failed to read restored file")
+	r.Equal(expected, actual, "backup contents mismatch")
 }
