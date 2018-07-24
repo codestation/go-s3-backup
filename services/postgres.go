@@ -126,7 +126,7 @@ func (p *PostgresConfig) Backup() (string, error) {
 	}
 
 	if err := app.CmdRun(appPath, args...); err != nil {
-		return "", fmt.Errorf("couldn't execute %s, %v", PostgresDumpApp, err)
+		return "", fmt.Errorf("couldn't execute %s, %v", appPath, err)
 	}
 
 	return filepath, nil
@@ -176,7 +176,7 @@ func (p *PostgresConfig) Restore(filepath string) error {
 		if ok && p.IgnoreExitCode {
 			log.Info("Ignored exit code of restore process: %v", serr)
 		} else {
-			return fmt.Errorf("couldn't execute %s, %v", MysqlRestoreApp, err)
+			return fmt.Errorf("couldn't execute %s, %v", appPath, err)
 		}
 	}
 
