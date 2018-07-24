@@ -51,8 +51,8 @@ func (g *GogsConfig) newGogsCmd() *CmdConfig {
 
 // Backup generates a tarball of the GogsConfig repositories and returns the path where is stored
 func (g *GogsConfig) Backup() (string, error) {
-	filepath := generateFilename(g.SaveDir, "gogs-backup") + ".zip"
-	args := []string{"backup", "--target", g.SaveDir, "--archive-name", filepath}
+	filename := generateFilename("", "gogs-backup") + ".zip"
+	args := []string{"backup", "--target", g.SaveDir, "--archive-name", filename}
 
 	if g.ConfigPath != "" {
 		args = append(args, "--config", g.ConfigPath)
@@ -64,7 +64,7 @@ func (g *GogsConfig) Backup() (string, error) {
 		return "", fmt.Errorf("couldn't execute %s, %v", GogsAppPath, err)
 	}
 
-	return path.Join(g.SaveDir, filepath), nil
+	return path.Join(g.SaveDir, filename), nil
 }
 
 // Restore takes a GogsConfig backup and restores it to the service
