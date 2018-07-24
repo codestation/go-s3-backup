@@ -61,6 +61,8 @@ func (s *S3Config) Store(filepath string, filename string) error {
 		return fmt.Errorf("failed to open file %q, %v", filepath, err)
 	}
 
+	defer f.Close()
+
 	if !s.KeepAfterUpload {
 		defer func() {
 			log.Info("Removing source file %s", filepath)

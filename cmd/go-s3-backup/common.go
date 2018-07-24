@@ -204,6 +204,8 @@ func fileOrString(c *cli.Context, name string) string {
 			return ""
 		}
 
+		defer f.Close()
+
 		scanner := bufio.NewScanner(f)
 		if scanner.Scan() {
 			return scanner.Text()
