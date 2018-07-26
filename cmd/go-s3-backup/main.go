@@ -19,8 +19,9 @@ package main
 import (
 	"os"
 
-	"github.com/urfave/cli"
 	log "gopkg.in/clog.v1"
+	"gopkg.in/urfave/cli.v1"
+	"gopkg.in/urfave/cli.v1/altsrc"
 )
 
 var (
@@ -36,6 +37,13 @@ func main() {
 	app := cli.NewApp()
 	app.Usage = "run backups from various services to S3-like storage"
 	app.Version = AppVersion
+	app.Flags = []cli.Flag{
+		cli.StringFlag{
+			Name:   "config",
+			Usage:  "load config from yaml file",
+			EnvVar: "CONFIG_FILE",
+		},
+	}
 
 	app.Commands = []cli.Command{
 		backupCmd(),
@@ -49,6 +57,17 @@ func main() {
 		if len(BuildTime) > 0 {
 			log.Trace("Build Time: %s", BuildTime)
 			log.Trace("Build Commit: %s", BuildCommit)
+		}
+
+		if c.String("config") != "" {
+			cfg, err := altsrc.NewYamlSourceFromFile(c.String("config"))
+			if err != nil {
+				app.Metadata = map[string]interface{}{
+					"config": cfg,
+				}
+			}
+
+			return err
 		}
 
 		return nil

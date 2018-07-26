@@ -18,6 +18,9 @@ The schedule function can also be used on restore if you need to test your backu
 ## Environment variables
 
 ### Global configuration
+* `CONFIG`: load config from a yaml file
+
+### Backup/restore configuration
 * `SAVE_DIR`: directory to store the temporal backup after creating/retrieving it.`
 * `SCHEDULE_RANDOM_DELAY`: maximum number of seconds (value choosen at random) to wait before starting a task. There is no random delay by default.
 * `SCHEDULE`: specifies when to start a task. Defaults to `@daily` on backup, `none` on restore. Accepts cron format, like `0 0 * * * `. Set to `none` to disable and perform only one task.

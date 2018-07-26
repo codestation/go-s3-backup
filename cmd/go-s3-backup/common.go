@@ -27,8 +27,9 @@ import (
 	"time"
 
 	"github.com/robfig/cron"
-	"github.com/urfave/cli"
 	log "gopkg.in/clog.v1"
+	"gopkg.in/urfave/cli.v1"
+	"gopkg.in/urfave/cli.v1/altsrc"
 	"megpoid.xyz/go/go-s3-backup/services"
 	"megpoid.xyz/go/go-s3-backup/stores"
 )
@@ -216,4 +217,20 @@ func fileOrString(c *cli.Context, name string) string {
 	}
 
 	return c.String(name)
+}
+
+func applyConfigValues(flags []cli.Flag) cli.BeforeFunc {
+	return func(c *cli.Context) error {
+		config := c.App.Metadata["config"]
+		if config != nil {
+			cfg, ok := config.(altsrc.InputSourceContext)
+			if ok {
+				return altsrc.ApplyInputSourceValues(c, cfg, flags)
+			} else {
+				return fmt.Errorf("invalid config type for metadata")
+			}
+		}
+
+		return nil
+	}
 }

@@ -17,96 +17,97 @@ limitations under the License.
 package main
 
 import (
-	"github.com/urfave/cli"
+	"gopkg.in/urfave/cli.v1"
+	"gopkg.in/urfave/cli.v1/altsrc"
 	"megpoid.xyz/go/go-s3-backup/services"
 )
 
 var gogsFlags = []cli.Flag{
-	cli.StringFlag{
+	altsrc.NewStringFlag(cli.StringFlag{
 		Name:   "gogs-config",
 		Usage:  "gogs config path",
 		EnvVar: "GOGS_CONFIG",
-	},
-	cli.StringFlag{
+	}),
+	altsrc.NewStringFlag(cli.StringFlag{
 		Name:   "gogs-data",
 		Usage:  "gogs data path",
 		Value:  "/data",
 		EnvVar: "GOGS_DATA",
-	},
+	}),
 }
 
 var databaseFlags = []cli.Flag{
-	cli.StringFlag{
+	altsrc.NewStringFlag(cli.StringFlag{
 		Name:   "host",
 		Usage:  "database host",
 		EnvVar: "DATABASE_HOST",
-	},
-	cli.StringFlag{
+	}),
+	altsrc.NewStringFlag(cli.StringFlag{
 		Name:   "port",
 		Usage:  "database port",
 		EnvVar: "DATABASE_PORT",
-	},
-	cli.StringFlag{
+	}),
+	altsrc.NewStringFlag(cli.StringFlag{
 		Name:   "database",
 		Usage:  "database name",
 		EnvVar: "DATABASE_NAME",
-	},
-	cli.StringFlag{
+	}),
+	altsrc.NewStringFlag(cli.StringFlag{
 		Name:   "user",
 		Usage:  "database user",
 		EnvVar: "DATABASE_USER",
-	},
-	cli.StringFlag{
+	}),
+	altsrc.NewStringFlag(cli.StringFlag{
 		Name:   "password",
 		Usage:  "database password",
 		EnvVar: "DATABASE_PASSWORD",
-	},
-	cli.StringFlag{
+	}),
+	altsrc.NewStringFlag(cli.StringFlag{
 		Name:   "password-file",
 		Usage:  "database password file",
 		EnvVar: "DATABASE_PASSWORD_FILE",
-	},
-	cli.StringFlag{
+	}),
+	altsrc.NewStringFlag(cli.StringFlag{
 		Name:   "options",
 		Usage:  "extra options to pass to database service",
 		EnvVar: "DATABASE_OPTIONS",
-	},
-	cli.BoolFlag{
+	}),
+	altsrc.NewBoolFlag(cli.BoolFlag{
 		Name:   "compress",
 		Usage:  "compress sql with gzip",
 		EnvVar: "DATABASE_COMPRESS",
-	},
-	cli.BoolFlag{
+	}),
+	altsrc.NewBoolFlag(cli.BoolFlag{
 		Name:   "ignore-exit-code",
 		Usage:  "ignore restore process exit code",
 		EnvVar: "DATABASE_IGNORE_EXIT_CODE",
-	},
+	}),
 }
 
 var postgresFlags = []cli.Flag{
-	cli.BoolFlag{
+	altsrc.NewBoolFlag(cli.BoolFlag{
 		Name:   "postgres-custom",
 		Usage:  "use custom format (always compressed), ignored when database name is not set",
 		EnvVar: "POSTGRES_CUSTOM_FORMAT",
-	},
+	}),
 }
 
 var tarballFlags = []cli.Flag{
-	cli.StringFlag{
+	altsrc.NewStringFlag(cli.StringFlag{
 		Name:   "tarball-path",
 		Usage:  "path to backup/restore",
 		EnvVar: "TARBALL_PATH_SOURCE",
-	},
-	cli.StringFlag{
+	}),
+	altsrc.NewStringFlag(cli.StringFlag{
 		Name:   "tarball-name",
 		Usage:  "backup file prefix",
 		EnvVar: "TARBALL_NAME_PREFIX",
-	},
-	cli.BoolFlag{
+	}),
+	altsrc.NewBoolFlag(cli.BoolFlag{
 		Name:   "tarball-compress",
 		Usage:  "compress tarball with gzip",
 		EnvVar: "TARBALL_COMPRESS",
-	},
+	}),
 }
 
 func newGogsConfig(c *cli.Context) *services.GogsConfig {
@@ -166,9 +167,10 @@ func newTarballConfig(c *cli.Context) *services.TarballConfig {
 func gogsCmd(parent string) cli.Command {
 	name := "gogs"
 	return cli.Command{
-		Name:  name,
-		Usage: "connect to gogs service",
-		Flags: gogsFlags,
+		Name:   name,
+		Usage:  "connect to gogs service",
+		Flags:  gogsFlags,
+		Before: applyConfigValues(gogsFlags),
 		Subcommands: []cli.Command{
 			s3Cmd(parent, name),
 			filesystemCmd(parent, name),
@@ -178,10 +180,12 @@ func gogsCmd(parent string) cli.Command {
 
 func postgresCmd(parent string) cli.Command {
 	name := "postgres"
+	flags := append(databaseFlags, postgresFlags...)
 	return cli.Command{
-		Name:  name,
-		Usage: "connect to postgres service",
-		Flags: append(databaseFlags, postgresFlags...),
+		Name:   name,
+		Usage:  "connect to postgres service",
+		Flags:  flags,
+		Before: applyConfigValues(flags),
 		Subcommands: []cli.Command{
 			s3Cmd(parent, name),
 			filesystemCmd(parent, name),
@@ -192,9 +196,10 @@ func postgresCmd(parent string) cli.Command {
 func mysqlCmd(parent string) cli.Command {
 	name := "mysql"
 	return cli.Command{
-		Name:  name,
-		Usage: "connect to mysql service",
-		Flags: databaseFlags,
+		Name:   name,
+		Usage:  "connect to mysql service",
+		Flags:  databaseFlags,
+		Before: applyConfigValues(databaseFlags),
 		Subcommands: []cli.Command{
 			s3Cmd(parent, name),
 			filesystemCmd(parent, name),
@@ -205,9 +210,10 @@ func mysqlCmd(parent string) cli.Command {
 func tarballCmd(parent string) cli.Command {
 	name := "tarball"
 	return cli.Command{
-		Name:  name,
-		Usage: "connect to tarball service",
-		Flags: tarballFlags,
+		Name:   name,
+		Usage:  "connect to tarball service",
+		Flags:  tarballFlags,
+		Before: applyConfigValues(tarballFlags),
 		Subcommands: []cli.Command{
 			s3Cmd(parent, name),
 			filesystemCmd(parent, name),

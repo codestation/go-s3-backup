@@ -17,41 +17,42 @@ limitations under the License.
 package main
 
 import (
-	"github.com/urfave/cli"
+	"gopkg.in/urfave/cli.v1"
+	"gopkg.in/urfave/cli.v1/altsrc"
 	"megpoid.xyz/go/go-s3-backup/stores"
 )
 
 var s3Flags = []cli.Flag{
-	cli.StringFlag{
+	altsrc.NewStringFlag(cli.StringFlag{
 		Name:   "s3-endpoint",
 		Usage:  "s3 endpoint",
 		EnvVar: "S3_ENDPOINT",
-	},
-	cli.StringFlag{
+	}),
+	altsrc.NewStringFlag(cli.StringFlag{
 		Name:   "s3-region",
 		Usage:  "s3 region",
 		EnvVar: "S3_REGION",
-	},
-	cli.StringFlag{
+	}),
+	altsrc.NewStringFlag(cli.StringFlag{
 		Name:   "s3-bucket",
 		Usage:  "s3 bucket",
 		EnvVar: "S3_BUCKET",
-	},
-	cli.StringFlag{
+	}),
+	altsrc.NewStringFlag(cli.StringFlag{
 		Name:   "s3-prefix",
 		Usage:  "s3 prefix",
 		EnvVar: "S3_PREFIX",
-	},
-	cli.BoolFlag{
+	}),
+	altsrc.NewBoolFlag(cli.BoolFlag{
 		Name:   "s3-force-path-style",
 		Usage:  "s3 force path style (needed for minio)",
 		EnvVar: "S3_FORCE_PATH_STYLE",
-	},
-	cli.BoolFlag{
+	}),
+	altsrc.NewBoolFlag(cli.BoolFlag{
 		Name:   "s3-keep-file",
 		Usage:  "keep local file after successful upload",
 		EnvVar: "S3_KEEP_FILE",
-	},
+	}),
 }
 
 func newS3Config(c *cli.Context) *stores.S3Config {
@@ -75,9 +76,10 @@ func newFilesystemConfig(c *cli.Context) *stores.FilesystemConfig {
 func s3Cmd(command string, service string) cli.Command {
 	name := "s3"
 	return cli.Command{
-		Name:  name,
-		Usage: "use S3Config as store",
-		Flags: s3Flags,
+		Name:   name,
+		Usage:  "use S3Config as store",
+		Flags:  s3Flags,
+		Before: applyConfigValues(s3Flags),
 		Action: func(c *cli.Context) error {
 			return runTask(c, command, service, name)
 		},
