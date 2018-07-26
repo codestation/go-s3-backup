@@ -38,47 +38,47 @@ var gogsFlags = []cli.Flag{
 
 var databaseFlags = []cli.Flag{
 	altsrc.NewStringFlag(cli.StringFlag{
-		Name:   "host",
+		Name:   "database-host",
 		Usage:  "database host",
 		EnvVar: "DATABASE_HOST",
 	}),
 	altsrc.NewStringFlag(cli.StringFlag{
-		Name:   "port",
+		Name:   "database-port",
 		Usage:  "database port",
 		EnvVar: "DATABASE_PORT",
 	}),
 	altsrc.NewStringFlag(cli.StringFlag{
-		Name:   "database",
+		Name:   "database-name",
 		Usage:  "database name",
 		EnvVar: "DATABASE_NAME",
 	}),
 	altsrc.NewStringFlag(cli.StringFlag{
-		Name:   "user",
+		Name:   "database-user",
 		Usage:  "database user",
 		EnvVar: "DATABASE_USER",
 	}),
 	altsrc.NewStringFlag(cli.StringFlag{
-		Name:   "password",
+		Name:   "database-password",
 		Usage:  "database password",
 		EnvVar: "DATABASE_PASSWORD",
 	}),
 	altsrc.NewStringFlag(cli.StringFlag{
-		Name:   "password-file",
+		Name:   "database-password-file",
 		Usage:  "database password file",
 		EnvVar: "DATABASE_PASSWORD_FILE",
 	}),
 	altsrc.NewStringFlag(cli.StringFlag{
-		Name:   "options",
+		Name:   "database-options",
 		Usage:  "extra options to pass to database service",
 		EnvVar: "DATABASE_OPTIONS",
 	}),
 	altsrc.NewBoolFlag(cli.BoolFlag{
-		Name:   "compress",
+		Name:   "database-compress",
 		Usage:  "compress sql with gzip",
 		EnvVar: "DATABASE_COMPRESS",
 	}),
 	altsrc.NewBoolFlag(cli.BoolFlag{
-		Name:   "ignore-exit-code",
+		Name:   "database-ignore-exit-code",
 		Usage:  "ignore restore process exit code",
 		EnvVar: "DATABASE_IGNORE_EXIT_CODE",
 	}),
@@ -124,15 +124,15 @@ func newMysqlConfig(c *cli.Context) *services.MySQLConfig {
 	c = c.Parent()
 
 	return &services.MySQLConfig{
-		Host:           c.String("host"),
-		Port:           c.String("port"),
-		User:           c.String("user"),
-		Password:       fileOrString(c, "password"),
-		Database:       c.String("database"),
-		Options:        c.String("options"),
-		Compress:       c.Bool("compress"),
+		Host:           c.String("database-host"),
+		Port:           c.String("database-port"),
+		User:           c.String("database-user"),
+		Password:       fileOrString(c, "database-password"),
+		Database:       c.String("database-name"),
+		Options:        c.String("database-options"),
+		Compress:       c.Bool("database-compress"),
 		SaveDir:        c.GlobalString("savedir"),
-		IgnoreExitCode: c.Bool("ignore-exit-code"),
+		IgnoreExitCode: c.Bool("database-ignore-exit-code"),
 	}
 }
 
@@ -140,16 +140,16 @@ func newPostgresConfig(c *cli.Context) *services.PostgresConfig {
 	c = c.Parent()
 
 	return &services.PostgresConfig{
-		Host:           c.String("host"),
-		Port:           c.String("port"),
-		User:           c.String("user"),
-		Password:       fileOrString(c, "password"),
-		Database:       c.String("database"),
-		Options:        c.String("options"),
-		Compress:       c.Bool("compress"),
+		Host:           c.String("database-host"),
+		Port:           c.String("database-port"),
+		User:           c.String("database-user"),
+		Password:       fileOrString(c, "database-password"),
+		Database:       c.String("database-name"),
+		Options:        c.String("database-options"),
+		Compress:       c.Bool("database-compress"),
 		Custom:         c.Bool("postgres-custom"),
 		SaveDir:        c.GlobalString("savedir"),
-		IgnoreExitCode: c.Bool("ignore-exit-code"),
+		IgnoreExitCode: c.Bool("database-ignore-exit-code"),
 	}
 }
 
