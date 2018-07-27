@@ -75,6 +75,7 @@ pipeline:
     build_args:
     - BUILD_NUMBER=${DRONE_BUILD_NUMBER}
     - COMMIT_SHA=${DRONE_COMMIT_SHA}
+    - REPOSITORY=codestation
     tags:
     - latest
 
@@ -88,6 +89,8 @@ pipeline:
       target: docker_username
     - source: dockerhub_password
       target: docker_password
+    build_args:
+    - REPOSITORY=codestation
     tags:
     - latest
 
@@ -101,6 +104,8 @@ pipeline:
       target: docker_username
     - source: dockerhub_password
       target: docker_password
+    build_args:
+    - REPOSITORY=codestation
     tags:
     - latest
 
@@ -114,6 +119,8 @@ pipeline:
       target: docker_username
     - source: dockerhub_password
       target: docker_password
+    build_args:
+    - REPOSITORY=codestation
     tags:
     - latest
 
@@ -127,6 +134,8 @@ pipeline:
       target: docker_username
     - source: dockerhub_password
       target: docker_password
+    build_args:
+    - REPOSITORY=codestation
     tags:
     - latest
 

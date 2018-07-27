@@ -1,4 +1,5 @@
-FROM registry.megpoid.xyz/go-s3-backup AS app
+ARG REPOSITORY=registry.megpoid.xyz
+FROM $REPOSITORY/go-s3-backup AS app
 
 FROM alpine:3.8
 LABEL maintainer="codestation <codestation404@gmail.com>"
