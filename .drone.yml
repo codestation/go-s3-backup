@@ -6,10 +6,10 @@ pipeline:
   test:
     image: golang:1.10
     commands:
-      - go get -u golang.org/x/lint/golint
-      - go vet ./...
-      - go test -v ./...
-      - golint -set_exit_status `find . -type d -not -path "./vendor*" -not -path "./.git*"`
+    - go get -u golang.org/x/lint/golint
+    - go vet ./...
+    - go test -v ./...
+    - golint -set_exit_status `find . -type d -not -path "./vendor*" -not -path "./.git*"`
 
   publish:
     image: plugins/docker
@@ -18,10 +18,10 @@ pipeline:
     mirror: https://registry-proxy.megpoid.xyz
     secrets: [ docker_username, docker_password ]
     build_args:
-      - BUILD_NUMBER=${DRONE_BUILD_NUMBER}
-      - COMMIT_SHA=${DRONE_COMMIT_SHA}
+    - BUILD_NUMBER=${DRONE_BUILD_NUMBER}
+    - COMMIT_SHA=${DRONE_COMMIT_SHA}
     tags:
-      - latest
+    - latest
 
   publish-gogs:
     image: plugins/docker
@@ -31,7 +31,7 @@ pipeline:
     mirror: https://registry-proxy.megpoid.xyz
     secrets: [ docker_username, docker_password ]
     tags:
-      - latest
+    - latest
 
   publish-mysql:
     image: plugins/docker
@@ -41,7 +41,7 @@ pipeline:
     mirror: https://registry-proxy.megpoid.xyz
     secrets: [ docker_username, docker_password ]
     tags:
-      - latest
+    - latest
 
   publish-postgres:
     image: plugins/docker
@@ -51,6 +51,68 @@ pipeline:
     mirror: https://registry-proxy.megpoid.xyz
     secrets: [ docker_username, docker_password ]
     tags:
-      - latest
+    - latest
+
+  publish-consul:
+    image: plugins/docker
+    repo: registry.megpoid.xyz/postgres-s3-backup
+    dockerfile: docker/consul/Dockerfile
+    registry: registry.megpoid.xyz
+    mirror: https://registry-proxy.megpoid.xyz
+    secrets: [ docker_username, docker_password ]
+    tags:
+    - latest
+
+  dockerhub:
+    image: plugins/docker
+    repo: codestation/go-s3-backup
+    mirror: https://registry-proxy.megpoid.xyz
+    username: $$DOCKERHUB_USERNAME
+    password: $$DOCKERHUB_PASSWORD
+    build_args:
+    - BUILD_NUMBER=${DRONE_BUILD_NUMBER}
+    - COMMIT_SHA=${DRONE_COMMIT_SHA}
+    tags:
+    - latest
+
+  dockerhub-gogs:
+    image: plugins/docker
+    repo: codestation/gogs-s3-backup
+    dockerfile: docker/gogs/Dockerfile
+    mirror: https://registry-proxy.megpoid.xyz
+    username: $$DOCKERHUB_USERNAME
+    password: $$DOCKERHUB_PASSWORD
+    tags:
+    - latest
+
+  dockerhub-mysql:
+    image: plugins/docker
+    repo: codestation/mysql-s3-backup
+    dockerfile: docker/mysql/Dockerfile
+    mirror: https://registry-proxy.megpoid.xyz
+    username: $$DOCKERHUB_USERNAME
+    password: $$DOCKERHUB_PASSWORD
+    tags:
+    - latest
+
+  dockerhub-postgres:
+    image: plugins/docker
+    repo: codestation/postgres-s3-backup
+    dockerfile: docker/postgres/Dockerfile
+    mirror: https://registry-proxy.megpoid.xyz
+    username: $$DOCKERHUB_USERNAME
+    password: $$DOCKERHUB_PASSWORD
+    tags:
+    - latest
+
+  dockerhub-consul:
+    image: plugins/docker
+    repo: codestation/postgres-s3-backup
+    dockerfile: docker/consul/Dockerfile
+    mirror: https://registry-proxy.megpoid.xyz
+    username: $$DOCKERHUB_USERNAME
+    password: $$DOCKERHUB_PASSWORD
+    tags:
+    - latest
 
 branches: master

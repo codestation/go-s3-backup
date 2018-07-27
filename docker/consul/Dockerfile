@@ -1,9 +1,8 @@
-FROM codestation/go-s3-backup AS app
+FROM registry.megpoid.xyz/go-s3-backup AS app
 
-FROM alpine:3.8
+FROM consul:1.2.1
 LABEL maintainer="codestation <codestation404@gmail.com>"
 
-RUN apk add --no-cache ca-certificates mysql-client
 COPY --from=app /bin/go-s3-backup /bin/go-s3-backup
 
 ENTRYPOINT ["/bin/go-s3-backup"]
