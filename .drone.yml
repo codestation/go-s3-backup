@@ -67,8 +67,11 @@ pipeline:
     image: plugins/docker
     repo: codestation/go-s3-backup
     mirror: https://registry-proxy.megpoid.xyz
-    username: $$DOCKERHUB_USERNAME
-    password: $$DOCKERHUB_PASSWORD
+    secrets:
+    - source: dockerhub_username
+      target: docker_username
+    - source: dockerhub_password
+      target: docker_password
     build_args:
     - BUILD_NUMBER=${DRONE_BUILD_NUMBER}
     - COMMIT_SHA=${DRONE_COMMIT_SHA}
@@ -80,8 +83,11 @@ pipeline:
     repo: codestation/gogs-s3-backup
     dockerfile: docker/gogs/Dockerfile
     mirror: https://registry-proxy.megpoid.xyz
-    username: $$DOCKERHUB_USERNAME
-    password: $$DOCKERHUB_PASSWORD
+    secrets:
+    - source: dockerhub_username
+      target: docker_username
+    - source: dockerhub_password
+      target: docker_password
     tags:
     - latest
 
@@ -90,8 +96,11 @@ pipeline:
     repo: codestation/mysql-s3-backup
     dockerfile: docker/mysql/Dockerfile
     mirror: https://registry-proxy.megpoid.xyz
-    username: $$DOCKERHUB_USERNAME
-    password: $$DOCKERHUB_PASSWORD
+    secrets:
+    - source: dockerhub_username
+      target: docker_username
+    - source: dockerhub_password
+      target: docker_password
     tags:
     - latest
 
@@ -100,8 +109,11 @@ pipeline:
     repo: codestation/postgres-s3-backup
     dockerfile: docker/postgres/Dockerfile
     mirror: https://registry-proxy.megpoid.xyz
-    username: $$DOCKERHUB_USERNAME
-    password: $$DOCKERHUB_PASSWORD
+    secrets:
+    - source: dockerhub_username
+      target: docker_username
+    - source: dockerhub_password
+      target: docker_password
     tags:
     - latest
 
@@ -110,8 +122,11 @@ pipeline:
     repo: codestation/postgres-s3-backup
     dockerfile: docker/consul/Dockerfile
     mirror: https://registry-proxy.megpoid.xyz
-    username: $$DOCKERHUB_USERNAME
-    password: $$DOCKERHUB_PASSWORD
+    secrets:
+    - source: dockerhub_username
+      target: docker_username
+    - source: dockerhub_password
+      target: docker_password
     tags:
     - latest
 
