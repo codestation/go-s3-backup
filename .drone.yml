@@ -55,7 +55,7 @@ pipeline:
 
   publish-consul:
     image: plugins/docker
-    repo: registry.megpoid.xyz/postgres-s3-backup
+    repo: registry.megpoid.xyz/consul-s3-backup
     dockerfile: docker/consul/Dockerfile
     registry: registry.megpoid.xyz
     mirror: https://registry-proxy.megpoid.xyz
@@ -126,7 +126,7 @@ pipeline:
 
   dockerhub-consul:
     image: plugins/docker
-    repo: codestation/postgres-s3-backup
+    repo: codestation/consul-s3-backup
     dockerfile: docker/consul/Dockerfile
     mirror: https://registry-proxy.megpoid.xyz
     secrets:
