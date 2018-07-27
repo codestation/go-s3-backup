@@ -8,6 +8,7 @@ This application can be used to make regular backups of various applications and
 * MySQL
 * Gogs
 * Tarball
+* Consul
 
 ## Supported stores
 * S3

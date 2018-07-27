@@ -1,0 +1,56 @@
+/*
+Copyright 2018 codestation
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+package services
+
+import (
+	"fmt"
+)
+
+// ConsulConfig has the config options for the ConsulConfig service
+type ConsulConfig struct {
+	SaveDir string
+}
+
+// ConsulAppPath points to the gogs binary location
+var ConsulAppPath = "/bin/consul"
+
+// Backup generates a tarball of the GogsConfig repositories and returns the path where is stored
+func (c *ConsulConfig) Backup() (string, error) {
+	filepath := generateFilename(c.SaveDir, "consul-backup") + ".snap"
+	args := []string{"snapshot", "save", filepath}
+
+	app := CmdConfig{}
+
+	if err := app.CmdRun(ConsulAppPath, args...); err != nil {
+		return "", fmt.Errorf("couldn't execute %s, %v", ConsulAppPath, err)
+	}
+
+	return filepath, nil
+}
+
+// Restore takes a GogsConfig backup and restores it to the service
+func (c *ConsulConfig) Restore(filepath string) error {
+	args := []string{"snapshot", "restore", filepath}
+
+	app := CmdConfig{}
+
+	if err := app.CmdRun(ConsulAppPath, args...); err != nil {
+		return fmt.Errorf("couldn't execute consul restore, %v", err)
+	}
+
+	return nil
+}

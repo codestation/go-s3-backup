@@ -47,6 +47,8 @@ func getService(c *cli.Context, service string) services.Service {
 		config = newPostgresConfig(c)
 	case "tarball":
 		config = newTarballConfig(c)
+	case "consul":
+		config = newConsulConfig(c)
 	default:
 		log.Fatal(0, "Unsupported service: %s", service)
 	}
@@ -226,9 +228,9 @@ func applyConfigValues(flags []cli.Flag) cli.BeforeFunc {
 			cfg, ok := config.(altsrc.InputSourceContext)
 			if ok {
 				return altsrc.ApplyInputSourceValues(c, cfg, flags)
-			} else {
-				return fmt.Errorf("invalid config type for metadata")
 			}
+
+			return fmt.Errorf("invalid config type for metadata")
 		}
 
 		return nil
