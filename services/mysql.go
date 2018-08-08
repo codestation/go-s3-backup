@@ -84,7 +84,7 @@ func (m *MySQLConfig) Backup() (string, error) {
 		filepath += ".sql.gz"
 	}
 
-	app := CmdConfig{}
+	app := CmdConfig{CensorArg: "-p"}
 
 	if m.Compress {
 		f, err := os.Create(filepath)

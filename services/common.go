@@ -25,6 +25,7 @@ import (
 	"path"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
@@ -43,6 +44,7 @@ type CmdConfig struct {
 	InputFile  io.Reader
 	OutputFile io.Writer
 	Credential *syscall.Credential
+	CensorArg  string
 }
 
 // CmdRun executes an external executable
@@ -52,10 +54,10 @@ func (app *CmdConfig) CmdRun(name string, arg ...string) error {
 	cmd.Env = app.Env
 
 	// only switch user when running as root
-	if os.Geteuid() == 0 && app.Credential != nil {
+	if euid := os.Geteuid(); euid == 0 && app.Credential != nil {
 		cmd.SysProcAttr = &syscall.SysProcAttr{}
 		cmd.SysProcAttr.Credential = app.Credential
-	} else {
+	} else if euid != 0 {
 		log.Info("Not running as root, starting %s with UID %d", name, os.Geteuid())
 	}
 
@@ -77,6 +79,8 @@ func (app *CmdConfig) CmdRun(name string, arg ...string) error {
 
 		reader := bufio.NewReader(outPipe)
 
+		log.Trace("Sending command stdout to file")
+
 		go func() {
 			_, err := io.Copy(app.OutputFile, reader)
 			doneWrite <- err
@@ -92,6 +96,8 @@ func (app *CmdConfig) CmdRun(name string, arg ...string) error {
 			return fmt.Errorf("cannot create stdin pipe: %v", err)
 		}
 
+		log.Trace("Sending file to command stdin")
+
 		go func() {
 			_, err := io.Copy(inPipe, app.InputFile)
 			inPipe.Close()
@@ -100,6 +106,8 @@ func (app *CmdConfig) CmdRun(name string, arg ...string) error {
 	} else {
 		close(doneRead)
 	}
+
+	log.Trace("Running %s %s", name, strings.Join(censorArg(arg, app.CensorArg), " "))
 
 	if err := cmd.Start(); err != nil {
 		return fmt.Errorf("cannot start process: %v", err)
@@ -163,4 +171,29 @@ func removeDirectoryContents(dir string) error {
 	}
 
 	return nil
+}
+
+func censorArg(args []string, arg string) []string {
+	var updated []string
+
+	isShort := !strings.HasPrefix(arg, "--")
+	for i, a := range args {
+		if isShort {
+			if strings.HasPrefix(a, arg) {
+				updated = append(updated, arg+"********")
+				updated = append(updated, args[i+1:]...)
+				break
+			}
+		} else {
+			if a == arg {
+				updated = append(updated, arg, "*****")
+				updated = append(updated, args[i+2:]...)
+				break
+			}
+		}
+
+		updated = append(updated, a)
+	}
+
+	return updated
 }
