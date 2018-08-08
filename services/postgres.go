@@ -111,7 +111,7 @@ func (p *PostgresConfig) Backup() (string, error) {
 
 	app := p.newPostgresCmd()
 
-	if p.Compress {
+	if p.Compress && !p.Custom {
 		f, err := os.Create(filepath)
 		if err != nil {
 			return "", fmt.Errorf("cannot create file: %v", err)
