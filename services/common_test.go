@@ -16,7 +16,7 @@ func TestCensor(t *testing.T) {
 	r.NotContains(res, "1234")
 
 	res = censorArg(long, "--none")
-	r.Contains(res, "1234")
+	r.Equal(res, long)
 
 	res = censorArg(short, "-b")
 	r.NotContains(res, "-b=1234")
@@ -25,5 +25,5 @@ func TestCensor(t *testing.T) {
 	r.Contains(res, "-b=1234")
 
 	res = censorArg(long, "")
-	r.Contains(res, "1234")
+	r.Equal(res, long)
 }

@@ -176,6 +176,11 @@ func removeDirectoryContents(dir string) error {
 func censorArg(args []string, arg string) []string {
 	var updated []string
 
+	if arg == "" {
+		updated = args
+		return updated
+	}
+
 	isShort := !strings.HasPrefix(arg, "--")
 	for i, a := range args {
 		if isShort {
