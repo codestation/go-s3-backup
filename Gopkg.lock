@@ -10,7 +10,7 @@
   version = "v0.3.0"
 
 [[projects]]
-  digest = "1:c160cea4fc1fa5ddbc4da3e2c247c49d45cde8c9933bda073edb2c07c39f96f8"
+  digest = "1:a8df551172f5562157894d40b32a2d0c23f1c589c0c7901056beffe709e36d33"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -48,16 +48,16 @@
     "service/sts",
   ]
   pruneopts = "UT"
-  revision = "8475c414b1bd58b8cc214873a8854e3a621e67d7"
-  version = "v1.15.0"
+  revision = "4324bc9d8865bdb3e6aa86ec7772ca1272d2750e"
+  version = "v1.15.21"
 
 [[projects]]
-  digest = "1:a2c1d0e43bd3baaa071d1b9ed72c27d78169b2b269f71c105ac4ba34b1be4a39"
+  digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
   pruneopts = "UT"
-  revision = "346938d642f2ec3594ed81d874461961cd0faa76"
-  version = "v1.1.0"
+  revision = "8991bc29aa16c548c550c7ff78260e27b9ab7c73"
+  version = "v1.1.1"
 
 [[projects]]
   branch = "master"
@@ -83,12 +83,12 @@
   version = "v1.7.0"
 
 [[projects]]
-  digest = "1:fe8a03a8222d5b913f256972933d26d24ad7c8286692a42943bc01633cc8fce3"
+  digest = "1:5abd6a22805b1919f6a6bca0ae58b13cef1f3412812f38569978f43ef02743d4"
   name = "github.com/go-ini/ini"
   packages = ["."]
   pruneopts = "UT"
-  revision = "358ee7663966325963d4e8b2e1fbd570c5195153"
-  version = "v1.38.1"
+  revision = "5cf292cae48347c2490ac1a58fe36735fb78df7e"
+  version = "v1.38.2"
 
 [[projects]]
   branch = "master"
@@ -123,11 +123,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:54810f1da274687d725732a273e250c59ac0374cdbf6288ac206ef24c53c5478"
+  digest = "1:93ed4b5613b1e4ff849b03c8748db701f524fe39bbee7bf076b511640654ce00"
   name = "github.com/mholt/archiver"
   packages = ["."]
   pruneopts = "UT"
-  revision = "e4ef56d48eb029648b0e895bb0b6a393ef0829c3"
+  revision = "152026f6533dd5257669e8f8af3c0dce774017eb"
 
 [[projects]]
   branch = "master"
@@ -190,11 +190,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:dbe2ad3afac439a4bfd3e1b0352c4869dc26aae52662dcab72355408776ed5d5"
+  digest = "1:19f92ce03256cc8a4467054842ec81f081985becd92bbc443e7604dfe801e6a8"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "e072cadbbdc8dd3d3ffa82b8b4b9304c261d9311"
+  revision = "4910a1d54f876d7b22162a85f4d066d3ee649450"
 
 [[projects]]
   digest = "1:ce0d683e17b7c249c081cf4f5e4a54dce8fedf7e72d2b56aa557ee33abe367f0"
