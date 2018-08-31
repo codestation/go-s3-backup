@@ -1,0 +1,31 @@
+module megpoid.xyz/go/go-s3-backup
+
+require (
+	github.com/BurntSushi/toml v0.3.0 // indirect
+	github.com/aws/aws-sdk-go v1.15.21
+	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/dsnet/compress v0.0.0-20171208185109-cc9eb1d7ad76 // indirect
+	github.com/fatih/color v1.7.0 // indirect
+	github.com/go-ini/ini v1.38.2 // indirect
+	github.com/golang/snappy v0.0.0-20180518054509-2e65f85255db // indirect
+	github.com/gopherjs/gopherjs v0.0.0-20180825215210-0210a2f0f73c // indirect
+	github.com/jtolds/gls v4.2.1+incompatible // indirect
+	github.com/mattn/go-colorable v0.0.9 // indirect
+	github.com/mattn/go-isatty v0.0.3 // indirect
+	github.com/mholt/archiver v0.0.0-20180826030714-152026f6533d
+	github.com/nwaples/rardecode v0.0.0-20171029023500-e06696f847ae // indirect
+	github.com/pierrec/lz4 v2.0.3+incompatible // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/robfig/cron v0.0.0-20180505203441-b41be1df6967
+	github.com/smartystreets/assertions v0.0.0-20180820201707-7c9eb446e3cf // indirect
+	github.com/smartystreets/goconvey v0.0.0-20180222194500-ef6db91d284a // indirect
+	github.com/stretchr/testify v1.2.2
+	github.com/ulikunitz/xz v0.5.4 // indirect
+	golang.org/x/net v0.0.0-20180826012351-8a410e7b638d // indirect
+	golang.org/x/sys v0.0.0-20180824143301-4910a1d54f87 // indirect
+	golang.org/x/text v0.3.0 // indirect
+	gopkg.in/clog.v1 v1.2.0
+	gopkg.in/ini.v1 v1.38.2 // indirect
+	gopkg.in/urfave/cli.v1 v1.20.0
+	gopkg.in/yaml.v2 v2.2.1 // indirect
+)
