@@ -38,6 +38,8 @@ type PostgresConfig struct {
 	Custom         bool
 	SaveDir        string
 	IgnoreExitCode bool
+	Drop           bool
+	Owner          string
 }
 
 // PostgresDumpApp points to the pg_dump binary location
@@ -51,6 +53,16 @@ var PostgresRestoreApp = "/usr/bin/pg_restore"
 
 // PostgresTermApp points to the psql binary location
 var PostgresTermApp = "/usr/bin/psql"
+
+var terminateQuery = `SELECT pg_terminate_backend(pg_stat_activity.pid)
+FROM pg_stat_activity
+WHERE pg_stat_activity.datname = '%s' AND pid <> pg_backend_pid();`
+
+var dropQuery = `DROP DATABASE "%s";`
+
+var createQuery = `CREATE DATABASE "%s" OWNER '%s';`
+
+var maintenanceDatabase = "postgres"
 
 func (p *PostgresConfig) newBaseArgs() []string {
 	args := []string{
@@ -170,6 +182,13 @@ func (p *PostgresConfig) Restore(filepath string) error {
 		defer f.Close()
 	}
 
+	if p.Drop {
+		log.Info("Recreating database %s", p.Database)
+		if err := p.recreate(); err != nil {
+			return fmt.Errorf("couldn't recreate database, %v", err)
+		}
+	}
+
 	if err := app.CmdRun(appPath, args...); err != nil {
 		serr, ok := err.(*exec.ExitError)
 
@@ -178,6 +197,41 @@ func (p *PostgresConfig) Restore(filepath string) error {
 		} else {
 			return fmt.Errorf("couldn't execute %s, %v", appPath, err)
 		}
+	}
+
+	return nil
+}
+
+func (p *PostgresConfig) recreate() error {
+	args := []string{
+		"-h", p.Host,
+		"-p", p.Port,
+		"-U", p.User,
+		maintenanceDatabase,
+	}
+
+	cfg := CmdConfig{}
+
+	terminate := append(args, "-c", fmt.Sprintf(terminateQuery, p.Database))
+	if err := cfg.CmdRun(PostgresTermApp, terminate...); err != nil {
+		return fmt.Errorf("psql error on terminate, %v", err)
+	}
+
+	remove := append(args, "-c", fmt.Sprintf(dropQuery, p.Database))
+	if err := cfg.CmdRun(PostgresTermApp, remove...); err != nil {
+		return fmt.Errorf("psql error on drop, %v", err)
+	}
+
+	var owner string
+	if p.Owner != "" {
+		owner = p.Owner
+	} else {
+		owner = p.User
+	}
+
+	create := append(args, "-c", fmt.Sprintf(createQuery, p.Database, owner))
+	if err := cfg.CmdRun(PostgresTermApp, create...); err != nil {
+		return fmt.Errorf("psql error on create, %v", err)
 	}
 
 	return nil

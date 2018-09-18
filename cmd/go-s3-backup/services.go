@@ -90,6 +90,16 @@ var postgresFlags = []cli.Flag{
 		Usage:  "use custom format (always compressed), ignored when database name is not set",
 		EnvVar: "POSTGRES_CUSTOM_FORMAT",
 	}),
+	altsrc.NewBoolFlag(cli.BoolFlag{
+		Name:   "postgres-drop",
+		Usage:  "drop database before restoring it",
+		EnvVar: "POSTGRES_DROP",
+	}),
+	altsrc.NewStringFlag(cli.StringFlag{
+		Name:   "postgres-owner",
+		Usage:  "change owner on database restore",
+		EnvVar: "POSTGRES_OWNER",
+	}),
 }
 
 var tarballFlags = []cli.Flag{
@@ -150,6 +160,8 @@ func newPostgresConfig(c *cli.Context) *services.PostgresConfig {
 		Custom:         c.Bool("postgres-custom"),
 		SaveDir:        c.GlobalString("savedir"),
 		IgnoreExitCode: c.Bool("database-ignore-exit-code"),
+		Drop:           c.Bool("postgres-drop"),
+		Owner:          c.String("postgres-owner"),
 	}
 }
 
