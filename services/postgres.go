@@ -210,15 +210,15 @@ func (p *PostgresConfig) recreate() error {
 		maintenanceDatabase,
 	}
 
-	cfg := CmdConfig{}
+	app := p.newPostgresCmd()
 
 	terminate := append(args, "-c", fmt.Sprintf(terminateQuery, p.Database))
-	if err := cfg.CmdRun(PostgresTermApp, terminate...); err != nil {
+	if err := app.CmdRun(PostgresTermApp, terminate...); err != nil {
 		return fmt.Errorf("psql error on terminate, %v", err)
 	}
 
 	remove := append(args, "-c", fmt.Sprintf(dropQuery, p.Database))
-	if err := cfg.CmdRun(PostgresTermApp, remove...); err != nil {
+	if err := app.CmdRun(PostgresTermApp, remove...); err != nil {
 		return fmt.Errorf("psql error on drop, %v", err)
 	}
 
@@ -230,7 +230,7 @@ func (p *PostgresConfig) recreate() error {
 	}
 
 	create := append(args, "-c", fmt.Sprintf(createQuery, p.Database, owner))
-	if err := cfg.CmdRun(PostgresTermApp, create...); err != nil {
+	if err := app.CmdRun(PostgresTermApp, create...); err != nil {
 		return fmt.Errorf("psql error on create, %v", err)
 	}
 
