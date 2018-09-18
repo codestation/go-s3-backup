@@ -60,7 +60,7 @@ WHERE pg_stat_activity.datname = '%s' AND pid <> pg_backend_pid();`
 
 var dropQuery = `DROP DATABASE "%s";`
 
-var createQuery = `CREATE DATABASE "%s" OWNER '%s';`
+var createQuery = `CREATE DATABASE "%s" OWNER "%s";`
 
 var maintenanceDatabase = "postgres"
 
