@@ -26,7 +26,7 @@ RUN set -ex; \
 RUN set -ex; \
         echo "deb http://apt.postgresql.org/pub/repos/apt/ bionic-pgdg main" > /etc/apt/sources.list.d/pgdg.list; \
         apt-get update; \
-        DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ca-certificates postgresql-client-11
+        DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ca-certificates postgresql-client-11; \
         rm -rf /var/lib/apt/lists/*
 
 COPY --from=app /bin/go-s3-backup /bin/go-s3-backup
