@@ -15,7 +15,7 @@ pipeline:
     image: plugins/docker
     repo: registry.megpoid.xyz/go-s3-backup
     registry: registry.megpoid.xyz
-    mirror: https://registry-proxy.megpoid.xyz
+    mirror: http://mirror:5000
     secrets: [ docker_username, docker_password ]
     build_args:
     - BUILD_NUMBER=${DRONE_BUILD_NUMBER}
@@ -28,7 +28,7 @@ pipeline:
     repo: registry.megpoid.xyz/gogs-s3-backup
     dockerfile: docker/gogs/Dockerfile
     registry: registry.megpoid.xyz
-    mirror: https://registry-proxy.megpoid.xyz
+    mirror: http://mirror:5000
     secrets: [ docker_username, docker_password ]
     tags:
     - latest
@@ -38,7 +38,7 @@ pipeline:
     repo: registry.megpoid.xyz/mysql-s3-backup
     dockerfile: docker/mysql/Dockerfile
     registry: registry.megpoid.xyz
-    mirror: https://registry-proxy.megpoid.xyz
+    mirror: http://mirror:5000
     secrets: [ docker_username, docker_password ]
     tags:
     - latest
@@ -48,7 +48,7 @@ pipeline:
     repo: registry.megpoid.xyz/postgres-s3-backup
     dockerfile: docker/postgres/Dockerfile
     registry: registry.megpoid.xyz
-    mirror: https://registry-proxy.megpoid.xyz
+    mirror: http://mirror:5000
     secrets: [ docker_username, docker_password ]
     tags:
     - latest
@@ -58,7 +58,7 @@ pipeline:
     repo: registry.megpoid.xyz/consul-s3-backup
     dockerfile: docker/consul/Dockerfile
     registry: registry.megpoid.xyz
-    mirror: https://registry-proxy.megpoid.xyz
+    mirror: http://mirror:5000
     secrets: [ docker_username, docker_password ]
     tags:
     - latest
@@ -66,7 +66,7 @@ pipeline:
   dockerhub:
     image: plugins/docker
     repo: codestation/go-s3-backup
-    mirror: https://registry-proxy.megpoid.xyz
+    mirror: http://mirror:5000
     secrets:
     - source: dockerhub_username
       target: docker_username
@@ -83,7 +83,7 @@ pipeline:
     image: plugins/docker
     repo: codestation/gogs-s3-backup
     dockerfile: docker/gogs/Dockerfile
-    mirror: https://registry-proxy.megpoid.xyz
+    mirror: http://mirror:5000
     secrets:
     - source: dockerhub_username
       target: docker_username
@@ -98,7 +98,7 @@ pipeline:
     image: plugins/docker
     repo: codestation/mysql-s3-backup
     dockerfile: docker/mysql/Dockerfile
-    mirror: https://registry-proxy.megpoid.xyz
+    mirror: http://mirror:5000
     secrets:
     - source: dockerhub_username
       target: docker_username
@@ -113,7 +113,7 @@ pipeline:
     image: plugins/docker
     repo: codestation/postgres-s3-backup
     dockerfile: docker/postgres/Dockerfile
-    mirror: https://registry-proxy.megpoid.xyz
+    mirror: http://mirror:5000
     secrets:
     - source: dockerhub_username
       target: docker_username
@@ -128,7 +128,7 @@ pipeline:
     image: plugins/docker
     repo: codestation/consul-s3-backup
     dockerfile: docker/consul/Dockerfile
-    mirror: https://registry-proxy.megpoid.xyz
+    mirror: http://mirror:5000
     secrets:
     - source: dockerhub_username
       target: docker_username
