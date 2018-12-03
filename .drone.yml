@@ -1,142 +1,146 @@
-workspace:
-  base: /go
-  path: src/megpoid.xyz/go/go-s3-backup
+kind: pipeline
+name: default
 
-pipeline:
-  test:
-    image: golang:1.11
-    commands:
-    - go get -u golang.org/x/lint/golint
-    - go vet ./...
-    - go test -v ./...
-    - golint -set_exit_status `find . -type d -not -path "./vendor*" -not -path "./.git*"`
+steps:
+- name: test
+  image: golang:1.11
+  commands:
+  - go install -mod vendor golang.org/x/lint/golint
+  - go vet -mod vendor ./...
+  - go test -mod vendor -v ./...
+  - golint -set_exit_status `find . -type d -not -path "./vendor*" -not -path "./.git*"`
+  settings:
+    environment:
+    - GO111MODULE=on
 
-  publish:
-    image: plugins/docker
+- name: build
+  image: plugins/docker
+  settings:
     repo: registry.megpoid.xyz/go-s3-backup
     registry: registry.megpoid.xyz
     mirror: http://mirror:5000
-    secrets: [ docker_username, docker_password ]
+    tags: latest
     build_args:
     - BUILD_NUMBER=${DRONE_BUILD_NUMBER}
-    - COMMIT_SHA=${DRONE_COMMIT_SHA}
-    tags:
-    - latest
+    - BUILD_COMMIT_SHORT=${DRONE_COMMIT_SHA:0:8}
+    username: megpoid
+    password:
+      from_secret: docker_password
 
-  publish-gogs:
-    image: plugins/docker
+- name: build-gogs
+  image: plugins/docker
+  settings:
     repo: registry.megpoid.xyz/gogs-s3-backup
     dockerfile: docker/gogs/Dockerfile
     registry: registry.megpoid.xyz
     mirror: http://mirror:5000
-    secrets: [ docker_username, docker_password ]
-    tags:
-    - latest
+    tags: latest
+    username: megpoid
+    password:
+      from_secret: docker_password
 
-  publish-mysql:
-    image: plugins/docker
+- name: build-mysql
+  image: plugins/docker
+  settings:
     repo: registry.megpoid.xyz/mysql-s3-backup
     dockerfile: docker/mysql/Dockerfile
     registry: registry.megpoid.xyz
     mirror: http://mirror:5000
-    secrets: [ docker_username, docker_password ]
-    tags:
-    - latest
+    tags: latest
+    username: megpoid
+    password:
+      from_secret: docker_password
 
-  publish-postgres:
-    image: plugins/docker
+- name: build-postgres
+  image: plugins/docker
+  settings:
     repo: registry.megpoid.xyz/postgres-s3-backup
     dockerfile: docker/postgres/Dockerfile
     registry: registry.megpoid.xyz
     mirror: http://mirror:5000
-    secrets: [ docker_username, docker_password ]
-    tags:
-    - latest
+    tags: latest
+    username: megpoid
+    password:
+      from_secret: docker_password
 
-  publish-consul:
-    image: plugins/docker
+- name: build-consul
+  image: plugins/docker
+  settings:
     repo: registry.megpoid.xyz/consul-s3-backup
     dockerfile: docker/consul/Dockerfile
     registry: registry.megpoid.xyz
     mirror: http://mirror:5000
-    secrets: [ docker_username, docker_password ]
-    tags:
-    - latest
+    tags: latest
+    username: megpoid
+    password:
+      from_secret: docker_password
 
-  dockerhub:
-    image: plugins/docker
+- name: dockerhub-build
+  image: plugins/docker
+  settings:
     repo: codestation/go-s3-backup
     mirror: http://mirror:5000
-    secrets:
-    - source: dockerhub_username
-      target: docker_username
-    - source: dockerhub_password
-      target: docker_password
+    tags: latest
     build_args:
     - BUILD_NUMBER=${DRONE_BUILD_NUMBER}
-    - COMMIT_SHA=${DRONE_COMMIT_SHA}
+    - BUILD_COMMIT_SHORT=${DRONE_COMMIT_SHA:0:8}
     - REPOSITORY=codestation
-    tags:
-    - latest
+    username: codestation
+    password:
+      from_secret: dockerhub_password
 
-  dockerhub-gogs:
-    image: plugins/docker
+- name: dockerhub-build-gogs
+  image: plugins/docker
+  settings:
     repo: codestation/gogs-s3-backup
     dockerfile: docker/gogs/Dockerfile
     mirror: http://mirror:5000
-    secrets:
-    - source: dockerhub_username
-      target: docker_username
-    - source: dockerhub_password
-      target: docker_password
+    tags: latest
     build_args:
     - REPOSITORY=codestation
-    tags:
-    - latest
+    username: codestation
+    password:
+      from_secret: dockerhub_password
 
-  dockerhub-mysql:
-    image: plugins/docker
+- name: dockerhub-build-mysql
+  image: plugins/docker
+  settings:
     repo: codestation/mysql-s3-backup
     dockerfile: docker/mysql/Dockerfile
     mirror: http://mirror:5000
-    secrets:
-    - source: dockerhub_username
-      target: docker_username
-    - source: dockerhub_password
-      target: docker_password
+    tags: latest
     build_args:
     - REPOSITORY=codestation
-    tags:
-    - latest
+    username: codestation
+    password:
+      from_secret: dockerhub_password
 
-  dockerhub-postgres:
-    image: plugins/docker
+- name: dockerhub-build-postgres
+  image: plugins/docker
+  settings:
     repo: codestation/postgres-s3-backup
     dockerfile: docker/postgres/Dockerfile
     mirror: http://mirror:5000
-    secrets:
-    - source: dockerhub_username
-      target: docker_username
-    - source: dockerhub_password
-      target: docker_password
+    tags: latest
     build_args:
     - REPOSITORY=codestation
-    tags:
-    - latest
+    username: codestation
+    password:
+      from_secret: dockerhub_password
 
-  dockerhub-consul:
-    image: plugins/docker
+- name: dockerhub-build-consul
+  image: plugins/docker
+  settings:
     repo: codestation/consul-s3-backup
     dockerfile: docker/consul/Dockerfile
     mirror: http://mirror:5000
-    secrets:
-    - source: dockerhub_username
-      target: docker_username
-    - source: dockerhub_password
-      target: docker_password
+    tags: latest
     build_args:
     - REPOSITORY=codestation
-    tags:
-    - latest
+    username: codestation
+    password:
+      from_secret: dockerhub_password
 
-branches: master
+trigger:
+  branch:
+  - master
