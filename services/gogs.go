@@ -69,7 +69,7 @@ func (g *GogsConfig) Backup() (string, error) {
 
 // Restore takes a GogsConfig backup and restores it to the service
 func (g *GogsConfig) Restore(filepath string) error {
-	args := []string{"restore", "--from", filepath}
+	args := []string{"restore", "--from", filepath, "--tempdir", g.SaveDir}
 
 	if g.ConfigPath != "" {
 		args = append(args, "--config", g.ConfigPath)
