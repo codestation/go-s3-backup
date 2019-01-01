@@ -23,7 +23,7 @@ steps:
     build_args:
     - BUILD_NUMBER=${DRONE_BUILD_NUMBER}
     - BUILD_COMMIT_SHORT=${DRONE_COMMIT_SHA:0:8}
-    username: megpoid
+    username: admin
     password:
       from_secret: docker_password
 
@@ -35,7 +35,7 @@ steps:
     registry: registry.megpoid.xyz
     mirror: http://mirror:5000
     tags: latest
-    username: megpoid
+    username: admin
     password:
       from_secret: docker_password
 
@@ -47,7 +47,7 @@ steps:
     registry: registry.megpoid.xyz
     mirror: http://mirror:5000
     tags: latest
-    username: megpoid
+    username: admin
     password:
       from_secret: docker_password
 
@@ -59,7 +59,7 @@ steps:
     registry: registry.megpoid.xyz
     mirror: http://mirror:5000
     tags: latest
-    username: megpoid
+    username: admin
     password:
       from_secret: docker_password
 
@@ -71,7 +71,7 @@ steps:
     registry: registry.megpoid.xyz
     mirror: http://mirror:5000
     tags: latest
-    username: megpoid
+    username: admin
     password:
       from_secret: docker_password
 
