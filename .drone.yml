@@ -44,7 +44,7 @@ steps:
       tags: builder
       target: builder
       dry_run: true
-      build_args: &build_args
+      build_args:
         - BUILD_NUMBER=${DRONE_BUILD_NUMBER}
         - BUILD_COMMIT_SHORT=${DRONE_COMMIT_SHA:0:8}
 
@@ -54,7 +54,9 @@ steps:
       <<: *settings
       repo: registry.megpoid.xyz/go-s3-backup
       registry: registry.megpoid.xyz
-      build_args: *build_args
+      build_args:
+        - BUILD_NUMBER=${DRONE_BUILD_NUMBER}
+        - BUILD_COMMIT_SHORT=${DRONE_COMMIT_SHA:0:8}
 
   - name: build-gogs
     <<: *shared
