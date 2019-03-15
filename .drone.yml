@@ -101,7 +101,6 @@ steps:
       build_args:
         - BUILD_NUMBER=${DRONE_BUILD_NUMBER}
         - BUILD_COMMIT_SHORT=${DRONE_COMMIT_SHA:0:8}
-        - REPOSITORY=codestation
 
   - name: dockerhub-build-gogs
     <<: *hub
