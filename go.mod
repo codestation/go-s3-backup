@@ -1,5 +1,7 @@
 module megpoid.xyz/go/go-s3-backup
 
+go 1.12
+
 require (
 	github.com/BurntSushi/toml v0.3.0 // indirect
 	github.com/aws/aws-sdk-go v1.15.33

@@ -1,139 +1,40 @@
 kind: pipeline
 name: default
 
-x-shared: &shared
-  image: plugins/docker
-  volumes:
-    - name: cache
-      path: /var/lib/docker
-  settings: &settings
-    mirror: http://mirror:5000
-    tags: latest
-    username: admin
-    password:
-      from_secret: docker_password
-
-x-hub: &hub
-  <<: *shared
-  settings: &hub_settings
-    <<: *settings
-    build_args:
-      - REPOSITORY=codestation
-    username: codestation
-    password:
-      from_secret: dockerhub_password
-
 steps:
   - name: test
-    image: golang:1.11
+    image: golang:1.12
     commands:
-      - go install -mod vendor golang.org/x/lint/golint
-      - go vet -mod vendor ./...
-      - go test -mod vendor -v ./...
+      - go install golang.org/x/lint/golint
+      - go vet ./...
+      - go test -v ./...
       - golint -set_exit_status `find . -type d -not -path "./vendor*" -not -path "./.git*"`
-    settings:
-      environment:
-        - GO111MODULE=on
-
-  - name: prebuild
-    <<: *shared
-    settings:
-      <<: *settings
-      repo: registry.megpoid.xyz/go-s3-backup
-      registry: registry.megpoid.xyz
-      tags: builder
-      target: builder
-      dry_run: true
-      build_args:
-        - BUILD_NUMBER=${DRONE_BUILD_NUMBER}
-        - BUILD_COMMIT_SHORT=${DRONE_COMMIT_SHA:0:8}
+    environment:
+      GO111MODULE: on
+      GOFLAGS: -mod=vendor
 
   - name: build
-    <<: *shared
+    image: plugins/docker
     settings:
-      <<: *settings
       repo: registry.megpoid.xyz/go-s3-backup
       registry: registry.megpoid.xyz
-      build_args:
-        - BUILD_NUMBER=${DRONE_BUILD_NUMBER}
-        - BUILD_COMMIT_SHORT=${DRONE_COMMIT_SHA:0:8}
-
-  - name: build-gogs
-    <<: *shared
-    settings:
-      <<: *settings
-      repo: registry.megpoid.xyz/gogs-s3-backup
-      dockerfile: docker/gogs/Dockerfile
-      registry: registry.megpoid.xyz
-
-  - name: build-mysql
-    <<: *shared
-    settings:
-      <<: *settings
-      repo: registry.megpoid.xyz/mysql-s3-backup
-      dockerfile: docker/mysql/Dockerfile
-      registry: registry.megpoid.xyz
-
-  - name: build-postgres
-    <<: *shared
-    settings:
-      <<: *settings
-      repo: registry.megpoid.xyz/postgres-s3-backup
-      dockerfile: docker/postgres/Dockerfile
-      registry: registry.megpoid.xyz
-
-  - name: build-consul
-    <<: *shared
-    settings:
-      <<: *settings
-      repo: registry.megpoid.xyz/consul-s3-backup
-      dockerfile: docker/consul/Dockerfile
-      registry: registry.megpoid.xyz
-      username: admin
+      mirror: http://mirror:5000
+      tags: latest
+      username:
+        from_secret: docker_username
       password:
         from_secret: docker_password
-
-  - name: dockerhub-build
-    <<: *hub
-    settings:
-      <<: *hub_settings
-      repo: codestation/go-s3-backup
       build_args:
         - BUILD_NUMBER=${DRONE_BUILD_NUMBER}
         - BUILD_COMMIT_SHORT=${DRONE_COMMIT_SHA:0:8}
-
-  - name: dockerhub-build-gogs
-    <<: *hub
-    settings:
-      <<: *hub_settings
-      repo: codestation/gogs-s3-backup
-      dockerfile: docker/gogs/Dockerfile
-
-  - name: dockerhub-build-mysql
-    <<: *hub
-    settings:
-      <<: *hub_settings
-      repo: codestation/mysql-s3-backup
-      dockerfile: docker/mysql/Dockerfile
-
-  - name: dockerhub-build-postgres
-    <<: *hub
-    settings:
-      <<: *hub_settings
-      repo: codestation/postgres-s3-backup
-      dockerfile: docker/postgres/Dockerfile
-
-  - name: dockerhub-build-consul
-    <<: *hub
-    settings:
-      <<: *hub_settings
-      repo: codestation/consul-s3-backup
-      dockerfile: docker/consul/Dockerfile
-
-volumes:
-  - name: cache
-    temp: {}
+    volumes:
+      - name: cache
+        path: /var/lib/docker
 
 trigger:
   branch:
     - master
+
+volumes:
+  - name: cache
+    temp: {}
