@@ -13,6 +13,22 @@ steps:
       GO111MODULE: on
       GOFLAGS: -mod=vendor
 
+  - name: prebuild
+    image: plugins/docker
+    settings:
+      repo: registry.megpoid.xyz/go-s3-backup
+      registry: registry.megpoid.xyz
+      mirror: http://mirror:5000
+      tags: latest
+      target: builder
+      dry_run: true
+      build_args:
+        - BUILD_NUMBER=${DRONE_BUILD_NUMBER}
+        - BUILD_COMMIT_SHORT=${DRONE_COMMIT_SHA:0:8}
+    volumes:
+      - name: cache
+        path: /var/lib/docker
+
   - name: build
     image: plugins/docker
     settings:
@@ -24,6 +40,23 @@ steps:
         from_secret: docker_username
       password:
         from_secret: docker_password
+      build_args:
+        - BUILD_NUMBER=${DRONE_BUILD_NUMBER}
+        - BUILD_COMMIT_SHORT=${DRONE_COMMIT_SHA:0:8}
+    volumes:
+      - name: cache
+        path: /var/lib/docker
+
+  - name: dockerhub
+    image: plugins/docker
+    settings:
+      repo: codestation/go-s3-backup
+      mirror: http://mirror:5000
+      tags: latest
+      username:
+        from_secret: dockerhub_username
+      password:
+        from_secret: dockerhub_password
       build_args:
         - BUILD_NUMBER=${DRONE_BUILD_NUMBER}
         - BUILD_COMMIT_SHORT=${DRONE_COMMIT_SHA:0:8}
