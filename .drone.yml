@@ -23,8 +23,10 @@ steps:
       target: builder
       dry_run: true
       build_args:
+        - CI_TAG=${DRONE_TAG}
         - BUILD_NUMBER=${DRONE_BUILD_NUMBER}
         - BUILD_COMMIT_SHORT=${DRONE_COMMIT_SHA:0:8}
+        - CI_BUILD_CREATED=${DRONE_BUILD_CREATED}
     volumes:
       - name: cache
         path: /var/lib/docker
@@ -41,8 +43,10 @@ steps:
       password:
         from_secret: docker_password
       build_args:
+        - CI_TAG=${DRONE_TAG}
         - BUILD_NUMBER=${DRONE_BUILD_NUMBER}
         - BUILD_COMMIT_SHORT=${DRONE_COMMIT_SHA:0:8}
+        - CI_BUILD_CREATED=${DRONE_BUILD_CREATED}
     volumes:
       - name: cache
         path: /var/lib/docker
@@ -58,8 +62,10 @@ steps:
       password:
         from_secret: dockerhub_password
       build_args:
+        - CI_TAG=${DRONE_TAG}
         - BUILD_NUMBER=${DRONE_BUILD_NUMBER}
         - BUILD_COMMIT_SHORT=${DRONE_COMMIT_SHA:0:8}
+        - CI_BUILD_CREATED=${DRONE_BUILD_CREATED}
     volumes:
       - name: cache
         path: /var/lib/docker

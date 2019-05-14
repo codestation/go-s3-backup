@@ -17,6 +17,7 @@ limitations under the License.
 package main
 
 import (
+	"fmt"
 	"os"
 
 	log "gopkg.in/clog.v1"
@@ -24,19 +25,22 @@ import (
 	"gopkg.in/urfave/cli.v1/altsrc"
 )
 
-var (
-	// BuildTime indicates the date when the binary was built (set by -ldflags)
-	BuildTime string
-	// BuildCommit indicates the git commit of the build
-	BuildCommit string
-	// AppVersion indicates the application version
-	AppVersion = "0.1.0"
-)
+const versionFormatter = `go-s3-backup
+Version:      %s
+Git commit:   %s
+Built:        %s
+Compilation:  %s
+`
+
+func printVersion(c *cli.Context) {
+	_, _ = fmt.Fprintf(c.App.Writer, versionFormatter, Version, Commit, BuildTime, BuildNumber)
+}
 
 func main() {
 	app := cli.NewApp()
 	app.Usage = "run backups from various services to S3-like storage"
-	app.Version = AppVersion
+	app.Version = Version
+	cli.VersionPrinter = printVersion
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
 			Name:   "config",
@@ -51,13 +55,15 @@ func main() {
 	}
 
 	app.Before = func(c *cli.Context) error {
-		log.New(log.CONSOLE, log.ConsoleConfig{})
-		log.Info("Starting go-s3-backup %s", AppVersion)
-
-		if len(BuildTime) > 0 {
-			log.Trace("Build Time: %s", BuildTime)
-			log.Trace("Build Commit: %s", BuildCommit)
+		if err := log.New(log.CONSOLE, log.ConsoleConfig{}); err != nil {
+			return err
 		}
+
+		log.Info("Starting go-s3-backup, version: %s, commit: %s, built: %s, compilation: %s",
+			Version,
+			Commit,
+			BuildTime,
+			BuildNumber)
 
 		if c.String("config") != "" {
 			cfg, err := altsrc.NewYamlSourceFromFile(c.String("config"))

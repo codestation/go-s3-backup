@@ -1,7 +1,9 @@
 FROM golang:1.12-alpine as builder
 
+ARG CI_TAG
 ARG BUILD_NUMBER
 ARG BUILD_COMMIT_SHORT
+ARG CI_BUILD_CREATED
 ENV GO111MODULE on
 ENV CGO_ENABLED 0
 WORKDIR /src
@@ -10,9 +12,10 @@ COPY . .
 
 RUN go build -o release/go-s3-backup \
    -mod vendor -ldflags "-w -s \
-  -X main.AppVersion=0.1.${BUILD_NUMBER} \
-  -X main.BuildCommit=${BUILD_COMMIT_SHORT} \
-  -X \"main.BuildTime=$(date -u '+%Y-%m-%d %I:%M:%S %Z')\"" \
+   -X main.Version=${CI_TAG} \
+   -X main.BuildNumber=${BUILD_NUMBER} \
+   -X main.Commit=${BUILD_COMMIT_SHORT} \
+   -X main.BuildTime=${CI_BUILD_CREATED}" \
   ./cmd/go-s3-backup
 
 FROM consul:1.5 AS consul
