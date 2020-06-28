@@ -19,6 +19,7 @@ steps:
       registry: registry:5000
       mirror: http://mirror:5000
       tags: latest
+      experimental: true
       insecure: true
       stream: true
       target: builder
