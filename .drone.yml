@@ -15,23 +15,26 @@ steps:
   - name: build
     image: codestation/drone-docker
     settings:
-      repo: registry:5000/go-s3-backup
-      registry: registry:5000
+      repo: registry.megpoid.xyz/go-s3-backup
+      registry: registry.megpoid.xyz
       mirror: http://mirror:5000
       tags: latest
       experimental: true
-      insecure: true
       stream: true
       target: builder
       push_target: true
       cache_from:
-        - registry:5000/go-s3-backup:builder
-        - registry:5000/go-s3-backup:latest
+        - registry.megpoid.xyz/go-s3-backup:builder
+        - registry.megpoid.xyz/go-s3-backup:latest
       build_args:
         - CI_TAG=${DRONE_TAG}
         - BUILD_NUMBER=${DRONE_BUILD_NUMBER}
         - BUILD_COMMIT_SHORT=${DRONE_COMMIT_SHA:0:8}
         - CI_BUILD_CREATED=${DRONE_BUILD_CREATED}
+      username:
+        from_secret: docker_username
+      password:
+        from_secret: docker_password
     volumes:
       - name: cache
         path: /var/lib/docker
