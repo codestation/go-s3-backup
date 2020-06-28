@@ -27,7 +27,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
-	log "gopkg.in/clog.v1"
+	log "unknwon.dev/clog/v2"
 )
 
 // S3Config has the config options for the S3 service

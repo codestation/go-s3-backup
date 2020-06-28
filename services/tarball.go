@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"path"
 
-	"github.com/mholt/archiver"
+	"github.com/mholt/archiver/v3"
 )
 
 // TarballConfig has the config options for the TarballConfig service
@@ -42,15 +42,11 @@ func (f *TarballConfig) Backup() (string, error) {
 
 	filepath := generateFilename(f.SaveDir, name) + ".tar"
 
-	var err error
-
 	if f.Compress {
 		filepath += ".gz"
-		err = archiver.TarGz.Make(filepath, []string{f.Path})
-	} else {
-		err = archiver.Tar.Make(filepath, []string{f.Path})
 	}
 
+	err := archiver.Archive([]string{f.Path}, filepath)
 	if err != nil {
 		return "", fmt.Errorf("cannot create tarball on %s, %v", filepath, err)
 	}
@@ -65,13 +61,7 @@ func (f *TarballConfig) Restore(filepath string) error {
 		return fmt.Errorf("failed to empty directory contents before restoring: %v", err)
 	}
 
-	archive := archiver.MatchingFormat(filepath)
-	if archive == nil {
-		return fmt.Errorf("unsupported file extension: %s", path.Base(filepath))
-	}
-
-	// use the parent directory to unpack as the current directory is already in the tarball
-	err = archive.Open(filepath, path.Dir(f.Path))
+	err = archiver.Unarchive(filepath, path.Dir(f.Path))
 	if err != nil {
 		return fmt.Errorf("cannot unpack backup: %v", err)
 	}

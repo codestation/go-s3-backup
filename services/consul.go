@@ -28,7 +28,7 @@ type ConsulConfig struct {
 // ConsulAppPath points to the gogs binary location
 var ConsulAppPath = "/bin/consul"
 
-// Backup generates a tarball of the GogsConfig repositories and returns the path where is stored
+// Backup generates a tarball of the GiteaConfig repositories and returns the path where is stored
 func (c *ConsulConfig) Backup() (string, error) {
 	filepath := generateFilename(c.SaveDir, "consul-backup") + ".snap"
 	args := []string{"snapshot", "save", filepath}
@@ -42,7 +42,7 @@ func (c *ConsulConfig) Backup() (string, error) {
 	return filepath, nil
 }
 
-// Restore takes a GogsConfig backup and restores it to the service
+// Restore takes a GiteaConfig backup and restores it to the service
 func (c *ConsulConfig) Restore(filepath string) error {
 	args := []string{"snapshot", "restore", filepath}
 

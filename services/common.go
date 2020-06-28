@@ -29,7 +29,7 @@ import (
 	"syscall"
 	"time"
 
-	log "gopkg.in/clog.v1"
+	log "unknwon.dev/clog/v2"
 )
 
 // Service represents the methods to backup/restore a service

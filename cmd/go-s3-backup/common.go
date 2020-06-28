@@ -26,12 +26,12 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/robfig/cron"
-	log "gopkg.in/clog.v1"
+	"github.com/robfig/cron/v3"
 	"gopkg.in/urfave/cli.v1"
 	"gopkg.in/urfave/cli.v1/altsrc"
 	"megpoid.xyz/go/go-s3-backup/services"
 	"megpoid.xyz/go/go-s3-backup/stores"
+	log "unknwon.dev/clog/v2"
 )
 
 type task func(c *cli.Context) error
@@ -50,7 +50,7 @@ func getService(c *cli.Context, service string) services.Service {
 	case "consul":
 		config = newConsulConfig(c)
 	default:
-		log.Fatal(0, "Unsupported service: %s", service)
+		log.Fatal("Unsupported service: %s", service)
 	}
 
 	return config
@@ -64,7 +64,7 @@ func getStore(c *cli.Context, store string) stores.Storer {
 	case "filesystem":
 		config = newFilesystemConfig(c)
 	default:
-		log.Fatal(0, "Unsupported store: %s", store)
+		log.Fatal("Unsupported store: %s", store)
 	}
 
 	return config
@@ -84,7 +84,7 @@ func runTask(c *cli.Context, command string, serviceName string, storeName strin
 			return restoreTask(c, service, store)
 		})
 	default:
-		log.Fatal(0, "Unsupported command: %s", command)
+		log.Fatal("Unsupported command: %s", command)
 	}
 	return nil
 }
@@ -152,7 +152,7 @@ func runScheduler(c *cli.Context, task task) error {
 	log.Trace("Starting scheduled backup task")
 	timeoutchan := make(chan bool, 1)
 
-	cr.AddFunc(schedule, func() {
+	_, err := cr.AddFunc(schedule, func() {
 		delay := c.GlobalInt("random-delay")
 		if delay <= 0 {
 			log.Warn("Schedule random delay was set to a number <= 0, using 1 as default")
@@ -164,7 +164,7 @@ func runScheduler(c *cli.Context, task task) error {
 		// run immediately is no delay is configured
 		if seconds == 0 {
 			if err := task(c); err != nil {
-				log.Error(0, "Failed to run scheduled task: %v", err)
+				log.Error("Failed to run scheduled task: %v", err)
 			}
 			return
 		}
@@ -179,11 +179,16 @@ func runScheduler(c *cli.Context, task task) error {
 			log.Trace("Running scheduled task")
 
 			if err := task(c); err != nil {
-				log.Error(0, "Failed to run scheduled task: %v", err)
+				log.Error("Failed to run scheduled task: %v", err)
 			}
 			break
 		}
 	})
+
+	if err != nil {
+		return err
+	}
+
 	cr.Start()
 
 	signalChan := make(chan os.Signal)
@@ -194,7 +199,8 @@ func runScheduler(c *cli.Context, task task) error {
 	close(timeoutchan)
 
 	log.Trace("Stopping scheduled task")
-	cr.Stop()
+	ctx := cr.Stop()
+	<-ctx.Done()
 
 	return nil
 }
@@ -203,7 +209,7 @@ func fileOrString(c *cli.Context, name string) string {
 	if filepath := c.String(name + "-file"); filepath != "" {
 		f, err := os.Open(filepath)
 		if err != nil {
-			log.Error(0, "Cannot open password file: %v", err)
+			log.Error("Cannot open password file: %v", err)
 			return ""
 		}
 

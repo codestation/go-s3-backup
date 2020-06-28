@@ -120,10 +120,10 @@ var tarballFlags = []cli.Flag{
 	}),
 }
 
-func newGogsConfig(c *cli.Context) *services.GogsConfig {
+func newGogsConfig(c *cli.Context) *services.GiteaConfig {
 	c = c.Parent()
 
-	return &services.GogsConfig{
+	return &services.GiteaConfig{
 		ConfigPath: c.String("gogs-config"),
 		DataPath:   c.String("gogs-data"),
 		SaveDir:    c.GlobalString("savedir"),

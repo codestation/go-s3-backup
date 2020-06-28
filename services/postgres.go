@@ -23,7 +23,7 @@ import (
 	"os/exec"
 	"strings"
 
-	log "gopkg.in/clog.v1"
+	log "unknwon.dev/clog/v2"
 )
 
 // PostgresConfig has the config options for the PostgresConfig service

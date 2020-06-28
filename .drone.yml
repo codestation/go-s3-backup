@@ -1,47 +1,31 @@
 kind: pipeline
 name: default
+type: docker
 
 steps:
   - name: test
-    image: golang:1.12
+    image: golang:1.14
     commands:
+      - go mod download
       - go install golang.org/x/lint/golint
       - go vet ./...
       - go test -v ./...
       - golint -set_exit_status `find . -type d -not -path "./vendor*" -not -path "./.git*"`
-    environment:
-      GO111MODULE: on
-      GOFLAGS: -mod=vendor
-
-  - name: prebuild
-    image: plugins/docker
-    settings:
-      repo: registry.megpoid.xyz/go-s3-backup
-      registry: registry.megpoid.xyz
-      mirror: http://mirror:5000
-      tags: latest
-      target: builder
-      dry_run: true
-      build_args:
-        - CI_TAG=${DRONE_TAG}
-        - BUILD_NUMBER=${DRONE_BUILD_NUMBER}
-        - BUILD_COMMIT_SHORT=${DRONE_COMMIT_SHA:0:8}
-        - CI_BUILD_CREATED=${DRONE_BUILD_CREATED}
-    volumes:
-      - name: cache
-        path: /var/lib/docker
 
   - name: build
-    image: plugins/docker
+    image: codestation/drone-docker
     settings:
-      repo: registry.megpoid.xyz/go-s3-backup
-      registry: registry.megpoid.xyz
+      repo: registry:5000/go-s3-backup
+      registry: registry:5000
       mirror: http://mirror:5000
       tags: latest
-      username:
-        from_secret: docker_username
-      password:
-        from_secret: docker_password
+      insecure: true
+      stream: true
+      target: builder
+      push_target: true
+      cache_from:
+        - registry:5000/go-s3-backup:builder
+        - registry:5000/go-s3-backup:latest
       build_args:
         - CI_TAG=${DRONE_TAG}
         - BUILD_NUMBER=${DRONE_BUILD_NUMBER}

@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"os"
 
-	log "gopkg.in/clog.v1"
+	log "unknwon.dev/clog/v2"
 	"gopkg.in/urfave/cli.v1"
 	"gopkg.in/urfave/cli.v1/altsrc"
 )
@@ -55,7 +55,7 @@ func main() {
 	}
 
 	app.Before = func(c *cli.Context) error {
-		if err := log.New(log.CONSOLE, log.ConsoleConfig{}); err != nil {
+		if err := log.NewConsole(); err != nil {
 			return err
 		}
 
@@ -80,9 +80,9 @@ func main() {
 	}
 
 	if err := app.Run(os.Args); err != nil {
-		log.Fatal(0, "Unrecoverable error: %v", err)
+		log.Fatal("Unrecoverable error: %v", err)
 	}
 
 	log.Info("Shutdown complete")
-	log.Shutdown()
+	log.Stop()
 }

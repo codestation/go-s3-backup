@@ -23,7 +23,7 @@ import (
 	"os/exec"
 	"strings"
 
-	log "gopkg.in/clog.v1"
+	log "unknwon.dev/clog/v2"
 )
 
 // MySQLConfig has the config options for the MySQLConfig service

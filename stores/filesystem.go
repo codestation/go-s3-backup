@@ -23,7 +23,7 @@ import (
 	"os"
 	"path"
 
-	log "gopkg.in/clog.v1"
+	log "unknwon.dev/clog/v2"
 )
 
 // FilesystemConfig has the config options for the FilesystemConfig service
@@ -101,7 +101,7 @@ func (f *FilesystemConfig) RemoveOlderBackups(keep int) error {
 			fullpath := path.Clean(path.Join(f.SaveDir, file.Name()))
 			err = os.Remove(fullpath)
 			if err != nil {
-				log.Error(0, "Failed to remove file %s", fullpath)
+				log.Error("Failed to remove file %s", fullpath)
 			} else {
 				deleted++
 			}

@@ -23,17 +23,17 @@ import (
 	"syscall"
 )
 
-// GogsConfig has the config options for the GogsConfig service
-type GogsConfig struct {
+// GiteaConfig has the config options for the GiteaConfig service
+type GiteaConfig struct {
 	ConfigPath string
 	DataPath   string
 	SaveDir    string
 }
 
-// GogsAppPath points to the gogs binary location
-var GogsAppPath = "/app/gogs/gogs"
+// GiteaAppPath points to the gogs binary location
+var GiteaAppPath = "/app/gitea/gitea"
 
-func (g *GogsConfig) newGogsCmd() *CmdConfig {
+func (g *GiteaConfig) newGiteaCmd() *CmdConfig {
 	uid := uint32(getEnvInt("PUID", 1000))
 	gid := uint32(getEnvInt("PGID", 1000))
 	creds := &syscall.Credential{Uid: uid, Gid: gid}
@@ -49,36 +49,36 @@ func (g *GogsConfig) newGogsCmd() *CmdConfig {
 	}
 }
 
-// Backup generates a tarball of the GogsConfig repositories and returns the path where is stored
-func (g *GogsConfig) Backup() (string, error) {
-	filename := generateFilename("", "gogs-backup") + ".zip"
-	args := []string{"backup", "--target", g.SaveDir, "--archive-name", filename}
+// Backup generates a tarball of the GiteaConfig repositories and returns the path where is stored
+func (g *GiteaConfig) Backup() (string, error) {
+	filename := generateFilename("", "gitea-dump") + ".zip"
+	args := []string{"dump", "--skip-log", "--work-path", g.SaveDir, "--file", filename}
 
 	if g.ConfigPath != "" {
 		args = append(args, "--config", g.ConfigPath)
 	}
 
-	app := g.newGogsCmd()
+	app := g.newGiteaCmd()
 
-	if err := app.CmdRun(GogsAppPath, args...); err != nil {
-		return "", fmt.Errorf("couldn't execute %s, %v", GogsAppPath, err)
+	if err := app.CmdRun(GiteaAppPath, args...); err != nil {
+		return "", fmt.Errorf("couldn't execute %s, %v", GiteaAppPath, err)
 	}
 
 	return path.Join(g.SaveDir, filename), nil
 }
 
-// Restore takes a GogsConfig backup and restores it to the service
-func (g *GogsConfig) Restore(filepath string) error {
+// Restore takes a GiteaConfig backup and restores it to the service
+func (g *GiteaConfig) Restore(filepath string) error {
 	args := []string{"restore", "--from", filepath, "--tempdir", g.SaveDir}
 
 	if g.ConfigPath != "" {
 		args = append(args, "--config", g.ConfigPath)
 	}
 
-	app := g.newGogsCmd()
+	app := g.newGiteaCmd()
 
-	if err := app.CmdRun(GogsAppPath, args...); err != nil {
-		return fmt.Errorf("couldn't execute gogs restore, %v", err)
+	if err := app.CmdRun(GiteaAppPath, args...); err != nil {
+		return fmt.Errorf("couldn't execute gitea restore, %v", err)
 	}
 
 	return nil
