@@ -13,7 +13,7 @@ steps:
       - golint -set_exit_status `find . -type d -not -path "./vendor*" -not -path "./.git*"`
 
   - name: build
-    image: codestation/drone-docker
+    image: registry.megpoid.xyz/drone-docker
     settings:
       repo: registry.megpoid.xyz/go-s3-backup
       registry: registry.megpoid.xyz
