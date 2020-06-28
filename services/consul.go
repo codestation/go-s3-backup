@@ -25,10 +25,10 @@ type ConsulConfig struct {
 	SaveDir string
 }
 
-// ConsulAppPath points to the gogs binary location
+// ConsulAppPath points to the consul binary location
 var ConsulAppPath = "/bin/consul"
 
-// Backup generates a tarball of the GiteaConfig repositories and returns the path where is stored
+// Backup generates a tarball of the consul database and returns the path where is stored
 func (c *ConsulConfig) Backup() (string, error) {
 	filepath := generateFilename(c.SaveDir, "consul-backup") + ".snap"
 	args := []string{"snapshot", "save", filepath}

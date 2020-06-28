@@ -74,7 +74,7 @@ func backupCmd() cli.Command {
 		Flags:  flags,
 		Before: applyConfigValues(flags),
 		Subcommands: []cli.Command{
-			gogsCmd(name),
+			giteaCmd(name),
 			postgresCmd(name),
 			mysqlCmd(name),
 			tarballCmd(name),
@@ -92,7 +92,7 @@ func restoreCmd() cli.Command {
 		Flags:  flags,
 		Before: applyConfigValues(flags),
 		Subcommands: []cli.Command{
-			gogsCmd(name),
+			giteaCmd(name),
 			postgresCmd(name),
 			mysqlCmd(name),
 			tarballCmd(name),

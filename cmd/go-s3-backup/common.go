@@ -39,7 +39,7 @@ type task func(c *cli.Context) error
 func getService(c *cli.Context, service string) services.Service {
 	var config services.Service
 	switch service {
-	case "gogs":
+	case "gitea":
 		config = newGogsConfig(c)
 	case "mysql":
 		config = newMysqlConfig(c)

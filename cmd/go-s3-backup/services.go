@@ -22,15 +22,15 @@ import (
 	"megpoid.xyz/go/go-s3-backup/services"
 )
 
-var gogsFlags = []cli.Flag{
+var giteaFlags = []cli.Flag{
 	altsrc.NewStringFlag(cli.StringFlag{
-		Name:   "gogs-config",
-		Usage:  "gogs config path",
+		Name:   "gitea-config",
+		Usage:  "gitea config path",
 		EnvVar: "GOGS_CONFIG",
 	}),
 	altsrc.NewStringFlag(cli.StringFlag{
-		Name:   "gogs-data",
-		Usage:  "gogs data path",
+		Name:   "gitea-data",
+		Usage:  "gitea data path",
 		Value:  "/data",
 		EnvVar: "GOGS_DATA",
 	}),
@@ -124,8 +124,8 @@ func newGogsConfig(c *cli.Context) *services.GiteaConfig {
 	c = c.Parent()
 
 	return &services.GiteaConfig{
-		ConfigPath: c.String("gogs-config"),
-		DataPath:   c.String("gogs-data"),
+		ConfigPath: c.String("gitea-config"),
+		DataPath:   c.String("gitea-data"),
 		SaveDir:    c.GlobalString("savedir"),
 	}
 }
@@ -184,13 +184,13 @@ func newConsulConfig(c *cli.Context) *services.ConsulConfig {
 	}
 }
 
-func gogsCmd(parent string) cli.Command {
-	name := "gogs"
+func giteaCmd(parent string) cli.Command {
+	name := "gitea"
 	return cli.Command{
 		Name:   name,
-		Usage:  "connect to gogs service",
-		Flags:  gogsFlags,
-		Before: applyConfigValues(gogsFlags),
+		Usage:  "connect to gitea service",
+		Flags:  giteaFlags,
+		Before: applyConfigValues(giteaFlags),
 		Subcommands: []cli.Command{
 			s3Cmd(parent, name),
 			filesystemCmd(parent, name),

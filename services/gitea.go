@@ -30,7 +30,7 @@ type GiteaConfig struct {
 	SaveDir    string
 }
 
-// GiteaAppPath points to the gogs binary location
+// GiteaAppPath points to the gitea binary location
 var GiteaAppPath = "/app/gitea/gitea"
 
 func (g *GiteaConfig) newGiteaCmd() *CmdConfig {
