@@ -47,6 +47,7 @@ func (g *GiteaConfig) newGiteaCmd() *CmdConfig {
 		OutputFile: os.Stdout,
 		Env:        env,
 		Credential: creds,
+		WorkDir:    g.SaveDir,
 	}
 }
 

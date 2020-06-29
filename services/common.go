@@ -45,6 +45,7 @@ type CmdConfig struct {
 	OutputFile io.Writer
 	Credential *syscall.Credential
 	CensorArg  string
+	WorkDir    string
 }
 
 // CmdRun executes an external executable
@@ -52,6 +53,7 @@ func (app *CmdConfig) CmdRun(name string, arg ...string) error {
 	cmd := exec.Command(name, arg...)
 	cmd.Stderr = os.Stderr
 	cmd.Env = app.Env
+	cmd.Dir = app.WorkDir
 
 	// only switch user when running as root
 	if euid := os.Geteuid(); euid == 0 && app.Credential != nil {
