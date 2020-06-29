@@ -24,7 +24,7 @@ FROM alpine:3.12
 LABEL maintainer="codestation <codestation404@gmail.com>"
 
 ENV GITEA_CUSTOM /data/gitea
-RUN apk add --no-cache ca-certificates tzdata postgresql-client mariadb-client linux-pam
+RUN apk add --no-cache ca-certificates tzdata postgresql-client mariadb-client linux-pam git
 
 COPY --from=consul /bin/consul /bin/consul
 COPY --from=gitea /app/gitea /app/gitea
