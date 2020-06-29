@@ -17,6 +17,7 @@ limitations under the License.
 package services
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path"
@@ -52,7 +53,7 @@ func (g *GiteaConfig) newGiteaCmd() *CmdConfig {
 // Backup generates a tarball of the GiteaConfig repositories and returns the path where is stored
 func (g *GiteaConfig) Backup() (string, error) {
 	filename := generateFilename("", "gitea-dump") + ".zip"
-	args := []string{"dump", "--skip-log", "--work-path", g.SaveDir, "--file", filename}
+	args := []string{"dump", "--skip-log", "--tempdir", g.SaveDir, "--file", filename}
 
 	if g.ConfigPath != "" {
 		args = append(args, "--config", g.ConfigPath)
@@ -68,18 +69,6 @@ func (g *GiteaConfig) Backup() (string, error) {
 }
 
 // Restore takes a GiteaConfig backup and restores it to the service
-func (g *GiteaConfig) Restore(filepath string) error {
-	args := []string{"restore", "--from", filepath, "--tempdir", g.SaveDir}
-
-	if g.ConfigPath != "" {
-		args = append(args, "--config", g.ConfigPath)
-	}
-
-	app := g.newGiteaCmd()
-
-	if err := app.CmdRun(GiteaAppPath, args...); err != nil {
-		return fmt.Errorf("couldn't execute gitea restore, %v", err)
-	}
-
-	return nil
+func (g *GiteaConfig) Restore(_ string) error {
+	return errors.New("not implemented")
 }
