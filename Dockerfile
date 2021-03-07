@@ -1,4 +1,5 @@
-FROM golang:1.14-alpine as builder
+
+FROM golang:1.16-alpine as builder
 
 ARG CI_TAG
 ARG BUILD_NUMBER
@@ -18,9 +19,9 @@ RUN go build -o release/go-s3-backup \
    -X main.BuildTime=${CI_BUILD_CREATED}" \
   ./cmd/go-s3-backup
 
-FROM consul:1.8 AS consul
-FROM gitea/gitea:1.12 AS gitea
-FROM alpine:3.12
+FROM consul:1.9 AS consul
+FROM gitea/gitea:1.13 AS gitea
+FROM alpine:3.13
 LABEL maintainer="codestation <codestation404@gmail.com>"
 
 ENV GITEA_CUSTOM /data/gitea
