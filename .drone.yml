@@ -40,9 +40,6 @@ steps:
     environment:
       GOPROXY:
         from_secret: goproxy_url
-    volumes:
-      - name: cache
-        path: /var/lib/docker
 
   - name: dockerhub
     image: plugins/docker
@@ -61,14 +58,7 @@ steps:
     environment:
       GOPROXY:
         from_secret: goproxy_url
-    volumes:
-      - name: cache
-        path: /var/lib/docker
 
 trigger:
   branch:
     - master
-
-volumes:
-  - name: cache
-    temp: {}
