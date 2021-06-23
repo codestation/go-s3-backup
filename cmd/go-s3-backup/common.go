@@ -191,7 +191,7 @@ func runScheduler(c *cli.Context, task task) error {
 
 	cr.Start()
 
-	signalChan := make(chan os.Signal)
+	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, os.Interrupt, syscall.SIGTERM)
 
 	<-signalChan
