@@ -2,6 +2,10 @@ kind: pipeline
 name: default
 type: docker
 
+platform:
+  os: linux
+  arch: amd64
+
 steps:
   - name: lint
     image: golangci/golangci-lint:v1.41.0
@@ -18,11 +22,11 @@ steps:
         from_secret: goproxy_url
 
   - name: build
-    image: registry.corp.megpoid.xyz/drone-docker
+    image: registry.corp.megpoid.xyz/codestation/drone-docker
     settings:
-      repo: registry.corp.megpoid.xyz/go-s3-backup
+      repo: registry.corp.megpoid.xyz/codestation/go-s3-backup
       tags: latest
-      registry: registry.megpoid.xyz
+      registry: registry.corp.megpoid.xyz
       mirror: http://mirror:5000
       build_args:
         - CI_COMMIT_TAG=${DRONE_TAG}
