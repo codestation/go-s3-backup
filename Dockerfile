@@ -1,4 +1,4 @@
-FROM golang:1.16-alpine as builder
+FROM golang:1.17-alpine as builder
 
 ARG CI_COMMIT_TAG
 ARG CI_COMMIT_BRANCH
@@ -22,7 +22,7 @@ RUN go build -o release/go-s3-backup \
   ./cmd/go-s3-backup
 
 FROM consul:1.10 AS consul
-FROM gitea/gitea:1.14 AS gitea
+FROM gitea/gitea:1.15.2 AS gitea
 FROM alpine:3.14
 LABEL maintainer="codestation <codestation404@gmail.com>"
 
