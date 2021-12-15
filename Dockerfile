@@ -21,8 +21,8 @@ RUN go build -o release/go-s3-backup \
    -X main.BuildTime=${CI_BUILD_CREATED}" \
   ./cmd/go-s3-backup
 
-FROM consul:1.10 AS consul
-FROM gitea/gitea:1.15.2 AS gitea
+FROM consul:1.10.5 AS consul
+FROM gitea/gitea:1.15.7 AS gitea
 FROM alpine:3.14
 LABEL maintainer="codestation <codestation404@gmail.com>"
 

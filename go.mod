@@ -18,10 +18,8 @@ require (
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/stretchr/testify v1.5.1
 	github.com/ulikunitz/xz v0.5.7 // indirect
-	golang.org/x/lint v0.0.0-20181026193005-c67002cb31c3
-	golang.org/x/sys v0.0.0-20200625212154-ddb9806d33ae // indirect
-	golang.org/x/text v0.3.2 // indirect
-	golang.org/x/tools v0.0.0-20181201035826-d0ca3933b724 // indirect
+	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616
+	golang.org/x/tools v0.1.8 // indirect
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 	gopkg.in/urfave/cli.v1 v1.20.0
 	gopkg.in/yaml.v2 v2.3.0 // indirect

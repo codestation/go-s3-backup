@@ -14,7 +14,7 @@ steps:
       - golangci-lint run --no-config -v --timeout 10m ./...
 
   - name: test
-    image: golang:1.16
+    image: golang:1.17
     commands:
       - go test -coverprofile cover.out -v ./...
       - go tool cover -func cover.out
@@ -23,11 +23,11 @@ steps:
         from_secret: goproxy_url
 
   - name: build
-    image: registry.corp.megpoid.xyz/codestation/drone-docker
+    image: codestation/drone-docker
     settings:
-      repo: registry.corp.megpoid.xyz/codestation/go-s3-backup
+      repo: registry.megpoid.xyz/codestation/go-s3-backup
       tags: latest
-      registry: registry.corp.megpoid.xyz
+      registry: registry.megpoid.xyz
       build_args:
         - CI_COMMIT_TAG=${DRONE_TAG}
         - CI_COMMIT_BRANCH=${DRONE_BRANCH}
