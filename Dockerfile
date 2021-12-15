@@ -13,12 +13,11 @@ COPY go.mod go.sum /src/
 RUN go mod download
 COPY . /src/
 
-RUN go build -o release/go-s3-backup \
+RUN CGO_ENABLED=0 go build -o release/go-s3-backup \
    -ldflags "-w -s \
-   -X main.Version=${CI_TAG} \
-   -X main.BuildNumber=${BUILD_NUMBER} \
-   -X main.Commit=${BUILD_COMMIT_SHORT} \
-   -X main.BuildTime=${CI_BUILD_CREATED}" \
+   -X main.Version=${CI_COMMIT_TAG:-$CI_COMMIT_BRANCH} \
+   -X main.Commit=${CI_COMMIT_SHA:0:8} \
+   -X main.BuildTime=${CI_PIPELINE_CREATED_AT}" \
   ./cmd/go-s3-backup
 
 FROM consul:1.10.5 AS consul

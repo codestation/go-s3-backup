@@ -25,25 +25,15 @@ import (
 
 var (
 	// Version indicates the application version
-	Version string
+	Version = "dev"
 	// Commit indicates the git commit of the build
-	Commit string
+	Commit = "unknown"
 	// BuildTime indicates the date when the binary was built (set by -ldflags)
-	BuildTime string
-	// BuildNumber indicates the compilation number
-	BuildNumber string
+	BuildTime = "unknown"
 )
 
 func init() {
-	if Version == "" {
-		Version = "unknown"
-	}
-	if Commit == "" {
-		Commit = "unknown"
-	}
-	if BuildTime == "" {
-		BuildTime = "unknown"
-	} else {
+	if BuildTime != "unknown" {
 		i, err := strconv.ParseInt(BuildTime, 10, 64)
 		if err == nil {
 			tm := time.Unix(i, 0)
@@ -51,8 +41,5 @@ func init() {
 		} else {
 			BuildTime = "unknown"
 		}
-	}
-	if BuildNumber == "" {
-		BuildNumber = "unknown"
 	}
 }
