@@ -20,8 +20,8 @@ RUN CGO_ENABLED=0 go build -o release/go-s3-backup \
    -X main.BuildTime=${CI_PIPELINE_CREATED_AT}" \
   ./cmd/go-s3-backup
 
-FROM consul:1.10.5 AS consul
-FROM gitea/gitea:1.15.7 AS gitea
+FROM consul:1.11.1 AS consul
+FROM gitea/gitea:1.15.9 AS gitea
 FROM alpine:3.14
 LABEL maintainer="codestation <codestation404@gmail.com>"
 
