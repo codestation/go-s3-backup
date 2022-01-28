@@ -5,7 +5,7 @@ type: docker
 
 platform:
   os: linux
-  arch: amd64
+  arch: arm64
 
 steps:
   - name: lint
@@ -23,11 +23,16 @@ steps:
         from_secret: goproxy_url
 
   - name: build
-    image: codestation/drone-docker
+    image: ghcr.io/codestation/drone-docker
     settings:
-      repo: registry.megpoid.xyz/codestation/go-s3-backup
+      repos:
+        - registry.megpoid.xyz/codestation/go-s3-backup
+        - codestation/go-s3-backup
       tags: latest
       registry: registry.megpoid.xyz
+      buildkit: true
+      cache:
+        - registry.megpoid.xyz/codestation/go-s3-backup:${DRONE_BRANCH}-cache
       build_args:
         - CI_COMMIT_TAG=${DRONE_TAG}
         - CI_COMMIT_BRANCH=${DRONE_BRANCH}
@@ -37,24 +42,6 @@ steps:
         from_secret: docker_username
       password:
         from_secret: docker_password
-    environment:
-      GOPROXY:
-        from_secret: goproxy_url
-
-  - name: dockerhub
-    image: plugins/docker
-    settings:
-      repo: codestation/go-s3-backup
-      tags: latest
-      username:
-        from_secret: dockerhub_username
-      password:
-        from_secret: dockerhub_password
-      build_args:
-        - CI_COMMIT_TAG=${DRONE_TAG}
-        - CI_COMMIT_BRANCH=${DRONE_BRANCH}
-        - CI_COMMIT_SHA=${DRONE_COMMIT_SHA}
-        - CI_PIPELINE_CREATED_AT=${DRONE_BUILD_CREATED}
     environment:
       GOPROXY:
         from_secret: goproxy_url
