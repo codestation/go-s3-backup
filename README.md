@@ -40,6 +40,8 @@ The schedule function can also be used on restore if you need to test your backu
 * `DATABASE_HOST`: database host.
 * `DATABASE_PORT`: database port.
 * `DATABASE_NAME`: database name.
+* `DATABASE_NAME_AS_PREFIX`: use the database name as file prefix.
+* `DATABASE_FILENAME_PREFIX`: custom database filename prefix.
 * `DATABASE_USER`:  database user.
 * `DATABASE_PASSWORD`:  database password.
 * `DATABASE_PASSWORD_FILE`:  database password file, has precendnce over `DATABASE_PASSWORD`

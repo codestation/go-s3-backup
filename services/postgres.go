@@ -33,6 +33,8 @@ type PostgresConfig struct {
 	User           string
 	Password       string
 	Database       string
+	NamePrefix     string
+	NameAsPrefix   bool
 	Options        string
 	Compress       bool
 	Custom         bool
@@ -99,7 +101,15 @@ func (p *PostgresConfig) newPostgresCmd() *CmdConfig {
 
 // Backup generates a dump of the database and returns the path where is stored
 func (p *PostgresConfig) Backup() (string, error) {
-	filepath := generateFilename(p.SaveDir, "postgres-backup")
+	var prefix string
+	if p.NameAsPrefix {
+		prefix = p.Database
+	} else if p.NamePrefix != "" {
+		prefix = p.NamePrefix
+	} else {
+		prefix = "postgres-backup"
+	}
+	filepath := generateFilename(p.SaveDir, prefix)
 	args := p.newBaseArgs()
 
 	var appPath string

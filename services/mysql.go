@@ -33,6 +33,8 @@ type MySQLConfig struct {
 	User           string
 	Password       string
 	Database       string
+	NamePrefix     string
+	NameAsPrefix   bool
 	Options        string
 	Compress       bool
 	SaveDir        string
@@ -68,7 +70,15 @@ func (m *MySQLConfig) newBaseArgs() []string {
 
 // Backup generates a dump of the database and returns the path where is stored
 func (m *MySQLConfig) Backup() (string, error) {
-	filepath := generateFilename(m.SaveDir, "mysql-backup")
+	var prefix string
+	if m.NameAsPrefix {
+		prefix = m.Database
+	} else if m.NamePrefix != "" {
+		prefix = m.NamePrefix
+	} else {
+		prefix = "mysql-backup"
+	}
+	filepath := generateFilename(m.SaveDir, prefix)
 	args := m.newBaseArgs()
 
 	if m.Database != "" {
