@@ -81,4 +81,5 @@ steps:
 
 trigger:
   branch:
+    - master
     - testing
