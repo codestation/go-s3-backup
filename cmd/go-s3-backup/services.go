@@ -110,6 +110,11 @@ var postgresFlags = []cli.Flag{
 		Usage:  "change owner on database restore",
 		EnvVar: "POSTGRES_OWNER",
 	}),
+	altsrc.NewStringSliceFlag(cli.StringSliceFlag{
+		Name:   "postgres-exclude-databases",
+		Usage:  "make backup of all databases except the ones listed",
+		EnvVar: "POSTGRES_EXCLUDE_DATABASES",
+	}),
 	altsrc.NewBoolFlag(cli.BoolFlag{
 		Name:   "postgres-backup-per-user",
 		Usage:  "make backups for all databases separated per user",
@@ -198,23 +203,24 @@ func newPostgresConfig(c *cli.Context) *services.PostgresConfig {
 	c = c.Parent()
 
 	return &services.PostgresConfig{
-		Host:           c.String("database-host"),
-		Port:           c.String("database-port"),
-		User:           c.String("database-user"),
-		Password:       fileOrString(c, "database-password"),
-		Database:       c.String("database-name"),
-		NamePrefix:     c.String("database-filename-prefix"),
-		NameAsPrefix:   c.Bool("database-name-as-prefix"),
-		Options:        c.String("database-options"),
-		Compress:       c.Bool("database-compress"),
-		Custom:         c.Bool("postgres-custom"),
-		SaveDir:        c.GlobalString("savedir"),
-		IgnoreExitCode: c.Bool("database-ignore-exit-code"),
-		Drop:           c.Bool("postgres-drop"),
-		Owner:          c.String("postgres-owner"),
-		BackupPerUser:  c.Bool("postgres-backup-per-user"),
-		BackupUsers:    c.StringSlice("postgres-backup-users"),
-		ExcludeUsers:   c.StringSlice("postgres-backup-exclude-users"),
+		Host:             c.String("database-host"),
+		Port:             c.String("database-port"),
+		User:             c.String("database-user"),
+		Password:         fileOrString(c, "database-password"),
+		Database:         c.String("database-name"),
+		NamePrefix:       c.String("database-filename-prefix"),
+		NameAsPrefix:     c.Bool("database-name-as-prefix"),
+		Options:          c.String("database-options"),
+		Compress:         c.Bool("database-compress"),
+		Custom:           c.Bool("postgres-custom"),
+		SaveDir:          c.GlobalString("savedir"),
+		IgnoreExitCode:   c.Bool("database-ignore-exit-code"),
+		Drop:             c.Bool("postgres-drop"),
+		Owner:            c.String("postgres-owner"),
+		ExcludeDatabases: c.StringSlice("postgres-exclude-databases"),
+		BackupPerUser:    c.Bool("postgres-backup-per-user"),
+		BackupUsers:      c.StringSlice("postgres-backup-users"),
+		ExcludeUsers:     c.StringSlice("postgres-backup-exclude-users"),
 	}
 }
 

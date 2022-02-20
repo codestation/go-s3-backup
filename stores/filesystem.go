@@ -86,20 +86,44 @@ func (f *FilesystemConfig) Store(src, prefix, filename string) error {
 	return nil
 }
 
-// RemoveOlderBackups keeps the most recent backups of a directory and deletes the old ones
-func (f *FilesystemConfig) RemoveOlderBackups(basedir string, keep int) error {
+func (f *FilesystemConfig) getFileListing(basedir, namePrefix string) ([]string, error) {
 	fullBasedir := path.Join(f.SaveDir, basedir)
 	files, err := ioutil.ReadDir(fullBasedir)
 	if err != nil {
-		return fmt.Errorf("cannot list contents of directory %s, %v", f.SaveDir, err)
+		return nil, fmt.Errorf("cannot list contents of directory %s, %v", f.SaveDir, err)
+	}
+	re := generatePattern(namePrefix)
+
+	var filenames []string
+	for _, f := range files {
+		if !f.IsDir() {
+			// ignore files not created by this program
+			if re.MatchString(f.Name()) {
+				filenames = append(filenames, path.Join(fullBasedir, f.Name()))
+			}
+		}
 	}
 
-	count := len(files) - keep
+	return filenames, nil
+}
+
+// RemoveOlderBackups keeps the most recent backups of a directory and deletes the old ones
+func (f *FilesystemConfig) RemoveOlderBackups(basedir, namePrefix string, keep int) error {
+	filePaths, err := f.getFileListing(basedir, namePrefix)
+	if err != nil {
+		return err
+	}
+
+	if len(filePaths) == 0 {
+		return nil
+	}
+
+	count := len(filePaths) - keep
 	deleted := 0
 
 	if count > 0 {
-		for _, file := range files[:count] {
-			fullpath := path.Clean(path.Join(fullBasedir, file.Name()))
+		for _, file := range filePaths[:count] {
+			fullpath := path.Clean(file)
 			err = os.Remove(fullpath)
 			if err != nil {
 				log.Error("Failed to remove file %s", fullpath)
@@ -108,24 +132,24 @@ func (f *FilesystemConfig) RemoveOlderBackups(basedir string, keep int) error {
 			}
 		}
 
-		log.Trace("Deleted %d objects from %s", deleted, fullBasedir)
+		log.Trace("Deleted %d objects from %s", deleted, path.Join(f.SaveDir, basedir))
 	}
 
 	return nil
 }
 
 // FindLatestBackup returns the most recent backup of the specified directory
-func (f *FilesystemConfig) FindLatestBackup(basedir string) (string, error) {
-	files, err := ioutil.ReadDir(path.Join(f.SaveDir, basedir))
+func (f *FilesystemConfig) FindLatestBackup(basedir, namePrefix string) (string, error) {
+	files, err := f.getFileListing(basedir, namePrefix)
 	if err != nil {
-		return "", fmt.Errorf("cannot list contents of directory %s, %v", f.SaveDir, err)
+		return "", err
 	}
 
 	if len(files) == 0 {
 		return "", fmt.Errorf("cannot find a recent backup on %s", f.SaveDir)
 	}
 
-	return files[len(files)-1].Name(), nil
+	return files[len(files)-1], nil
 }
 
 // Retrieve returns the path of the requested file

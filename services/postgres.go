@@ -31,23 +31,24 @@ import (
 
 // PostgresConfig has the config options for the PostgresConfig service
 type PostgresConfig struct {
-	Host           string
-	Port           string
-	User           string
-	Password       string
-	Database       string
-	NamePrefix     string
-	NameAsPrefix   bool
-	Options        string
-	Compress       bool
-	Custom         bool
-	SaveDir        string
-	IgnoreExitCode bool
-	Drop           bool
-	Owner          string
-	BackupPerUser  bool
-	BackupUsers    []string
-	ExcludeUsers   []string
+	Host             string
+	Port             string
+	User             string
+	Password         string
+	Database         string
+	NamePrefix       string
+	NameAsPrefix     bool
+	Options          string
+	Compress         bool
+	Custom           bool
+	SaveDir          string
+	IgnoreExitCode   bool
+	Drop             bool
+	Owner            string
+	ExcludeDatabases []string
+	BackupPerUser    bool
+	BackupUsers      []string
+	ExcludeUsers     []string
 }
 
 // PostgresDumpApp points to the pg_dump binary location
@@ -112,13 +113,15 @@ func (p *PostgresConfig) newPostgresCmd() *CmdConfig {
 // Backup generates a dump of the database and returns the path where is stored
 func (p *PostgresConfig) Backup() (*BackupResults, error) {
 	if !p.BackupPerUser {
-		filepath, err := p.backupDatabase("")
+		namePrefix := p.getNamePrefix()
+		filepath, err := p.backupDatabase("", namePrefix)
 		if err != nil {
 			return nil, err
 		}
 
 		return &BackupResults{Entries: []BackupResult{{
-			Filenames: []string{filepath},
+			NamePrefix: namePrefix,
+			Path:       filepath,
 		}}}, nil
 	}
 
@@ -158,36 +161,39 @@ func (p *PostgresConfig) Backup() (*BackupResults, error) {
 			return nil, fmt.Errorf("failed to list databases for user %s, %w", user, err)
 		}
 
-		resultEntry := BackupResult{Prefix: user}
-
 		for _, database := range databases {
 			p.Database = database
-			filepath, err := p.backupDatabase(user)
+			namePrefix := p.getNamePrefix()
+			filepath, err := p.backupDatabase(user, namePrefix)
 			if err != nil {
 				return nil, fmt.Errorf("failed to backup database %s, %w", database, err)
 			}
-			resultEntry.Filenames = append(resultEntry.Filenames, filepath)
+			resultEntry := BackupResult{DirPrefix: user, NamePrefix: namePrefix, Path: filepath}
+			resultList = append(resultList, resultEntry)
 		}
-
-		resultList = append(resultList, resultEntry)
 	}
 
 	result := &BackupResults{resultList}
 	return result, nil
 }
 
-// Backup generates a dump of the database and returns the path where is stored
-func (p *PostgresConfig) backupDatabase(basedir string) (string, error) {
+func (p *PostgresConfig) getNamePrefix() string {
 	var prefix string
-	if p.NameAsPrefix {
+	if p.NameAsPrefix && p.Database != "" {
 		prefix = p.Database
 	} else if p.NamePrefix != "" {
 		prefix = p.NamePrefix
 	} else {
 		prefix = "postgres-backup"
 	}
+
+	return prefix
+}
+
+// Backup generates a dump of the database and returns the path where is stored
+func (p *PostgresConfig) backupDatabase(basedir, namePrefix string) (string, error) {
 	savePath := path.Join(p.SaveDir, basedir)
-	filepath := generateFilename(savePath, prefix)
+	filepath := generateFilename(savePath, namePrefix)
 	args := p.newBaseArgs()
 
 	var appPath string
@@ -195,6 +201,13 @@ func (p *PostgresConfig) backupDatabase(basedir string) (string, error) {
 		appPath = PostgresDumpApp
 	} else {
 		appPath = PostgresDumpallApp
+		// no custom format for pg_dumpall
+		p.Custom = false
+		if len(p.ExcludeDatabases) > 0 {
+			for _, exclude := range p.ExcludeDatabases {
+				args = append(args, "--exclude-database="+exclude)
+			}
+		}
 	}
 
 	// only allow custom format when dumping a single database

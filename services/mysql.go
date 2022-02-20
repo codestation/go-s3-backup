@@ -68,8 +68,7 @@ func (m *MySQLConfig) newBaseArgs() []string {
 	return args
 }
 
-// Backup generates a dump of the database and returns the path where is stored
-func (m *MySQLConfig) Backup() (*BackupResults, error) {
+func (m *MySQLConfig) getNamePrefix() string {
 	var prefix string
 	if m.NameAsPrefix {
 		prefix = m.Database
@@ -78,7 +77,14 @@ func (m *MySQLConfig) Backup() (*BackupResults, error) {
 	} else {
 		prefix = "mysql-backup"
 	}
-	filepath := generateFilename(m.SaveDir, prefix)
+
+	return prefix
+}
+
+// Backup generates a dump of the database and returns the path where is stored
+func (m *MySQLConfig) Backup() (*BackupResults, error) {
+	namePrefix := m.getNamePrefix()
+	filepath := generateFilename(m.SaveDir, namePrefix)
 	args := m.newBaseArgs()
 
 	if m.Database != "" {
@@ -116,8 +122,9 @@ func (m *MySQLConfig) Backup() (*BackupResults, error) {
 
 	result := &BackupResults{[]BackupResult{
 		{
-			Prefix:    m.Database,
-			Filenames: []string{filepath},
+			NamePrefix: namePrefix,
+			DirPrefix:  m.Database,
+			Path:       filepath,
 		},
 	}}
 

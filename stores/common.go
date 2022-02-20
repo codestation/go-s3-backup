@@ -16,11 +16,20 @@ limitations under the License.
 
 package stores
 
+import (
+	"fmt"
+	"regexp"
+)
+
 // Storer represents the methods to store/retrieve a backup from another location
 type Storer interface {
 	Store(filepath, prefix, filename string) error
 	Retrieve(s3path string) (string, error)
-	RemoveOlderBackups(basedir string, keep int) error
-	FindLatestBackup(basedir string) (string, error)
+	RemoveOlderBackups(basedir, namePrefix string, keep int) error
+	FindLatestBackup(basedir, namePrefix string) (string, error)
 	Close()
+}
+
+func generatePattern(prefix string) *regexp.Regexp {
+	return regexp.MustCompile(fmt.Sprintf("^%s-[[:digit:]]{14}\\.[[:alnum:].]+$", regexp.QuoteMeta(prefix)))
 }

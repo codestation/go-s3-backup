@@ -96,15 +96,13 @@ func backupTask(c *cli.Context, service services.Service, store stores.Storer) e
 	}
 
 	for _, result := range results.Entries {
-		for _, filepath := range result.Filenames {
-			log.Trace("Backup saved to %s: %s", result.Prefix, filepath)
-			filename := path.Base(filepath)
-			if err = store.Store(filepath, result.Prefix, filename); err != nil {
-				return fmt.Errorf("couldn't upload file to store: %v", err)
-			}
+		log.Trace("Backup saved to %s: %s", result.DirPrefix, result.Path)
+		filename := path.Base(result.Path)
+		if err = store.Store(result.Path, result.DirPrefix, filename); err != nil {
+			return fmt.Errorf("couldn't upload file to store: %v", err)
 		}
 
-		err = store.RemoveOlderBackups(result.Prefix, c.GlobalInt("max-backups"))
+		err = store.RemoveOlderBackups(result.DirPrefix, result.NamePrefix, c.GlobalInt("max-backups"))
 		if err != nil {
 			return fmt.Errorf("couldn't remove old backups from store: %v", err)
 		}
@@ -122,7 +120,7 @@ func restoreTask(c *cli.Context, service services.Service, store stores.Storer) 
 		filename = key
 	} else {
 		// find the latest file in the store
-		filename, err = store.FindLatestBackup("")
+		filename, err = store.FindLatestBackup("", "")
 		if err != nil {
 			return fmt.Errorf("cannot find the latest backup: %v", err)
 		}
@@ -215,7 +213,12 @@ func fileOrString(c *cli.Context, name string) string {
 			return ""
 		}
 
-		defer f.Close()
+		defer func(f *os.File) {
+			err := f.Close()
+			if err != nil {
+				log.Error(err.Error())
+			}
+		}(f)
 
 		scanner := bufio.NewScanner(f)
 		if scanner.Scan() {

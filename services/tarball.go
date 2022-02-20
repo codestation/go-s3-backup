@@ -38,14 +38,16 @@ type TarballConfig struct {
 
 // Backup creates a tarball of the specified directory
 func (f *TarballConfig) Backup() (*BackupResults, error) {
+	namePrefix := f.getNamePrefix("")
 	if !f.BackupPerDir {
-		filepath, err := f.backupFile("")
+		filepath, err := f.backupFile("", namePrefix)
 		if err != nil {
 			return nil, err
 		}
 
 		return &BackupResults{Entries: []BackupResult{{
-			Filenames: []string{filepath},
+			NamePrefix: namePrefix,
+			Path:       filepath,
 		}}}, nil
 	}
 
@@ -85,14 +87,15 @@ func (f *TarballConfig) Backup() (*BackupResults, error) {
 			}
 		}
 
-		filepath, err := f.backupFile(file.Name())
+		filepath, err := f.backupFile(file.Name(), namePrefix)
 		if err != nil {
 			return nil, err
 		}
 
 		resultList = append(resultList, BackupResult{
-			Prefix:    file.Name(),
-			Filenames: []string{filepath},
+			DirPrefix:  file.Name(),
+			NamePrefix: namePrefix,
+			Path:       filepath,
 		})
 	}
 
@@ -101,7 +104,7 @@ func (f *TarballConfig) Backup() (*BackupResults, error) {
 	return result, nil
 }
 
-func (f *TarballConfig) backupFile(basedir string) (string, error) {
+func (f *TarballConfig) getNamePrefix(basedir string) string {
 	var name string
 	if f.Name != "" {
 		name = f.Name + "-backup"
@@ -111,8 +114,12 @@ func (f *TarballConfig) backupFile(basedir string) (string, error) {
 		name = path.Base(f.Path) + "-backup"
 	}
 
+	return name
+}
+
+func (f *TarballConfig) backupFile(basedir, namePrefix string) (string, error) {
 	destPath := path.Join(f.SaveDir, basedir, f.Prefix)
-	filepath := generateFilename(destPath, name) + ".tar"
+	filepath := generateFilename(destPath, namePrefix) + ".tar"
 
 	if f.Compress {
 		filepath += ".gz"

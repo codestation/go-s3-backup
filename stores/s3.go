@@ -61,7 +61,12 @@ func (s *S3Config) Store(filepath, prefix, filename string) error {
 		return fmt.Errorf("failed to open file %q, %v", filepath, err)
 	}
 
-	defer f.Close()
+	defer func(f *os.File) {
+		err := f.Close()
+		if err != nil {
+			log.Error(err.Error())
+		}
+	}(f)
 
 	if !s.KeepAfterUpload {
 		defer func() {
@@ -84,23 +89,27 @@ func (s *S3Config) Store(filepath, prefix, filename string) error {
 		return fmt.Errorf("failed to upload file, %v", err)
 	}
 
-	log.Trace("File uploaded to %s\n", res.Location)
+	log.Trace("File uploaded to %s", res.Location)
 
 	return nil
 }
 
-func (s *S3Config) getFileListing(basedir string, svc *s3.S3) ([]string, error) {
+func (s *S3Config) getFileListing(basedir, namePrefix string, svc *s3.S3) ([]string, error) {
 	var files []string
+	re := generatePattern(namePrefix)
 
-	err := svc.ListObjectsPages(&s3.ListObjectsInput{
+	err := svc.ListObjectsV2Pages(&s3.ListObjectsV2Input{
 		Bucket: aws.String(s.Bucket),
 		// make sure that the prefix ends with "/"
 		Prefix: aws.String(path.Clean(path.Join(s.Prefix, basedir)) + "/"),
-	}, func(p *s3.ListObjectsOutput, last bool) (shouldContinue bool) {
+	}, func(p *s3.ListObjectsV2Output, last bool) (shouldContinue bool) {
 
 		for _, obj := range p.Contents {
-			if !strings.HasSuffix(*obj.Key, "/") {
-				files = append(files, aws.StringValue(obj.Key))
+			if !strings.HasSuffix(aws.StringValue(obj.Key), "/") {
+				// ignore files not created by this program
+				if re.MatchString(path.Base(aws.StringValue(obj.Key))) {
+					files = append(files, aws.StringValue(obj.Key))
+				}
 			}
 		}
 		return true
@@ -110,12 +119,16 @@ func (s *S3Config) getFileListing(basedir string, svc *s3.S3) ([]string, error) 
 }
 
 // RemoveOlderBackups keeps the most recent backups of the S3 service and deletes the old ones
-func (s *S3Config) RemoveOlderBackups(basedir string, keep int) error {
+func (s *S3Config) RemoveOlderBackups(basedir, namePrefix string, keep int) error {
 	svc := s3.New(s.newSession())
 
-	files, err := s.getFileListing(basedir, svc)
+	files, err := s.getFileListing(basedir, namePrefix, svc)
 	if err != nil {
 		return fmt.Errorf("couldn't list S3 objects, %v", err)
+	}
+
+	if len(files) == 0 {
+		return nil
 	}
 
 	sort.Strings(files)
@@ -147,10 +160,10 @@ func (s *S3Config) RemoveOlderBackups(basedir string, keep int) error {
 }
 
 // FindLatestBackup returns the most recent backup of the S3 store
-func (s *S3Config) FindLatestBackup(basedir string) (string, error) {
+func (s *S3Config) FindLatestBackup(basedir, namePrefix string) (string, error) {
 	svc := s3.New(s.newSession())
 
-	files, err := s.getFileListing(basedir, svc)
+	files, err := s.getFileListing(basedir, namePrefix, svc)
 	if err != nil {
 		return "", fmt.Errorf("couldn't list S3 objects, %v", err)
 	}

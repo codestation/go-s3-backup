@@ -36,7 +36,7 @@ func TestBackupRestore(t *testing.T) {
 	r.NoError(err, "failed to create backup tarball")
 
 	for _, result := range results.Entries {
-		for _, tarball := range result.Filenames {
+		for _, tarball := range result.Path {
 			err = tar.Restore(tarball)
 			r.NoError(err, "failed to restore backup dir")
 

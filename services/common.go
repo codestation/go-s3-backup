@@ -37,8 +37,9 @@ type BackupResults struct {
 }
 
 type BackupResult struct {
-	Prefix    string
-	Filenames []string
+	DirPrefix  string
+	NamePrefix string
+	Path       string
 }
 
 // Service represents the methods to backup/restore a service
@@ -118,7 +119,8 @@ func (app *CmdConfig) CmdRun(name string, arg ...string) error {
 		close(doneRead)
 	}
 
-	log.Trace("Running %s %s", name, strings.Join(censorArg(arg, app.CensorArg), " "))
+	args := strings.ReplaceAll(strings.Join(censorArg(arg, app.CensorArg), " "), "\n", " ")
+	log.Trace("Running %s %s", name, args)
 
 	if err := cmd.Start(); err != nil {
 		return fmt.Errorf("cannot start process: %v", err)

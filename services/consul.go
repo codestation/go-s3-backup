@@ -30,7 +30,8 @@ var ConsulAppPath = "/bin/consul"
 
 // Backup generates a tarball of the consul database and returns the path where is stored
 func (c *ConsulConfig) Backup() (*BackupResults, error) {
-	filepath := generateFilename(c.SaveDir, "consul-backup") + ".snap"
+	namePrefix := "consul-backup"
+	filepath := generateFilename(c.SaveDir, namePrefix) + ".snap"
 	args := []string{"snapshot", "save", filepath}
 
 	app := CmdConfig{}
@@ -39,7 +40,7 @@ func (c *ConsulConfig) Backup() (*BackupResults, error) {
 		return nil, fmt.Errorf("couldn't execute %s, %v", ConsulAppPath, err)
 	}
 
-	result := &BackupResults{[]BackupResult{{Filenames: []string{filepath}}}}
+	result := &BackupResults{[]BackupResult{{NamePrefix: namePrefix, Path: filepath}}}
 
 	return result, nil
 }

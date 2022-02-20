@@ -53,7 +53,8 @@ func (g *GiteaConfig) newGiteaCmd() *CmdConfig {
 
 // Backup generates a tarball of the GiteaConfig repositories and returns the path where is stored
 func (g *GiteaConfig) Backup() (*BackupResults, error) {
-	filename := generateFilename("", "gitea-dump") + ".zip"
+	namePrefix := "gitea-dump"
+	filename := generateFilename("", namePrefix) + ".zip"
 	args := []string{"dump", "--skip-log", "--tempdir", g.SaveDir, "--file", filename}
 
 	if g.ConfigPath != "" {
@@ -66,7 +67,7 @@ func (g *GiteaConfig) Backup() (*BackupResults, error) {
 		return nil, fmt.Errorf("couldn't execute %s, %v", GiteaAppPath, err)
 	}
 
-	result := &BackupResults{[]BackupResult{{Filenames: []string{path.Join(g.SaveDir, filename)}}}}
+	result := &BackupResults{[]BackupResult{{NamePrefix: namePrefix, Path: path.Join(g.SaveDir, filename)}}}
 
 	return result, nil
 }
