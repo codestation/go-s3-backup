@@ -61,6 +61,11 @@ func (g *GiteaConfig) Backup() (*BackupResults, error) {
 		args = append(args, "--config", g.ConfigPath)
 	}
 
+	err := os.MkdirAll(g.SaveDir, 0755)
+	if err != nil {
+		return nil, err
+	}
+
 	app := g.newGiteaCmd()
 
 	if err := app.CmdRun(GiteaAppPath, args...); err != nil {

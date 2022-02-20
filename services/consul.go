@@ -18,6 +18,7 @@ package services
 
 import (
 	"fmt"
+	"os"
 )
 
 // ConsulConfig has the config options for the ConsulConfig service
@@ -33,6 +34,11 @@ func (c *ConsulConfig) Backup() (*BackupResults, error) {
 	namePrefix := "consul-backup"
 	filepath := generateFilename(c.SaveDir, namePrefix) + ".snap"
 	args := []string{"snapshot", "save", filepath}
+
+	err := os.MkdirAll(c.SaveDir, 0755)
+	if err != nil {
+		return nil, err
+	}
 
 	app := CmdConfig{}
 
