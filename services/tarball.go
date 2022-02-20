@@ -105,8 +105,10 @@ func (f *TarballConfig) backupFile(basedir string) (string, error) {
 	var name string
 	if f.Name != "" {
 		name = f.Name + "-backup"
-	} else {
+	} else if basedir != "" {
 		name = path.Base(f.Path) + "_" + basedir + "-backup"
+	} else {
+		name = path.Base(f.Path) + "-backup"
 	}
 
 	destPath := path.Join(f.SaveDir, basedir, f.Prefix)
