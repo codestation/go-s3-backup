@@ -32,9 +32,18 @@ import (
 	log "unknwon.dev/clog/v2"
 )
 
+type BackupResults struct {
+	Entries []BackupResult
+}
+
+type BackupResult struct {
+	Prefix    string
+	Filenames []string
+}
+
 // Service represents the methods to backup/restore a service
 type Service interface {
-	Backup() (string, error)
+	Backup() (*BackupResults, error)
 	Restore(path string) error
 }
 

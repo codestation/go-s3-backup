@@ -52,7 +52,7 @@ func (g *GiteaConfig) newGiteaCmd() *CmdConfig {
 }
 
 // Backup generates a tarball of the GiteaConfig repositories and returns the path where is stored
-func (g *GiteaConfig) Backup() (string, error) {
+func (g *GiteaConfig) Backup() (*BackupResults, error) {
 	filename := generateFilename("", "gitea-dump") + ".zip"
 	args := []string{"dump", "--skip-log", "--tempdir", g.SaveDir, "--file", filename}
 
@@ -63,10 +63,12 @@ func (g *GiteaConfig) Backup() (string, error) {
 	app := g.newGiteaCmd()
 
 	if err := app.CmdRun(GiteaAppPath, args...); err != nil {
-		return "", fmt.Errorf("couldn't execute %s, %v", GiteaAppPath, err)
+		return nil, fmt.Errorf("couldn't execute %s, %v", GiteaAppPath, err)
 	}
 
-	return path.Join(g.SaveDir, filename), nil
+	result := &BackupResults{[]BackupResult{{Filenames: []string{path.Join(g.SaveDir, filename)}}}}
+
+	return result, nil
 }
 
 // Restore takes a GiteaConfig backup and restores it to the service

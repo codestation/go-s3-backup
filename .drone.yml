@@ -32,7 +32,34 @@ steps:
       registry: registry.megpoid.xyz
       buildkit: true
       platforms:
+        - linux/arm64
         - linux/amd64
+      cache:
+        - registry.megpoid.xyz/codestation/go-s3-backup:${DRONE_BRANCH}-cache
+      build_args:
+        - CI_COMMIT_TAG=${DRONE_TAG}
+        - CI_COMMIT_BRANCH=${DRONE_BRANCH}
+        - CI_COMMIT_SHA=${DRONE_COMMIT_SHA}
+        - CI_PIPELINE_CREATED_AT=${DRONE_BUILD_CREATED}
+      username:
+        from_secret: docker_username
+      password:
+        from_secret: docker_password
+    environment:
+      GOPROXY:
+        from_secret: goproxy_url
+    when:
+      branch:
+        - master
+
+  - name: build-branch
+    image: ghcr.io/codestation/drone-docker
+    settings:
+      repo: registry.megpoid.xyz/codestation/go-s3-backup
+      tags: ${DRONE_BRANCH}
+      registry: registry.megpoid.xyz
+      buildkit: true
+      platforms:
         - linux/arm64
       cache:
         - registry.megpoid.xyz/codestation/go-s3-backup:${DRONE_BRANCH}-cache
@@ -48,7 +75,10 @@ steps:
     environment:
       GOPROXY:
         from_secret: goproxy_url
+    when:
+      branch:
+        - testing
 
 trigger:
   branch:
-    - master
+    - testing

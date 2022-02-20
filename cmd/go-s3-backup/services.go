@@ -110,6 +110,22 @@ var postgresFlags = []cli.Flag{
 		Usage:  "change owner on database restore",
 		EnvVar: "POSTGRES_OWNER",
 	}),
+	altsrc.NewBoolFlag(cli.BoolFlag{
+		Name:   "postgres-backup-per-user",
+		Usage:  "make backups for all databases separated per user",
+		EnvVar: "POSTGRES_BACKUP_PER_USER",
+	}),
+	altsrc.NewStringSliceFlag(cli.StringSliceFlag{
+		Name:   "postgres-backup-users",
+		Usage:  "make backups for databases matching these users",
+		EnvVar: "POSTGRES_BACKUP_USERS",
+	}),
+	altsrc.NewStringSliceFlag(cli.StringSliceFlag{
+		Name:   "postgres-backup-exclude-users",
+		Usage:  "make backups for databases excluding these users",
+		EnvVar: "POSTGRES_BACKUP_EXCLUDE_USERS",
+		Value:  &cli.StringSlice{"postgres"},
+	}),
 }
 
 var tarballFlags = []cli.Flag{
@@ -127,6 +143,26 @@ var tarballFlags = []cli.Flag{
 		Name:   "tarball-compress",
 		Usage:  "compress tarball with gzip",
 		EnvVar: "TARBALL_COMPRESS",
+	}),
+	altsrc.NewStringFlag(cli.StringFlag{
+		Name:   "tarball-path-prefix",
+		Usage:  "backup path prefix",
+		EnvVar: "TARBALL_PATH_PREFIX",
+	}),
+	altsrc.NewBoolFlag(cli.BoolFlag{
+		Name:   "tarball-backup-per-dir",
+		Usage:  "backup each folder individually",
+		EnvVar: "TARBALL_BACKUP_PER_DIR",
+	}),
+	altsrc.NewStringSliceFlag(cli.StringSliceFlag{
+		Name:   "tarball-backup-dirs",
+		Usage:  "backup each folder individually",
+		EnvVar: "TARBALL_BACKUP_DIRS",
+	}),
+	altsrc.NewStringSliceFlag(cli.StringSliceFlag{
+		Name:   "tarball-backup-exclude-dirs",
+		Usage:  "make backups for directories excluding these dirs",
+		EnvVar: "TARBALL_BACKUP_EXCLUDE_DIRS",
 	}),
 }
 
@@ -176,6 +212,9 @@ func newPostgresConfig(c *cli.Context) *services.PostgresConfig {
 		IgnoreExitCode: c.Bool("database-ignore-exit-code"),
 		Drop:           c.Bool("postgres-drop"),
 		Owner:          c.String("postgres-owner"),
+		BackupPerUser:  c.Bool("postgres-backup-per-user"),
+		BackupUsers:    c.StringSlice("postgres-backup-users"),
+		ExcludeUsers:   c.StringSlice("postgres-backup-exclude-users"),
 	}
 }
 
@@ -183,10 +222,14 @@ func newTarballConfig(c *cli.Context) *services.TarballConfig {
 	c = c.Parent()
 
 	return &services.TarballConfig{
-		Path:     c.String("tarball-path"),
-		Name:     c.String("tarball-name"),
-		Compress: c.Bool("tarball-compress"),
-		SaveDir:  c.GlobalString("savedir"),
+		Name:         c.String("tarball-name"),
+		Path:         c.String("tarball-path"),
+		Compress:     c.Bool("tarball-compress"),
+		SaveDir:      c.GlobalString("savedir"),
+		Prefix:       c.String("tarball-path-prefix"),
+		BackupPerDir: c.Bool("tarball-backup-per-dir"),
+		BackupDirs:   c.StringSlice("tarball-backup-dirs"),
+		ExcludeDirs:  c.StringSlice("tarball-backup-exclude-dirs"),
 	}
 }
 

@@ -18,35 +18,112 @@ package services
 
 import (
 	"fmt"
-	"path"
-
 	"github.com/mholt/archiver/v3"
+	"io/ioutil"
+	"os"
+	"path"
 )
 
 // TarballConfig has the config options for the TarballConfig service
 type TarballConfig struct {
-	Name     string
-	Path     string
-	Compress bool
-	SaveDir  string
+	Name         string
+	Path         string
+	Compress     bool
+	SaveDir      string
+	Prefix       string
+	BackupPerDir bool
+	BackupDirs   []string
+	ExcludeDirs  []string
 }
 
 // Backup creates a tarball of the specified directory
-func (f *TarballConfig) Backup() (string, error) {
+func (f *TarballConfig) Backup() (*BackupResults, error) {
+	if !f.BackupPerDir {
+		filepath, err := f.backupFile("")
+		if err != nil {
+			return nil, err
+		}
+
+		return &BackupResults{Entries: []BackupResult{{
+			Filenames: []string{filepath},
+		}}}, nil
+	}
+
+	files, err := ioutil.ReadDir(path.Join(f.Path))
+	if err != nil {
+		return nil, err
+	}
+
+	var resultList []BackupResult
+
+	for _, file := range files {
+		if !file.IsDir() {
+			continue
+		}
+
+		found := false
+		for _, entry := range f.ExcludeDirs {
+			if entry == file.Name() {
+				found = true
+				break
+			}
+		}
+		if found {
+			continue
+		}
+
+		if len(f.BackupDirs) > 0 {
+			found := false
+			for _, entry := range f.BackupDirs {
+				if entry == path.Base(file.Name()) {
+					found = true
+					break
+				}
+			}
+			if !found {
+				continue
+			}
+		}
+
+		filepath, err := f.backupFile(file.Name())
+		if err != nil {
+			return nil, err
+		}
+
+		resultList = append(resultList, BackupResult{
+			Prefix:    file.Name(),
+			Filenames: []string{filepath},
+		})
+	}
+
+	result := &BackupResults{resultList}
+
+	return result, nil
+}
+
+func (f *TarballConfig) backupFile(basedir string) (string, error) {
 	var name string
 	if f.Name != "" {
 		name = f.Name + "-backup"
 	} else {
-		name = path.Base(f.Path) + "-backup"
+		name = path.Base(f.Path) + "_" + basedir + "-backup"
 	}
 
-	filepath := generateFilename(f.SaveDir, name) + ".tar"
+	destPath := path.Join(f.SaveDir, basedir, f.Prefix)
+	filepath := generateFilename(destPath, name) + ".tar"
 
 	if f.Compress {
 		filepath += ".gz"
 	}
 
-	err := archiver.Archive([]string{f.Path}, filepath)
+	err := os.MkdirAll(destPath, 0755)
+	if err != nil {
+		return "", err
+	}
+
+	srcPath := path.Join(f.Path, basedir, f.Prefix)
+
+	err = archiver.Archive([]string{srcPath}, filepath)
 	if err != nil {
 		return "", fmt.Errorf("cannot create tarball on %s, %v", filepath, err)
 	}

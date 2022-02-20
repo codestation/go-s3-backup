@@ -90,22 +90,24 @@ func runTask(c *cli.Context, command string, serviceName string, storeName strin
 }
 
 func backupTask(c *cli.Context, service services.Service, store stores.Storer) error {
-	filepath, err := service.Backup()
+	results, err := service.Backup()
 	if err != nil {
 		return fmt.Errorf("service backup failed: %v", err)
 	}
 
-	log.Trace("Backup saved to %s", filepath)
+	for _, result := range results.Entries {
+		for _, filepath := range result.Filenames {
+			log.Trace("Backup saved to %s: %s", result.Prefix, filepath)
+			filename := path.Base(filepath)
+			if err = store.Store(filepath, result.Prefix, filename); err != nil {
+				return fmt.Errorf("couldn't upload file to store: %v", err)
+			}
+		}
 
-	filename := path.Base(filepath)
-
-	if err = store.Store(filepath, filename); err != nil {
-		return fmt.Errorf("couldn't upload file to store: %v", err)
-	}
-
-	err = store.RemoveOlderBackups(c.GlobalInt("max-backups"))
-	if err != nil {
-		return fmt.Errorf("couldn't remove old backups from store: %v", err)
+		err = store.RemoveOlderBackups(result.Prefix, c.GlobalInt("max-backups"))
+		if err != nil {
+			return fmt.Errorf("couldn't remove old backups from store: %v", err)
+		}
 	}
 
 	return nil
@@ -120,7 +122,7 @@ func restoreTask(c *cli.Context, service services.Service, store stores.Storer) 
 		filename = key
 	} else {
 		// find the latest file in the store
-		filename, err = store.FindLatestBackup()
+		filename, err = store.FindLatestBackup("")
 		if err != nil {
 			return fmt.Errorf("cannot find the latest backup: %v", err)
 		}

@@ -32,13 +32,17 @@ func TestBackupRestore(t *testing.T) {
 		SaveDir:  tmp,
 	}
 
-	tarball, err := tar.Backup()
+	results, err := tar.Backup()
 	r.NoError(err, "failed to create backup tarball")
 
-	err = tar.Restore(tarball)
-	r.NoError(err, "failed to restore backup dir")
+	for _, result := range results.Entries {
+		for _, tarball := range result.Filenames {
+			err = tar.Restore(tarball)
+			r.NoError(err, "failed to restore backup dir")
 
-	actual, err := ioutil.ReadFile(filepath)
-	r.NoError(err, "failed to read restored file")
-	r.Equal(expected, actual, "backup contents mismatch")
+			actual, err := ioutil.ReadFile(filepath)
+			r.NoError(err, "failed to read restored file")
+			r.Equal(expected, actual, "backup contents mismatch")
+		}
+	}
 }

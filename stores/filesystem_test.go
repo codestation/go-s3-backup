@@ -29,6 +29,6 @@ func TestStoreRestore(t *testing.T) {
 		SaveDir: tmp,
 	}
 
-	err = fs.Store(filepath, "test.txt")
+	err = fs.Store(filepath, "", "test.txt")
 	r.NoError(err, "failed to store file")
 }

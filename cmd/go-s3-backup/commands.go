@@ -31,7 +31,7 @@ var defaultFlags = []cli.Flag{
 	altsrc.NewStringFlag(cli.StringFlag{
 		Name:   "savedir",
 		Usage:  "directory to save/read backups",
-		Value:  "/tmp",
+		Value:  "/tmp/go-s3-backup",
 		EnvVar: "SAVE_DIR",
 	}),
 }

@@ -32,8 +32,8 @@ type FilesystemConfig struct {
 }
 
 // Store moves/copies a file to another directory
-func (f *FilesystemConfig) Store(src string, filename string) error {
-	dest := path.Clean(path.Join(f.SaveDir, filename))
+func (f *FilesystemConfig) Store(src, prefix, filename string) error {
+	dest := path.Clean(path.Join(f.SaveDir, prefix, filename))
 
 	if src == dest {
 		log.Trace("Using the same path as source and destination, do nothing")
@@ -87,8 +87,9 @@ func (f *FilesystemConfig) Store(src string, filename string) error {
 }
 
 // RemoveOlderBackups keeps the most recent backups of a directory and deletes the old ones
-func (f *FilesystemConfig) RemoveOlderBackups(keep int) error {
-	files, err := ioutil.ReadDir(f.SaveDir)
+func (f *FilesystemConfig) RemoveOlderBackups(basedir string, keep int) error {
+	fullBasedir := path.Join(f.SaveDir, basedir)
+	files, err := ioutil.ReadDir(fullBasedir)
 	if err != nil {
 		return fmt.Errorf("cannot list contents of directory %s, %v", f.SaveDir, err)
 	}
@@ -98,7 +99,7 @@ func (f *FilesystemConfig) RemoveOlderBackups(keep int) error {
 
 	if count > 0 {
 		for _, file := range files[:count] {
-			fullpath := path.Clean(path.Join(f.SaveDir, file.Name()))
+			fullpath := path.Clean(path.Join(fullBasedir, file.Name()))
 			err = os.Remove(fullpath)
 			if err != nil {
 				log.Error("Failed to remove file %s", fullpath)
@@ -107,15 +108,15 @@ func (f *FilesystemConfig) RemoveOlderBackups(keep int) error {
 			}
 		}
 
-		log.Trace("Deleted %d objects from %s", deleted, f.SaveDir)
+		log.Trace("Deleted %d objects from %s", deleted, fullBasedir)
 	}
 
 	return nil
 }
 
 // FindLatestBackup returns the most recent backup of the specified directory
-func (f *FilesystemConfig) FindLatestBackup() (string, error) {
-	files, err := ioutil.ReadDir(f.SaveDir)
+func (f *FilesystemConfig) FindLatestBackup(basedir string) (string, error) {
+	files, err := ioutil.ReadDir(path.Join(f.SaveDir, basedir))
 	if err != nil {
 		return "", fmt.Errorf("cannot list contents of directory %s, %v", f.SaveDir, err)
 	}

@@ -29,17 +29,19 @@ type ConsulConfig struct {
 var ConsulAppPath = "/bin/consul"
 
 // Backup generates a tarball of the consul database and returns the path where is stored
-func (c *ConsulConfig) Backup() (string, error) {
+func (c *ConsulConfig) Backup() (*BackupResults, error) {
 	filepath := generateFilename(c.SaveDir, "consul-backup") + ".snap"
 	args := []string{"snapshot", "save", filepath}
 
 	app := CmdConfig{}
 
 	if err := app.CmdRun(ConsulAppPath, args...); err != nil {
-		return "", fmt.Errorf("couldn't execute %s, %v", ConsulAppPath, err)
+		return nil, fmt.Errorf("couldn't execute %s, %v", ConsulAppPath, err)
 	}
 
-	return filepath, nil
+	result := &BackupResults{[]BackupResult{{Filenames: []string{filepath}}}}
+
+	return result, nil
 }
 
 // Restore takes a GiteaConfig backup and restores it to the service

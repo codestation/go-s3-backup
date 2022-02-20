@@ -53,7 +53,7 @@ func (s *S3Config) newSession() *session.Session {
 }
 
 // Store saves a file to a remote S3 service
-func (s *S3Config) Store(filepath string, filename string) error {
+func (s *S3Config) Store(filepath, prefix, filename string) error {
 	uploader := s3manager.NewUploader(s.newSession())
 
 	f, err := os.Open(filepath)
@@ -72,7 +72,7 @@ func (s *S3Config) Store(filepath string, filename string) error {
 		}()
 	}
 
-	key := path.Clean(path.Join(s.Prefix, filename))
+	key := path.Clean(path.Join(s.Prefix, prefix, filename))
 
 	// Upload the file to S3.
 	res, err := uploader.Upload(&s3manager.UploadInput{
@@ -89,13 +89,13 @@ func (s *S3Config) Store(filepath string, filename string) error {
 	return nil
 }
 
-func (s *S3Config) getFileListing(svc *s3.S3) ([]string, error) {
+func (s *S3Config) getFileListing(basedir string, svc *s3.S3) ([]string, error) {
 	var files []string
 
 	err := svc.ListObjectsPages(&s3.ListObjectsInput{
 		Bucket: aws.String(s.Bucket),
 		// make sure that the prefix ends with "/"
-		Prefix: aws.String(path.Clean(s.Prefix) + "/"),
+		Prefix: aws.String(path.Clean(path.Join(s.Prefix, basedir)) + "/"),
 	}, func(p *s3.ListObjectsOutput, last bool) (shouldContinue bool) {
 
 		for _, obj := range p.Contents {
@@ -110,10 +110,10 @@ func (s *S3Config) getFileListing(svc *s3.S3) ([]string, error) {
 }
 
 // RemoveOlderBackups keeps the most recent backups of the S3 service and deletes the old ones
-func (s *S3Config) RemoveOlderBackups(keep int) error {
+func (s *S3Config) RemoveOlderBackups(basedir string, keep int) error {
 	svc := s3.New(s.newSession())
 
-	files, err := s.getFileListing(svc)
+	files, err := s.getFileListing(basedir, svc)
 	if err != nil {
 		return fmt.Errorf("couldn't list S3 objects, %v", err)
 	}
@@ -147,10 +147,10 @@ func (s *S3Config) RemoveOlderBackups(keep int) error {
 }
 
 // FindLatestBackup returns the most recent backup of the S3 store
-func (s *S3Config) FindLatestBackup() (string, error) {
+func (s *S3Config) FindLatestBackup(basedir string) (string, error) {
 	svc := s3.New(s.newSession())
 
-	files, err := s.getFileListing(svc)
+	files, err := s.getFileListing(basedir, svc)
 	if err != nil {
 		return "", fmt.Errorf("couldn't list S3 objects, %v", err)
 	}

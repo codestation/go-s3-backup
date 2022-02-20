@@ -69,7 +69,7 @@ func (m *MySQLConfig) newBaseArgs() []string {
 }
 
 // Backup generates a dump of the database and returns the path where is stored
-func (m *MySQLConfig) Backup() (string, error) {
+func (m *MySQLConfig) Backup() (*BackupResults, error) {
 	var prefix string
 	if m.NameAsPrefix {
 		prefix = m.Database
@@ -99,7 +99,7 @@ func (m *MySQLConfig) Backup() (string, error) {
 	if m.Compress {
 		f, err := os.Create(filepath)
 		if err != nil {
-			return "", fmt.Errorf("cannot create file: %v", err)
+			return nil, fmt.Errorf("cannot create file: %v", err)
 		}
 
 		defer f.Close()
@@ -111,10 +111,17 @@ func (m *MySQLConfig) Backup() (string, error) {
 	}
 
 	if err := app.CmdRun(MysqlDumpApp, args...); err != nil {
-		return "", fmt.Errorf("couldn't execute %s, %v", MysqlDumpApp, err)
+		return nil, fmt.Errorf("couldn't execute %s, %v", MysqlDumpApp, err)
 	}
 
-	return filepath, nil
+	result := &BackupResults{[]BackupResult{
+		{
+			Prefix:    m.Database,
+			Filenames: []string{filepath},
+		},
+	}}
+
+	return result, nil
 }
 
 // Restore takes a database dump and restores it

@@ -17,10 +17,13 @@ limitations under the License.
 package services
 
 import (
+	"bufio"
+	"bytes"
 	"compress/gzip"
 	"fmt"
 	"os"
 	"os/exec"
+	"path"
 	"strings"
 
 	log "unknwon.dev/clog/v2"
@@ -42,6 +45,9 @@ type PostgresConfig struct {
 	IgnoreExitCode bool
 	Drop           bool
 	Owner          string
+	BackupPerUser  bool
+	BackupUsers    []string
+	ExcludeUsers   []string
 }
 
 // PostgresDumpApp points to the pg_dump binary location
@@ -56,13 +62,17 @@ var PostgresRestoreApp = "/usr/bin/pg_restore"
 // PostgresTermApp points to the psql binary location
 var PostgresTermApp = "/usr/bin/psql"
 
-var terminateQuery = `SELECT pg_terminate_backend(pg_stat_activity.pid)
-FROM pg_stat_activity
+var terminateQuery = `SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity
 WHERE pg_stat_activity.datname = '%s' AND pid <> pg_backend_pid();`
 
 var dropQuery = `DROP DATABASE "%s";`
 
 var createQuery = `CREATE DATABASE "%s" OWNER "%s";`
+
+var listDatabasesQuery = `COPY(SELECT datname FROM pg_database JOIN pg_authid ON pg_database.datdba = pg_authid.oid
+WHERE rolname = '%s') TO STDOUT`
+
+var listUsersQuery = `COPY(SELECT usename FROM pg_catalog.pg_user) TO STDOUT;`
 
 var maintenanceDatabase = "postgres"
 
@@ -100,7 +110,74 @@ func (p *PostgresConfig) newPostgresCmd() *CmdConfig {
 }
 
 // Backup generates a dump of the database and returns the path where is stored
-func (p *PostgresConfig) Backup() (string, error) {
+func (p *PostgresConfig) Backup() (*BackupResults, error) {
+	if !p.BackupPerUser {
+		filepath, err := p.backupDatabase("")
+		if err != nil {
+			return nil, err
+		}
+
+		return &BackupResults{Entries: []BackupResult{{
+			Filenames: []string{filepath},
+		}}}, nil
+	}
+
+	users, err := p.listUsers()
+	if err != nil {
+		return nil, fmt.Errorf("failed to list users, %w", err)
+	}
+
+	var resultList []BackupResult
+
+	for _, user := range users {
+		found := false
+		for _, u := range p.ExcludeUsers {
+			if u == user {
+				found = true
+				break
+			}
+		}
+		if found {
+			continue
+		}
+
+		if len(p.BackupUsers) > 0 {
+			found := false
+			for _, u := range p.BackupUsers {
+				if u == user {
+					found = true
+					break
+				}
+			}
+			if !found {
+				continue
+			}
+		}
+		databases, err := p.listDatabases(user)
+		if err != nil {
+			return nil, fmt.Errorf("failed to list databases for user %s, %w", user, err)
+		}
+
+		resultEntry := BackupResult{Prefix: user}
+
+		for _, database := range databases {
+			p.Database = database
+			filepath, err := p.backupDatabase(user)
+			if err != nil {
+				return nil, fmt.Errorf("failed to backup database %s, %w", database, err)
+			}
+			resultEntry.Filenames = append(resultEntry.Filenames, filepath)
+		}
+
+		resultList = append(resultList, resultEntry)
+	}
+
+	result := &BackupResults{resultList}
+	return result, nil
+}
+
+// Backup generates a dump of the database and returns the path where is stored
+func (p *PostgresConfig) backupDatabase(basedir string) (string, error) {
 	var prefix string
 	if p.NameAsPrefix {
 		prefix = p.Database
@@ -109,7 +186,8 @@ func (p *PostgresConfig) Backup() (string, error) {
 	} else {
 		prefix = "postgres-backup"
 	}
-	filepath := generateFilename(p.SaveDir, prefix)
+	savePath := path.Join(p.SaveDir, basedir)
+	filepath := generateFilename(savePath, prefix)
 	args := p.newBaseArgs()
 
 	var appPath string
@@ -129,6 +207,11 @@ func (p *PostgresConfig) Backup() (string, error) {
 		args = append(args, "-f", filepath)
 	} else {
 		filepath += ".sql.gz"
+	}
+
+	err := os.MkdirAll(savePath, 0755)
+	if err != nil {
+		return "", err
 	}
 
 	app := p.newPostgresCmd()
@@ -245,4 +328,66 @@ func (p *PostgresConfig) recreate() error {
 	}
 
 	return nil
+}
+
+func (p *PostgresConfig) listDatabases(user string) ([]string, error) {
+	args := []string{
+		"-h", p.Host,
+		"-p", p.Port,
+		"-U", p.User,
+		maintenanceDatabase,
+	}
+
+	app := p.newPostgresCmd()
+
+	var b bytes.Buffer
+	outputWriter := bufio.NewWriter(&b)
+	app.OutputFile = outputWriter
+
+	listDatabases := append(args, "-c", fmt.Sprintf(listDatabasesQuery, user))
+	if err := app.CmdRun(PostgresTermApp, listDatabases...); err != nil {
+		return nil, fmt.Errorf("psql error on database list, %w", err)
+	}
+
+	scanner := bufio.NewScanner(&b)
+	var databases []string
+	for scanner.Scan() {
+		databases = append(databases, scanner.Text())
+	}
+	if err := scanner.Err(); err != nil {
+		return nil, fmt.Errorf("failed to parse psql output, %w", err)
+	}
+
+	return databases, nil
+}
+
+func (p *PostgresConfig) listUsers() ([]string, error) {
+	args := []string{
+		"-h", p.Host,
+		"-p", p.Port,
+		"-U", p.User,
+		maintenanceDatabase,
+	}
+
+	app := p.newPostgresCmd()
+
+	var b bytes.Buffer
+	outputWriter := bufio.NewWriter(&b)
+	app.OutputFile = outputWriter
+
+	listUsers := append(args, "-c", listUsersQuery)
+	if err := app.CmdRun(PostgresTermApp, listUsers...); err != nil {
+		return nil, fmt.Errorf("psql error on user list, %w", err)
+	}
+
+	scanner := bufio.NewScanner(&b)
+	var users []string
+	for scanner.Scan() {
+		users = append(users, scanner.Text())
+	}
+	if err := scanner.Err(); err != nil {
+		return nil, fmt.Errorf("failed to parse psql output, %w", err)
+	}
+
+	return users, nil
 }
