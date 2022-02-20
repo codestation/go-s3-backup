@@ -21,7 +21,7 @@ RUN CGO_ENABLED=0 go build -o release/go-s3-backup \
   ./cmd/go-s3-backup
 
 FROM consul:1.11.1 AS consul
-FROM gitea/gitea:1.15.10 AS gitea
+FROM gitea/gitea:1.16.1 AS gitea
 FROM alpine:3.15
 LABEL maintainer="codestation <codestation404@gmail.com>"
 
