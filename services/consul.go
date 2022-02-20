@@ -35,12 +35,11 @@ func (c *ConsulConfig) Backup() (*BackupResults, error) {
 	filepath := generateFilename(c.SaveDir, namePrefix) + ".snap"
 	args := []string{"snapshot", "save", filepath}
 
-	err := os.MkdirAll(c.SaveDir, 0755)
-	if err != nil {
+	app := CmdConfig{}
+
+	if err := os.MkdirAll(c.SaveDir, 0755); err != nil {
 		return nil, err
 	}
-
-	app := CmdConfig{}
 
 	if err := app.CmdRun(ConsulAppPath, args...); err != nil {
 		return nil, fmt.Errorf("couldn't execute %s, %v", ConsulAppPath, err)

@@ -61,12 +61,16 @@ func (g *GiteaConfig) Backup() (*BackupResults, error) {
 		args = append(args, "--config", g.ConfigPath)
 	}
 
-	err := os.MkdirAll(g.SaveDir, 0755)
-	if err != nil {
+	app := g.newGiteaCmd()
+
+	if err := os.MkdirAll(g.SaveDir, 0755); err != nil {
 		return nil, err
 	}
 
-	app := g.newGiteaCmd()
+	// fix folder permission so gitea can write the backup
+	if err := os.Chown(g.SaveDir, int(app.Credential.Uid), int(app.Credential.Gid)); err != nil {
+		return nil, err
+	}
 
 	if err := app.CmdRun(GiteaAppPath, args...); err != nil {
 		return nil, fmt.Errorf("couldn't execute %s, %v", GiteaAppPath, err)

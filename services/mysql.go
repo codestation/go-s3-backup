@@ -100,12 +100,11 @@ func (m *MySQLConfig) Backup() (*BackupResults, error) {
 		filepath += ".sql.gz"
 	}
 
-	err := os.MkdirAll(m.SaveDir, 0755)
-	if err != nil {
+	app := CmdConfig{CensorArg: "-p"}
+
+	if err := os.MkdirAll(m.SaveDir, 0755); err != nil {
 		return nil, err
 	}
-
-	app := CmdConfig{CensorArg: "-p"}
 
 	if m.Compress {
 		f, err := os.Create(filepath)

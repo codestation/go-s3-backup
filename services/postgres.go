@@ -222,12 +222,11 @@ func (p *PostgresConfig) backupDatabase(basedir, namePrefix string) (string, err
 		filepath += ".sql.gz"
 	}
 
-	err := os.MkdirAll(savePath, 0755)
-	if err != nil {
+	app := p.newPostgresCmd()
+
+	if err := os.MkdirAll(savePath, 0755); err != nil {
 		return "", err
 	}
-
-	app := p.newPostgresCmd()
 
 	if p.Compress && !p.Custom {
 		f, err := os.Create(filepath)

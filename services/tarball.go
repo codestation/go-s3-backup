@@ -125,14 +125,13 @@ func (f *TarballConfig) backupFile(basedir, namePrefix string) (string, error) {
 		filepath += ".gz"
 	}
 
-	err := os.MkdirAll(destPath, 0755)
-	if err != nil {
+	if err := os.MkdirAll(destPath, 0755); err != nil {
 		return "", err
 	}
 
 	srcPath := path.Join(f.Path, basedir, f.Prefix)
 
-	err = archiver.Archive([]string{srcPath}, filepath)
+	err := archiver.Archive([]string{srcPath}, filepath)
 	if err != nil {
 		return "", fmt.Errorf("cannot create tarball on %s, %v", filepath, err)
 	}
