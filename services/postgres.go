@@ -162,6 +162,27 @@ func (p *PostgresConfig) Backup() (*BackupResults, error) {
 		}
 
 		for _, database := range databases {
+
+			if len(p.ExcludeDatabases) > 0 {
+				found := false
+				for _, exclude := range p.ExcludeDatabases {
+					matched, err := path.Match(exclude, database)
+					if err != nil {
+						log.Error("Invalid pattern %s, skipping", exclude)
+						found = true
+						break
+					}
+					if matched {
+						log.Info("Excluding database %s that match excluded pattern %s", database, exclude)
+						found = true
+						break
+					}
+				}
+				if found {
+					continue
+				}
+			}
+
 			p.Database = database
 			namePrefix := p.getNamePrefix()
 			filepath, err := p.backupDatabase(user, namePrefix)

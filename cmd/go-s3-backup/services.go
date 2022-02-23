@@ -112,7 +112,7 @@ var postgresFlags = []cli.Flag{
 	}),
 	altsrc.NewStringSliceFlag(cli.StringSliceFlag{
 		Name:   "postgres-exclude-databases",
-		Usage:  "make backup of all databases except the ones listed",
+		Usage:  "make backup of databases except the ones that matches the pattern",
 		EnvVar: "POSTGRES_EXCLUDE_DATABASES",
 	}),
 	altsrc.NewBoolFlag(cli.BoolFlag{
