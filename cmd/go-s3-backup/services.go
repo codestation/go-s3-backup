@@ -17,6 +17,7 @@ limitations under the License.
 package main
 
 import (
+	"fmt"
 	"gopkg.in/urfave/cli.v1"
 	"gopkg.in/urfave/cli.v1/altsrc"
 	"megpoid.xyz/go/go-s3-backup/services"
@@ -131,6 +132,17 @@ var postgresFlags = []cli.Flag{
 		EnvVar: "POSTGRES_BACKUP_EXCLUDE_USERS",
 		Value:  &cli.StringSlice{"postgres"},
 	}),
+	altsrc.NewStringFlag(cli.StringFlag{
+		Name:   "postgres-version",
+		Usage:  "postgres version for the pg_dump/pg_restore/psql tools",
+		EnvVar: "POSTGRES_VERSION",
+		Value:  "14",
+	}),
+	altsrc.NewStringFlag(cli.StringFlag{
+		Name:   "postgres-binary-path",
+		Usage:  "directory where postgres binaries are located",
+		EnvVar: "POSTGRES_BINARY_PATH",
+	}),
 }
 
 var tarballFlags = []cli.Flag{
@@ -202,6 +214,12 @@ func newMysqlConfig(c *cli.Context) *services.MySQLConfig {
 func newPostgresConfig(c *cli.Context) *services.PostgresConfig {
 	c = c.Parent()
 
+	if c.String("postgres-binary-path") != "" {
+		services.PostgresBinaryPath = c.String("postgres-binary-path")
+	} else {
+		services.PostgresBinaryPath = fmt.Sprintf("/usr/libexec/postgresql%s", c.String("postgres-version"))
+	}
+
 	return &services.PostgresConfig{
 		Host:             c.String("database-host"),
 		Port:             c.String("database-port"),
@@ -221,6 +239,7 @@ func newPostgresConfig(c *cli.Context) *services.PostgresConfig {
 		BackupPerUser:    c.Bool("postgres-backup-per-user"),
 		BackupUsers:      c.StringSlice("postgres-backup-users"),
 		ExcludeUsers:     c.StringSlice("postgres-backup-exclude-users"),
+		Version:          c.String("postgres-version"),
 	}
 }
 

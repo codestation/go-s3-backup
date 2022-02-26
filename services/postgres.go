@@ -49,19 +49,11 @@ type PostgresConfig struct {
 	BackupPerUser    bool
 	BackupUsers      []string
 	ExcludeUsers     []string
+	Version          string
 }
 
-// PostgresDumpApp points to the pg_dump binary location
-var PostgresDumpApp = "/usr/bin/pg_dump"
-
-// PostgresDumpallApp points to the pg_dumpall binary location
-var PostgresDumpallApp = "/usr/bin/pg_dumpall"
-
-// PostgresRestoreApp points to the pg_restore binary location
-var PostgresRestoreApp = "/usr/bin/pg_restore"
-
-// PostgresTermApp points to the psql binary location
-var PostgresTermApp = "/usr/bin/psql"
+// PostgresBinaryPath points to the location where the postgres binaries are located
+var PostgresBinaryPath = "/usr/bin"
 
 var terminateQuery = `SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity
 WHERE pg_stat_activity.datname = '%s' AND pid <> pg_backend_pid();`
@@ -219,9 +211,9 @@ func (p *PostgresConfig) backupDatabase(basedir, namePrefix string) (string, err
 
 	var appPath string
 	if p.Database != "" {
-		appPath = PostgresDumpApp
+		appPath = path.Join(PostgresBinaryPath, "pg_dump")
 	} else {
-		appPath = PostgresDumpallApp
+		appPath = path.Join(PostgresBinaryPath, "pg_dumpall")
 		// no custom format for pg_dumpall
 		p.Custom = false
 		if len(p.ExcludeDatabases) > 0 {
@@ -278,9 +270,9 @@ func (p *PostgresConfig) Restore(filepath string) error {
 	// only allow custom format when restoring a single database
 	if p.Custom && p.Database != "" {
 		args = append(args, filepath)
-		appPath = PostgresRestoreApp
+		appPath = path.Join(PostgresBinaryPath, "pg_restore")
 	} else {
-		appPath = PostgresTermApp
+		appPath = path.Join(PostgresBinaryPath, "psql")
 	}
 
 	app := p.newPostgresCmd()
@@ -337,14 +329,15 @@ func (p *PostgresConfig) recreate() error {
 	}
 
 	app := p.newPostgresCmd()
+	psqlApp := path.Join(PostgresBinaryPath, "psql")
 
 	terminate := append(args, "-c", fmt.Sprintf(terminateQuery, p.Database))
-	if err := app.CmdRun(PostgresTermApp, terminate...); err != nil {
+	if err := app.CmdRun(psqlApp, terminate...); err != nil {
 		return fmt.Errorf("psql error on terminate, %v", err)
 	}
 
 	remove := append(args, "-c", fmt.Sprintf(dropQuery, p.Database))
-	if err := app.CmdRun(PostgresTermApp, remove...); err != nil {
+	if err := app.CmdRun(psqlApp, remove...); err != nil {
 		return fmt.Errorf("psql error on drop, %v", err)
 	}
 
@@ -356,7 +349,7 @@ func (p *PostgresConfig) recreate() error {
 	}
 
 	create := append(args, "-c", fmt.Sprintf(createQuery, p.Database, owner))
-	if err := app.CmdRun(PostgresTermApp, create...); err != nil {
+	if err := app.CmdRun(psqlApp, create...); err != nil {
 		return fmt.Errorf("psql error on create, %v", err)
 	}
 
@@ -372,13 +365,14 @@ func (p *PostgresConfig) listDatabases(user string) ([]string, error) {
 	}
 
 	app := p.newPostgresCmd()
+	psqlApp := path.Join(PostgresBinaryPath, "psql")
 
 	var b bytes.Buffer
 	outputWriter := bufio.NewWriter(&b)
 	app.OutputFile = outputWriter
 
 	listDatabases := append(args, "-c", fmt.Sprintf(listDatabasesQuery, user))
-	if err := app.CmdRun(PostgresTermApp, listDatabases...); err != nil {
+	if err := app.CmdRun(psqlApp, listDatabases...); err != nil {
 		return nil, fmt.Errorf("psql error on database list, %w", err)
 	}
 
@@ -403,13 +397,14 @@ func (p *PostgresConfig) listUsers() ([]string, error) {
 	}
 
 	app := p.newPostgresCmd()
+	psqlApp := path.Join(PostgresBinaryPath, "psql")
 
 	var b bytes.Buffer
 	outputWriter := bufio.NewWriter(&b)
 	app.OutputFile = outputWriter
 
 	listUsers := append(args, "-c", listUsersQuery)
-	if err := app.CmdRun(PostgresTermApp, listUsers...); err != nil {
+	if err := app.CmdRun(psqlApp, listUsers...); err != nil {
 		return nil, fmt.Errorf("psql error on user list, %w", err)
 	}
 
