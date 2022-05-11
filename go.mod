@@ -7,14 +7,15 @@ require (
 	github.com/mholt/archiver/v3 v3.5.1
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/stretchr/testify v1.5.1
+	github.com/urfave/cli/v2 v2.6.0
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616
-	gopkg.in/urfave/cli.v1 v1.20.0
 	unknwon.dev/clog/v2 v2.2.0
 )
 
 require (
-	github.com/BurntSushi/toml v1.0.0 // indirect
+	github.com/BurntSushi/toml v1.1.0 // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
+	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dsnet/compress v0.0.2-0.20210315054119-f66993602bf5 // indirect
 	github.com/fatih/color v1.13.0 // indirect
@@ -28,6 +29,7 @@ require (
 	github.com/nwaples/rardecode v1.1.2 // indirect
 	github.com/pierrec/lz4/v4 v4.1.14 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/ulikunitz/xz v0.5.10 // indirect
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
 	golang.org/x/sys v0.0.0-20220209214540-3681064d5158 // indirect

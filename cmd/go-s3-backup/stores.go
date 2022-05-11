@@ -17,41 +17,41 @@ limitations under the License.
 package main
 
 import (
-	"gopkg.in/urfave/cli.v1"
-	"gopkg.in/urfave/cli.v1/altsrc"
+	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v2/altsrc"
 	"megpoid.xyz/go/go-s3-backup/stores"
 )
 
 var s3Flags = []cli.Flag{
-	altsrc.NewStringFlag(cli.StringFlag{
-		Name:   "s3-endpoint",
-		Usage:  "s3 endpoint",
-		EnvVar: "S3_ENDPOINT",
+	altsrc.NewStringFlag(&cli.StringFlag{
+		Name:    "s3-endpoint",
+		Usage:   "s3 endpoint",
+		EnvVars: []string{"S3_ENDPOINT"},
 	}),
-	altsrc.NewStringFlag(cli.StringFlag{
-		Name:   "s3-region",
-		Usage:  "s3 region",
-		EnvVar: "S3_REGION",
+	altsrc.NewStringFlag(&cli.StringFlag{
+		Name:    "s3-region",
+		Usage:   "s3 region",
+		EnvVars: []string{"S3_REGION"},
 	}),
-	altsrc.NewStringFlag(cli.StringFlag{
-		Name:   "s3-bucket",
-		Usage:  "s3 bucket",
-		EnvVar: "S3_BUCKET",
+	altsrc.NewStringFlag(&cli.StringFlag{
+		Name:    "s3-bucket",
+		Usage:   "s3 bucket",
+		EnvVars: []string{"S3_BUCKET"},
 	}),
-	altsrc.NewStringFlag(cli.StringFlag{
-		Name:   "s3-prefix",
-		Usage:  "s3 prefix",
-		EnvVar: "S3_PREFIX",
+	altsrc.NewStringFlag(&cli.StringFlag{
+		Name:    "s3-prefix",
+		Usage:   "s3 prefix",
+		EnvVars: []string{"S3_PREFIX"},
 	}),
-	altsrc.NewBoolFlag(cli.BoolFlag{
-		Name:   "s3-force-path-style",
-		Usage:  "s3 force path style (needed for minio)",
-		EnvVar: "S3_FORCE_PATH_STYLE",
+	altsrc.NewBoolFlag(&cli.BoolFlag{
+		Name:    "s3-force-path-style",
+		Usage:   "s3 force path style (needed for minio)",
+		EnvVars: []string{"S3_FORCE_PATH_STYLE"},
 	}),
-	altsrc.NewBoolFlag(cli.BoolFlag{
-		Name:   "s3-keep-file",
-		Usage:  "keep local file after successful upload",
-		EnvVar: "S3_KEEP_FILE",
+	altsrc.NewBoolFlag(&cli.BoolFlag{
+		Name:    "s3-keep-file",
+		Usage:   "keep local file after successful upload",
+		EnvVars: []string{"S3_KEEP_FILE"},
 	}),
 }
 
@@ -63,19 +63,19 @@ func newS3Config(c *cli.Context) *stores.S3Config {
 		Prefix:          c.String("s3-prefix"),
 		ForcePathStyle:  c.Bool("s3-force-path-style"),
 		KeepAfterUpload: c.Bool("s3-keep-file"),
-		SaveDir:         c.GlobalString("savedir"),
+		SaveDir:         c.String("savedir"),
 	}
 }
 
 func newFilesystemConfig(c *cli.Context) *stores.FilesystemConfig {
 	return &stores.FilesystemConfig{
-		SaveDir: c.GlobalString("savedir"),
+		SaveDir: c.String("savedir"),
 	}
 }
 
-func s3Cmd(command string, service string) cli.Command {
+func s3Cmd(command string, service string) *cli.Command {
 	name := "s3"
-	return cli.Command{
+	return &cli.Command{
 		Name:   name,
 		Usage:  "use S3Config as store",
 		Flags:  s3Flags,
@@ -86,9 +86,9 @@ func s3Cmd(command string, service string) cli.Command {
 	}
 }
 
-func filesystemCmd(command string, service string) cli.Command {
+func filesystemCmd(command string, service string) *cli.Command {
 	name := "filesystem"
-	return cli.Command{
+	return &cli.Command{
 		Name:  name,
 		Usage: "use the filesystem as store",
 		Action: func(c *cli.Context) error {

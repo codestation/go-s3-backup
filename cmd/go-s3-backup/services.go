@@ -18,200 +18,196 @@ package main
 
 import (
 	"fmt"
-	"gopkg.in/urfave/cli.v1"
-	"gopkg.in/urfave/cli.v1/altsrc"
+	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v2/altsrc"
 	"megpoid.xyz/go/go-s3-backup/services"
 )
 
 var giteaFlags = []cli.Flag{
-	altsrc.NewStringFlag(cli.StringFlag{
-		Name:   "gitea-config",
-		Usage:  "gitea config path",
-		EnvVar: "GOGS_CONFIG",
+	altsrc.NewStringFlag(&cli.StringFlag{
+		Name:    "gitea-config",
+		Usage:   "gitea config path",
+		EnvVars: []string{"GOGS_CONFIG"},
 	}),
-	altsrc.NewStringFlag(cli.StringFlag{
-		Name:   "gitea-data",
-		Usage:  "gitea data path",
-		Value:  "/data",
-		EnvVar: "GOGS_DATA",
+	altsrc.NewStringFlag(&cli.StringFlag{
+		Name:    "gitea-data",
+		Usage:   "gitea data path",
+		Value:   "/data",
+		EnvVars: []string{"GOGS_DATA"},
 	}),
 }
 
 var databaseFlags = []cli.Flag{
-	altsrc.NewStringFlag(cli.StringFlag{
-		Name:   "database-host",
-		Usage:  "database host",
-		EnvVar: "DATABASE_HOST",
+	altsrc.NewStringFlag(&cli.StringFlag{
+		Name:    "database-host",
+		Usage:   "database host",
+		EnvVars: []string{"DATABASE_HOST"},
 	}),
-	altsrc.NewStringFlag(cli.StringFlag{
-		Name:   "database-port",
-		Usage:  "database port",
-		EnvVar: "DATABASE_PORT",
+	altsrc.NewStringFlag(&cli.StringFlag{
+		Name:    "database-port",
+		Usage:   "database port",
+		EnvVars: []string{"DATABASE_PORT"},
 	}),
-	altsrc.NewStringFlag(cli.StringFlag{
-		Name:   "database-name",
-		Usage:  "database name",
-		EnvVar: "DATABASE_NAME",
+	altsrc.NewStringFlag(&cli.StringFlag{
+		Name:    "database-name",
+		Usage:   "database name",
+		EnvVars: []string{"DATABASE_NAME"},
 	}),
-	altsrc.NewStringFlag(cli.StringFlag{
-		Name:   "database-filename-prefix",
-		Usage:  "database filename prefix",
-		EnvVar: "DATABASE_FILENAME_PREFIX",
+	altsrc.NewStringFlag(&cli.StringFlag{
+		Name:    "database-filename-prefix",
+		Usage:   "database filename prefix",
+		EnvVars: []string{"DATABASE_FILENAME_PREFIX"},
 	}),
-	altsrc.NewBoolFlag(cli.BoolFlag{
-		Name:   "database-name-as-prefix",
-		Usage:  "database name as prefix",
-		EnvVar: "DATABASE_NAME_AS_PREFIX",
+	altsrc.NewBoolFlag(&cli.BoolFlag{
+		Name:    "database-name-as-prefix",
+		Usage:   "database name as prefix",
+		EnvVars: []string{"DATABASE_NAME_AS_PREFIX"},
 	}),
-	altsrc.NewStringFlag(cli.StringFlag{
-		Name:   "database-user",
-		Usage:  "database user",
-		EnvVar: "DATABASE_USER",
+	altsrc.NewStringFlag(&cli.StringFlag{
+		Name:    "database-user",
+		Usage:   "database user",
+		EnvVars: []string{"DATABASE_USER"},
 	}),
-	altsrc.NewStringFlag(cli.StringFlag{
-		Name:   "database-password",
-		Usage:  "database password",
-		EnvVar: "DATABASE_PASSWORD",
+	altsrc.NewStringFlag(&cli.StringFlag{
+		Name:    "database-password",
+		Usage:   "database password",
+		EnvVars: []string{"DATABASE_PASSWORD"},
 	}),
-	altsrc.NewStringFlag(cli.StringFlag{
-		Name:   "database-password-file",
-		Usage:  "database password file",
-		EnvVar: "DATABASE_PASSWORD_FILE",
+	altsrc.NewStringFlag(&cli.StringFlag{
+		Name:    "database-password-file",
+		Usage:   "database password file",
+		EnvVars: []string{"DATABASE_PASSWORD_FILE"},
 	}),
-	altsrc.NewStringFlag(cli.StringFlag{
-		Name:   "database-options",
-		Usage:  "extra options to pass to database service",
-		EnvVar: "DATABASE_OPTIONS",
+	altsrc.NewStringFlag(&cli.StringFlag{
+		Name:    "database-options",
+		Usage:   "extra options to pass to database service",
+		EnvVars: []string{"DATABASE_OPTIONS"},
 	}),
-	altsrc.NewBoolFlag(cli.BoolFlag{
-		Name:   "database-compress",
-		Usage:  "compress sql with gzip",
-		EnvVar: "DATABASE_COMPRESS",
+	altsrc.NewBoolFlag(&cli.BoolFlag{
+		Name:    "database-compress",
+		Usage:   "compress sql with gzip",
+		EnvVars: []string{"DATABASE_COMPRESS"},
 	}),
-	altsrc.NewBoolFlag(cli.BoolFlag{
-		Name:   "database-ignore-exit-code",
-		Usage:  "ignore restore process exit code",
-		EnvVar: "DATABASE_IGNORE_EXIT_CODE",
+	altsrc.NewBoolFlag(&cli.BoolFlag{
+		Name:    "database-ignore-exit-code",
+		Usage:   "ignore restore process exit code",
+		EnvVars: []string{"DATABASE_IGNORE_EXIT_CODE"},
 	}),
 }
 
 var postgresFlags = []cli.Flag{
-	altsrc.NewBoolFlag(cli.BoolFlag{
-		Name:   "postgres-custom",
-		Usage:  "use custom format (always compressed), ignored when database name is not set",
-		EnvVar: "POSTGRES_CUSTOM_FORMAT",
+	altsrc.NewBoolFlag(&cli.BoolFlag{
+		Name:    "postgres-custom",
+		Usage:   "use custom format (always compressed), ignored when database name is not set",
+		EnvVars: []string{"POSTGRES_CUSTOM_FORMAT"},
 	}),
-	altsrc.NewBoolFlag(cli.BoolFlag{
-		Name:   "postgres-drop",
-		Usage:  "drop database before restoring it",
-		EnvVar: "POSTGRES_DROP",
+	altsrc.NewBoolFlag(&cli.BoolFlag{
+		Name:    "postgres-drop",
+		Usage:   "drop database before restoring it",
+		EnvVars: []string{"POSTGRES_DROP"},
 	}),
-	altsrc.NewStringFlag(cli.StringFlag{
-		Name:   "postgres-owner",
-		Usage:  "change owner on database restore",
-		EnvVar: "POSTGRES_OWNER",
+	altsrc.NewStringFlag(&cli.StringFlag{
+		Name:    "postgres-owner",
+		Usage:   "change owner on database restore",
+		EnvVars: []string{"POSTGRES_OWNER"},
 	}),
-	altsrc.NewStringSliceFlag(cli.StringSliceFlag{
-		Name:   "postgres-exclude-databases",
-		Usage:  "make backup of databases except the ones that matches the pattern",
-		EnvVar: "POSTGRES_EXCLUDE_DATABASES",
+	altsrc.NewStringSliceFlag(&cli.StringSliceFlag{
+		Name:    "postgres-exclude-databases",
+		Usage:   "make backup of databases except the ones that matches the pattern",
+		EnvVars: []string{"POSTGRES_EXCLUDE_DATABASES"},
 	}),
-	altsrc.NewBoolFlag(cli.BoolFlag{
-		Name:   "postgres-backup-per-user",
-		Usage:  "make backups for all databases separated per user",
-		EnvVar: "POSTGRES_BACKUP_PER_USER",
+	altsrc.NewBoolFlag(&cli.BoolFlag{
+		Name:    "postgres-backup-per-user",
+		Usage:   "make backups for all databases separated per user",
+		EnvVars: []string{"POSTGRES_BACKUP_PER_USER"},
 	}),
-	altsrc.NewStringSliceFlag(cli.StringSliceFlag{
-		Name:   "postgres-backup-users",
-		Usage:  "make backups for databases matching these users",
-		EnvVar: "POSTGRES_BACKUP_USERS",
+	altsrc.NewStringSliceFlag(&cli.StringSliceFlag{
+		Name:    "postgres-backup-users",
+		Usage:   "make backups for databases matching these users",
+		EnvVars: []string{"POSTGRES_BACKUP_USERS"},
 	}),
-	altsrc.NewStringSliceFlag(cli.StringSliceFlag{
-		Name:   "postgres-backup-exclude-users",
-		Usage:  "make backups for databases excluding these users",
-		EnvVar: "POSTGRES_BACKUP_EXCLUDE_USERS",
-		Value:  &cli.StringSlice{"postgres"},
+	altsrc.NewStringSliceFlag(&cli.StringSliceFlag{
+		Name:    "postgres-backup-exclude-users",
+		Usage:   "make backups for databases excluding these users",
+		EnvVars: []string{"POSTGRES_BACKUP_EXCLUDE_USERS"},
+		Value:   cli.NewStringSlice("postgres"),
 	}),
-	altsrc.NewStringFlag(cli.StringFlag{
-		Name:   "postgres-version",
-		Usage:  "postgres version for the pg_dump/pg_restore/psql tools",
-		EnvVar: "POSTGRES_VERSION",
-		Value:  "14",
+	altsrc.NewStringFlag(&cli.StringFlag{
+		Name:    "postgres-version",
+		Usage:   "postgres version for the pg_dump/pg_restore/psql tools",
+		EnvVars: []string{"POSTGRES_VERSION"},
+		Value:   "14",
 	}),
-	altsrc.NewStringFlag(cli.StringFlag{
-		Name:   "postgres-binary-path",
-		Usage:  "directory where postgres binaries are located",
-		EnvVar: "POSTGRES_BINARY_PATH",
+	altsrc.NewStringFlag(&cli.StringFlag{
+		Name:    "postgres-binary-path",
+		Usage:   "directory where postgres binaries are located",
+		EnvVars: []string{"POSTGRES_BINARY_PATH"},
 	}),
-	altsrc.NewBoolFlag(cli.BoolFlag{
-		Name:   "postgres-backup-per-schema",
-		Usage:  "make backups separated per schema",
-		EnvVar: "POSTGRES_BACKUP_PER_SCHEMA",
+	altsrc.NewBoolFlag(&cli.BoolFlag{
+		Name:    "postgres-backup-per-schema",
+		Usage:   "make backups separated per schema",
+		EnvVars: []string{"POSTGRES_BACKUP_PER_SCHEMA"},
 	}),
-	altsrc.NewStringSliceFlag(cli.StringSliceFlag{
-		Name:   "postgres-backup-schemas",
-		Usage:  "make backups matching these schemas",
-		EnvVar: "POSTGRES_BACKUP_SCHEMAS",
+	altsrc.NewStringSliceFlag(&cli.StringSliceFlag{
+		Name:    "postgres-backup-schemas",
+		Usage:   "make backups matching these schemas",
+		EnvVars: []string{"POSTGRES_BACKUP_SCHEMAS"},
 	}),
-	altsrc.NewStringSliceFlag(cli.StringSliceFlag{
-		Name:   "postgres-backup-exclude-schemas",
-		Usage:  "make backup excluding these schemas",
-		EnvVar: "POSTGRES_BACKUP_EXCLUDE_SCHEMAS",
-		Value:  &cli.StringSlice{"information_schema", "pg_toast", "pg_catalog"},
+	altsrc.NewStringSliceFlag(&cli.StringSliceFlag{
+		Name:    "postgres-backup-exclude-schemas",
+		Usage:   "make backup excluding these schemas",
+		EnvVars: []string{"POSTGRES_BACKUP_EXCLUDE_SCHEMAS"},
+		Value:   cli.NewStringSlice("information_schema", "pg_toast", "pg_catalog"),
 	}),
 }
 
 var tarballFlags = []cli.Flag{
-	altsrc.NewStringFlag(cli.StringFlag{
-		Name:   "tarball-path",
-		Usage:  "path to backup/restore",
-		EnvVar: "TARBALL_PATH_SOURCE",
+	altsrc.NewStringFlag(&cli.StringFlag{
+		Name:    "tarball-path",
+		Usage:   "path to backup/restore",
+		EnvVars: []string{"TARBALL_PATH_SOURCE"},
 	}),
-	altsrc.NewStringFlag(cli.StringFlag{
-		Name:   "tarball-name",
-		Usage:  "backup file prefix",
-		EnvVar: "TARBALL_NAME_PREFIX",
+	altsrc.NewStringFlag(&cli.StringFlag{
+		Name:    "tarball-name",
+		Usage:   "backup file prefix",
+		EnvVars: []string{"TARBALL_NAME_PREFIX"},
 	}),
-	altsrc.NewBoolFlag(cli.BoolFlag{
-		Name:   "tarball-compress",
-		Usage:  "compress tarball with gzip",
-		EnvVar: "TARBALL_COMPRESS",
+	altsrc.NewBoolFlag(&cli.BoolFlag{
+		Name:    "tarball-compress",
+		Usage:   "compress tarball with gzip",
+		EnvVars: []string{"TARBALL_COMPRESS"},
 	}),
-	altsrc.NewStringFlag(cli.StringFlag{
-		Name:   "tarball-path-prefix",
-		Usage:  "backup path prefix",
-		EnvVar: "TARBALL_PATH_PREFIX",
+	altsrc.NewStringFlag(&cli.StringFlag{
+		Name:    "tarball-path-prefix",
+		Usage:   "backup path prefix",
+		EnvVars: []string{"TARBALL_PATH_PREFIX"},
 	}),
-	altsrc.NewBoolFlag(cli.BoolFlag{
-		Name:   "tarball-backup-per-dir",
-		Usage:  "backup each folder individually",
-		EnvVar: "TARBALL_BACKUP_PER_DIR",
+	altsrc.NewBoolFlag(&cli.BoolFlag{
+		Name:    "tarball-backup-per-dir",
+		Usage:   "backup each folder individually",
+		EnvVars: []string{"TARBALL_BACKUP_PER_DIR"},
 	}),
-	altsrc.NewStringSliceFlag(cli.StringSliceFlag{
-		Name:   "tarball-backup-dirs",
-		Usage:  "backup each folder individually",
-		EnvVar: "TARBALL_BACKUP_DIRS",
+	altsrc.NewStringSliceFlag(&cli.StringSliceFlag{
+		Name:    "tarball-backup-dirs",
+		Usage:   "backup each folder individually",
+		EnvVars: []string{"TARBALL_BACKUP_DIRS"},
 	}),
-	altsrc.NewStringSliceFlag(cli.StringSliceFlag{
-		Name:   "tarball-backup-exclude-dirs",
-		Usage:  "make backups for directories excluding these dirs",
-		EnvVar: "TARBALL_BACKUP_EXCLUDE_DIRS",
+	altsrc.NewStringSliceFlag(&cli.StringSliceFlag{
+		Name:    "tarball-backup-exclude-dirs",
+		Usage:   "make backups for directories excluding these dirs",
+		EnvVars: []string{"TARBALL_BACKUP_EXCLUDE_DIRS"},
 	}),
 }
 
 func newGogsConfig(c *cli.Context) *services.GiteaConfig {
-	c = c.Parent()
-
 	return &services.GiteaConfig{
 		ConfigPath: c.String("gitea-config"),
 		DataPath:   c.String("gitea-data"),
-		SaveDir:    c.GlobalString("savedir"),
+		SaveDir:    c.String("savedir"),
 	}
 }
 
 func newMysqlConfig(c *cli.Context) *services.MySQLConfig {
-	c = c.Parent()
-
 	return &services.MySQLConfig{
 		Host:           c.String("database-host"),
 		Port:           c.String("database-port"),
@@ -222,14 +218,12 @@ func newMysqlConfig(c *cli.Context) *services.MySQLConfig {
 		NameAsPrefix:   c.Bool("database-name-as-prefix"),
 		Options:        c.String("database-options"),
 		Compress:       c.Bool("database-compress"),
-		SaveDir:        c.GlobalString("savedir"),
+		SaveDir:        c.String("savedir"),
 		IgnoreExitCode: c.Bool("database-ignore-exit-code"),
 	}
 }
 
 func newPostgresConfig(c *cli.Context) *services.PostgresConfig {
-	c = c.Parent()
-
 	if c.String("postgres-binary-path") != "" {
 		services.PostgresBinaryPath = c.String("postgres-binary-path")
 	} else {
@@ -247,7 +241,7 @@ func newPostgresConfig(c *cli.Context) *services.PostgresConfig {
 		Options:          c.String("database-options"),
 		Compress:         c.Bool("database-compress"),
 		Custom:           c.Bool("postgres-custom"),
-		SaveDir:          c.GlobalString("savedir"),
+		SaveDir:          c.String("savedir"),
 		IgnoreExitCode:   c.Bool("database-ignore-exit-code"),
 		Drop:             c.Bool("postgres-drop"),
 		Owner:            c.String("postgres-owner"),
@@ -263,13 +257,11 @@ func newPostgresConfig(c *cli.Context) *services.PostgresConfig {
 }
 
 func newTarballConfig(c *cli.Context) *services.TarballConfig {
-	c = c.Parent()
-
 	return &services.TarballConfig{
 		Name:         c.String("tarball-name"),
 		Path:         c.String("tarball-path"),
 		Compress:     c.Bool("tarball-compress"),
-		SaveDir:      c.GlobalString("savedir"),
+		SaveDir:      c.String("savedir"),
 		Prefix:       c.String("tarball-path-prefix"),
 		BackupPerDir: c.Bool("tarball-backup-per-dir"),
 		BackupDirs:   c.StringSlice("tarball-backup-dirs"),
@@ -278,76 +270,74 @@ func newTarballConfig(c *cli.Context) *services.TarballConfig {
 }
 
 func newConsulConfig(c *cli.Context) *services.ConsulConfig {
-	c = c.Parent()
-
 	return &services.ConsulConfig{
-		SaveDir: c.GlobalString("savedir"),
+		SaveDir: c.String("savedir"),
 	}
 }
 
-func giteaCmd(parent string) cli.Command {
+func giteaCmd(parent string) *cli.Command {
 	name := "gitea"
-	return cli.Command{
+	return &cli.Command{
 		Name:   name,
 		Usage:  "connect to gitea service",
 		Flags:  giteaFlags,
 		Before: applyConfigValues(giteaFlags),
-		Subcommands: []cli.Command{
+		Subcommands: []*cli.Command{
 			s3Cmd(parent, name),
 			filesystemCmd(parent, name),
 		},
 	}
 }
 
-func postgresCmd(parent string) cli.Command {
+func postgresCmd(parent string) *cli.Command {
 	name := "postgres"
 	flags := append(databaseFlags, postgresFlags...)
-	return cli.Command{
+	return &cli.Command{
 		Name:   name,
 		Usage:  "connect to postgres service",
 		Flags:  flags,
 		Before: applyConfigValues(flags),
-		Subcommands: []cli.Command{
+		Subcommands: []*cli.Command{
 			s3Cmd(parent, name),
 			filesystemCmd(parent, name),
 		},
 	}
 }
 
-func mysqlCmd(parent string) cli.Command {
+func mysqlCmd(parent string) *cli.Command {
 	name := "mysql"
-	return cli.Command{
+	return &cli.Command{
 		Name:   name,
 		Usage:  "connect to mysql service",
 		Flags:  databaseFlags,
 		Before: applyConfigValues(databaseFlags),
-		Subcommands: []cli.Command{
+		Subcommands: []*cli.Command{
 			s3Cmd(parent, name),
 			filesystemCmd(parent, name),
 		},
 	}
 }
 
-func tarballCmd(parent string) cli.Command {
+func tarballCmd(parent string) *cli.Command {
 	name := "tarball"
-	return cli.Command{
+	return &cli.Command{
 		Name:   name,
 		Usage:  "connect to tarball service",
 		Flags:  tarballFlags,
 		Before: applyConfigValues(tarballFlags),
-		Subcommands: []cli.Command{
+		Subcommands: []*cli.Command{
 			s3Cmd(parent, name),
 			filesystemCmd(parent, name),
 		},
 	}
 }
 
-func consulCmd(parent string) cli.Command {
+func consulCmd(parent string) *cli.Command {
 	name := "consul"
-	return cli.Command{
+	return &cli.Command{
 		Name:  name,
 		Usage: "connect to consul service",
-		Subcommands: []cli.Command{
+		Subcommands: []*cli.Command{
 			s3Cmd(parent, name),
 			filesystemCmd(parent, name),
 		},

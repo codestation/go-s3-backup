@@ -17,63 +17,63 @@ limitations under the License.
 package main
 
 import (
-	"gopkg.in/urfave/cli.v1"
-	"gopkg.in/urfave/cli.v1/altsrc"
+	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v2/altsrc"
 )
 
 var defaultFlags = []cli.Flag{
-	altsrc.NewIntFlag(cli.IntFlag{
-		Name:   "random-delay",
-		Usage:  "schedule random delay",
-		Value:  1,
-		EnvVar: "SCHEDULE_RANDOM_DELAY",
+	altsrc.NewIntFlag(&cli.IntFlag{
+		Name:    "random-delay",
+		Usage:   "schedule random delay",
+		Value:   1,
+		EnvVars: []string{"SCHEDULE_RANDOM_DELAY"},
 	}),
-	altsrc.NewStringFlag(cli.StringFlag{
-		Name:   "savedir",
-		Usage:  "directory to save/read backups",
-		Value:  "/tmp/go-s3-backup",
-		EnvVar: "SAVE_DIR",
+	altsrc.NewStringFlag(&cli.StringFlag{
+		Name:    "savedir",
+		Usage:   "directory to save/read backups",
+		Value:   "/tmp/go-s3-backup",
+		EnvVars: []string{"SAVE_DIR"},
 	}),
 }
 
 var backupFlags = []cli.Flag{
-	altsrc.NewStringFlag(cli.StringFlag{
-		Name:   "schedule",
-		Usage:  "cron schedule",
-		Value:  "@daily",
-		EnvVar: "SCHEDULE",
+	altsrc.NewStringFlag(&cli.StringFlag{
+		Name:    "schedule",
+		Usage:   "cron schedule",
+		Value:   "@daily",
+		EnvVars: []string{"SCHEDULE"},
 	}),
-	altsrc.NewIntFlag(cli.IntFlag{
-		Name:   "max-backups",
-		Usage:  "max backups to keep (0 to disable the feature)",
-		Value:  5,
-		EnvVar: "MAX_BACKUPS",
+	altsrc.NewIntFlag(&cli.IntFlag{
+		Name:    "max-backups",
+		Usage:   "max backups to keep (0 to disable the feature)",
+		Value:   5,
+		EnvVars: []string{"MAX_BACKUPS"},
 	}),
 }
 
 var restoreFlags = []cli.Flag{
-	altsrc.NewStringFlag(cli.StringFlag{
-		Name:   "schedule",
-		Usage:  "cron schedule",
-		Value:  "none",
-		EnvVar: "SCHEDULE",
+	altsrc.NewStringFlag(&cli.StringFlag{
+		Name:    "schedule",
+		Usage:   "cron schedule",
+		Value:   "none",
+		EnvVars: []string{"SCHEDULE"},
 	}),
-	altsrc.NewStringFlag(cli.StringFlag{
-		Name:   "restore-file",
-		Usage:  "restore from this file instead of searching for the most recent",
-		EnvVar: "RESTORE_FILE",
+	altsrc.NewStringFlag(&cli.StringFlag{
+		Name:    "restore-file",
+		Usage:   "restore from this file instead of searching for the most recent",
+		EnvVars: []string{"RESTORE_FILE"},
 	}),
 }
 
-func backupCmd() cli.Command {
+func backupCmd() *cli.Command {
 	name := "backup"
 	flags := append(defaultFlags, backupFlags...)
-	return cli.Command{
+	return &cli.Command{
 		Name:   name,
 		Usage:  "run a backup task",
 		Flags:  flags,
 		Before: applyConfigValues(flags),
-		Subcommands: []cli.Command{
+		Subcommands: []*cli.Command{
 			giteaCmd(name),
 			postgresCmd(name),
 			mysqlCmd(name),
@@ -83,15 +83,15 @@ func backupCmd() cli.Command {
 	}
 }
 
-func restoreCmd() cli.Command {
+func restoreCmd() *cli.Command {
 	name := "restore"
 	flags := append(defaultFlags, restoreFlags...)
-	return cli.Command{
+	return &cli.Command{
 		Name:   "restore",
 		Usage:  "run a restore task",
 		Flags:  flags,
 		Before: applyConfigValues(flags),
-		Subcommands: []cli.Command{
+		Subcommands: []*cli.Command{
 			giteaCmd(name),
 			postgresCmd(name),
 			mysqlCmd(name),

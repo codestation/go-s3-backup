@@ -27,8 +27,8 @@ import (
 	"time"
 
 	"github.com/robfig/cron/v3"
-	"gopkg.in/urfave/cli.v1"
-	"gopkg.in/urfave/cli.v1/altsrc"
+	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v2/altsrc"
 	"megpoid.xyz/go/go-s3-backup/services"
 	"megpoid.xyz/go/go-s3-backup/stores"
 	log "unknwon.dev/clog/v2"
@@ -102,7 +102,7 @@ func backupTask(c *cli.Context, service services.Service, store stores.Storer) e
 			return fmt.Errorf("couldn't upload file to store: %v", err)
 		}
 
-		err = store.RemoveOlderBackups(result.DirPrefix, result.NamePrefix, c.GlobalInt("max-backups"))
+		err = store.RemoveOlderBackups(result.DirPrefix, result.NamePrefix, c.Int("max-backups"))
 		if err != nil {
 			return fmt.Errorf("couldn't remove old backups from store: %v", err)
 		}
@@ -115,7 +115,7 @@ func restoreTask(c *cli.Context, service services.Service, store stores.Storer) 
 	var err error
 	var filename string
 
-	if key := c.GlobalString("restore-file"); key != "" {
+	if key := c.String("restore-file"); key != "" {
 		// restore directly from this file
 		filename = key
 	} else {
@@ -142,7 +142,7 @@ func restoreTask(c *cli.Context, service services.Service, store stores.Storer) 
 
 func runScheduler(c *cli.Context, task task) error {
 	cr := cron.New()
-	schedule := c.GlobalString("schedule")
+	schedule := c.String("schedule")
 
 	if schedule == "" || schedule == "none" {
 		log.Trace("Running task directly")
@@ -153,7 +153,7 @@ func runScheduler(c *cli.Context, task task) error {
 	timeoutchan := make(chan bool, 1)
 
 	_, err := cr.AddFunc(schedule, func() {
-		delay := c.GlobalInt("random-delay")
+		delay := c.Int("random-delay")
 		if delay <= 0 {
 			log.Warn("Schedule random delay was set to a number <= 0, using 1 as default")
 			delay = 1

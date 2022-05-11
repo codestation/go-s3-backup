@@ -20,8 +20,8 @@ import (
 	"fmt"
 	"os"
 
-	"gopkg.in/urfave/cli.v1"
-	"gopkg.in/urfave/cli.v1/altsrc"
+	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v2/altsrc"
 	"megpoid.xyz/go/go-s3-backup/version"
 	log "unknwon.dev/clog/v2"
 )
@@ -38,14 +38,14 @@ func main() {
 	app.Version = version.Tag
 	cli.VersionPrinter = printVersion
 	app.Flags = []cli.Flag{
-		cli.StringFlag{
-			Name:   "config",
-			Usage:  "load config from yaml file",
-			EnvVar: "CONFIG_FILE",
+		&cli.StringFlag{
+			Name:    "config",
+			Usage:   "load config from yaml file",
+			EnvVars: []string{"CONFIG_FILE"},
 		},
 	}
 
-	app.Commands = []cli.Command{
+	app.Commands = []*cli.Command{
 		backupCmd(),
 		restoreCmd(),
 	}
