@@ -1,4 +1,4 @@
-FROM golang:1.17-alpine as builder
+FROM golang:1.18-alpine as builder
 
 ARG CI_COMMIT_TAG
 ARG CI_COMMIT_BRANCH
@@ -13,15 +13,15 @@ COPY go.mod go.sum /src/
 RUN go mod download
 COPY . /src/
 
-RUN CGO_ENABLED=0 go build -o release/go-s3-backup \
-   -ldflags "-w -s \
-   -X main.Version=${CI_COMMIT_TAG:-$CI_COMMIT_BRANCH} \
-   -X main.Commit=${CI_COMMIT_SHA:0:8} \
-   -X main.BuildTime=${CI_PIPELINE_CREATED_AT}" \
+RUN set -ex; \
+    CGO_ENABLED=0 go build -o release/go-s3-backup \
+    -trimpath \
+    -ldflags "-w -s \
+   -X version.Tag=${CI_COMMIT_TAG}" \
   ./cmd/go-s3-backup
 
-FROM consul:1.11.1 AS consul
-FROM gitea/gitea:1.16.1 AS gitea
+FROM consul:1.12.0 AS consul
+FROM gitea/gitea:1.16.7 AS gitea
 FROM postgres:10-alpine AS postgres-10
 FROM postgres:11-alpine AS postgres-11
 FROM postgres:12-alpine AS postgres-12

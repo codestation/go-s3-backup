@@ -22,19 +22,20 @@ import (
 
 	"gopkg.in/urfave/cli.v1"
 	"gopkg.in/urfave/cli.v1/altsrc"
+	"megpoid.xyz/go/go-s3-backup/version"
 	log "unknwon.dev/clog/v2"
 )
 
-const versionFormatter = `go-s3-backup version: %s, commit: %s, built at: %s`
+const versionFormatter = `go-s3-backup version: %s, commit: %s, date: %s, clean build: %t`
 
 func printVersion(c *cli.Context) {
-	_, _ = fmt.Fprintf(c.App.Writer, versionFormatter, Version, Commit, BuildTime)
+	_, _ = fmt.Fprintf(c.App.Writer, versionFormatter, version.Tag, version.Revision, version.LastCommit, !version.Modified)
 }
 
 func main() {
 	app := cli.NewApp()
 	app.Usage = "run backups from various services to S3-like storage"
-	app.Version = Version
+	app.Version = version.Tag
 	cli.VersionPrinter = printVersion
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
@@ -54,7 +55,7 @@ func main() {
 			return err
 		}
 
-		log.Info(versionFormatter, Version, Commit, BuildTime)
+		log.Info(versionFormatter, version.Tag, version.Revision, version.LastCommit, !version.Modified)
 
 		if c.String("config") != "" {
 			cfg, err := altsrc.NewYamlSourceFromFile(c.String("config"))

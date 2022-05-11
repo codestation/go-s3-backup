@@ -1,5 +1,2 @@
-.git
-.gitignore
-.drone.yml
-Dockerfile
-README.md
+/.idea
+/.vscode
