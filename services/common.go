@@ -75,6 +75,8 @@ func (app *CmdConfig) CmdRun(name string, arg ...string) error {
 
 	if app.InputFile == nil && app.OutputFile == nil {
 		cmd.Stdout = os.Stdout
+		args := strings.ReplaceAll(strings.Join(censorArg(arg, app.CensorArg), " "), "\n", " ")
+		log.Trace("Running %s %s", name, args)
 		return cmd.Run()
 	}
 

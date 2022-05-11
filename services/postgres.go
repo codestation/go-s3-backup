@@ -49,6 +49,9 @@ type PostgresConfig struct {
 	BackupPerUser    bool
 	BackupUsers      []string
 	ExcludeUsers     []string
+	BackupPerSchema  bool
+	BackupSchemas    []string
+	ExcludeSchemas   []string
 	Version          string
 }
 
@@ -66,6 +69,8 @@ var listDatabasesQuery = `COPY(SELECT datname FROM pg_database JOIN pg_authid ON
 WHERE rolname = '%s') TO STDOUT`
 
 var listUsersQuery = `COPY(SELECT usename FROM pg_catalog.pg_user) TO STDOUT;`
+
+var listSchemasQuery = `COPY( SELECT nspname FROM pg_catalog.pg_namespace) TO STDOUT;`
 
 var maintenanceDatabase = "postgres"
 
@@ -102,9 +107,13 @@ func (p *PostgresConfig) newPostgresCmd() *CmdConfig {
 	}
 }
 
-// Backup generates a dump of the database and returns the path where is stored
 func (p *PostgresConfig) Backup() (*BackupResults, error) {
-	if !p.BackupPerUser {
+	switch {
+	case p.BackupPerUser:
+		return p.backupPerUser()
+	case p.BackupPerSchema:
+		return p.backupPerSchema()
+	default:
 		namePrefix := p.getNamePrefix()
 		filepath, err := p.backupDatabase("", namePrefix)
 		if err != nil {
@@ -116,7 +125,10 @@ func (p *PostgresConfig) Backup() (*BackupResults, error) {
 			Path:       filepath,
 		}}}, nil
 	}
+}
 
+// Backup generates a dump of the database and returns the path where is stored
+func (p *PostgresConfig) backupPerUser() (*BackupResults, error) {
 	users, err := p.listUsers()
 	if err != nil {
 		return nil, fmt.Errorf("failed to list users, %w", err)
@@ -190,6 +202,54 @@ func (p *PostgresConfig) Backup() (*BackupResults, error) {
 	return result, nil
 }
 
+// Backup generates a dump of the database and returns the path where is stored
+func (p *PostgresConfig) backupPerSchema() (*BackupResults, error) {
+	schemas, err := p.listSchemas(p.Database)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list schemas, %w", err)
+	}
+
+	var resultList []BackupResult
+
+	for _, schema := range schemas {
+		found := false
+		for _, u := range p.ExcludeSchemas {
+			if u == schema {
+				found = true
+				break
+			}
+		}
+		if found {
+			continue
+		}
+
+		if len(p.BackupSchemas) > 0 {
+			found := false
+			for _, u := range p.BackupSchemas {
+				if u == schema {
+					found = true
+					break
+				}
+			}
+			if !found {
+				continue
+			}
+		}
+
+		namePrefix := p.getNamePrefix() + "_" + schema
+		baseDir := path.Join(p.Database, schema)
+		filepath, err := p.backupDatabase(baseDir, namePrefix, schema)
+		if err != nil {
+			return nil, fmt.Errorf("failed to backup database schema %s, %w", schema, err)
+		}
+		resultEntry := BackupResult{DirPrefix: baseDir, NamePrefix: namePrefix, Path: filepath}
+		resultList = append(resultList, resultEntry)
+	}
+
+	result := &BackupResults{resultList}
+	return result, nil
+}
+
 func (p *PostgresConfig) getNamePrefix() string {
 	var prefix string
 	if p.NameAsPrefix && p.Database != "" {
@@ -204,7 +264,7 @@ func (p *PostgresConfig) getNamePrefix() string {
 }
 
 // Backup generates a dump of the database and returns the path where is stored
-func (p *PostgresConfig) backupDatabase(basedir, namePrefix string) (string, error) {
+func (p *PostgresConfig) backupDatabase(basedir, namePrefix string, schemas ...string) (string, error) {
 	savePath := path.Join(p.SaveDir, basedir)
 	filepath := generateFilename(savePath, namePrefix)
 	args := p.newBaseArgs()
@@ -212,6 +272,9 @@ func (p *PostgresConfig) backupDatabase(basedir, namePrefix string) (string, err
 	var appPath string
 	if p.Database != "" {
 		appPath = path.Join(PostgresBinaryPath, "pg_dump")
+		for _, schema := range schemas {
+			args = append(args, "--schema="+schema)
+		}
 	} else {
 		appPath = path.Join(PostgresBinaryPath, "pg_dumpall")
 		// no custom format for pg_dumpall
@@ -406,6 +469,38 @@ func (p *PostgresConfig) listUsers() ([]string, error) {
 	listUsers := append(args, "-c", listUsersQuery)
 	if err := app.CmdRun(psqlApp, listUsers...); err != nil {
 		return nil, fmt.Errorf("psql error on user list, %w", err)
+	}
+
+	scanner := bufio.NewScanner(&b)
+	var users []string
+	for scanner.Scan() {
+		users = append(users, scanner.Text())
+	}
+	if err := scanner.Err(); err != nil {
+		return nil, fmt.Errorf("failed to parse psql output, %w", err)
+	}
+
+	return users, nil
+}
+
+func (p *PostgresConfig) listSchemas(database string) ([]string, error) {
+	args := []string{
+		"-h", p.Host,
+		"-p", p.Port,
+		"-U", p.User,
+		database,
+	}
+
+	app := p.newPostgresCmd()
+	psqlApp := path.Join(PostgresBinaryPath, "psql")
+
+	var b bytes.Buffer
+	outputWriter := bufio.NewWriter(&b)
+	app.OutputFile = outputWriter
+
+	listSchemas := append(args, "-c", listSchemasQuery)
+	if err := app.CmdRun(psqlApp, listSchemas...); err != nil {
+		return nil, fmt.Errorf("psql error on schema list, %w", err)
 	}
 
 	scanner := bufio.NewScanner(&b)

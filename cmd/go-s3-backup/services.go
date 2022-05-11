@@ -143,6 +143,22 @@ var postgresFlags = []cli.Flag{
 		Usage:  "directory where postgres binaries are located",
 		EnvVar: "POSTGRES_BINARY_PATH",
 	}),
+	altsrc.NewBoolFlag(cli.BoolFlag{
+		Name:   "postgres-backup-per-schema",
+		Usage:  "make backups separated per schema",
+		EnvVar: "POSTGRES_BACKUP_PER_SCHEMA",
+	}),
+	altsrc.NewStringSliceFlag(cli.StringSliceFlag{
+		Name:   "postgres-backup-schemas",
+		Usage:  "make backups matching these schemas",
+		EnvVar: "POSTGRES_BACKUP_SCHEMAS",
+	}),
+	altsrc.NewStringSliceFlag(cli.StringSliceFlag{
+		Name:   "postgres-backup-exclude-schemas",
+		Usage:  "make backup excluding these schemas",
+		EnvVar: "POSTGRES_BACKUP_EXCLUDE_SCHEMAS",
+		Value:  &cli.StringSlice{"information_schema", "pg_toast", "pg_catalog"},
+	}),
 }
 
 var tarballFlags = []cli.Flag{
@@ -239,6 +255,9 @@ func newPostgresConfig(c *cli.Context) *services.PostgresConfig {
 		BackupPerUser:    c.Bool("postgres-backup-per-user"),
 		BackupUsers:      c.StringSlice("postgres-backup-users"),
 		ExcludeUsers:     c.StringSlice("postgres-backup-exclude-users"),
+		BackupPerSchema:  c.Bool("postgres-backup-per-schema"),
+		BackupSchemas:    c.StringSlice("postgres-backup-schemas"),
+		ExcludeSchemas:   c.StringSlice("postgres-backup-exclude-schemas"),
 		Version:          c.String("postgres-version"),
 	}
 }
