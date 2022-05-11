@@ -49,4 +49,5 @@ jobs:
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
+            BUILDKIT_CONTEXT_KEEP_GIT_DIR=true
             CI_COMMIT_TAG=${{ github.ref_name }}
