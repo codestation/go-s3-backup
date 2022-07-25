@@ -31,6 +31,7 @@ The schedule function can also be used on restore if you need to test your backu
 
 ### Restore related configuration
 * `RESTORE_FILE`: Restore directly from this filename instead of searching for the most recent one. Only used with the `restore` command.
+* `RESTORE_PREFIX`: Filename prefix to filter when restoring
 
 ### Gitea configuration
 * `GITEA_CONFIG`: custom location of the gogs config file.
@@ -51,6 +52,7 @@ The schedule function can also be used on restore if you need to test your backu
 
 ### Postgres configuration
 * `POSTGRES_CUSTOM_FORMAT`: use custom dump format instead of plain text backups.
+* `POSTGRES_DROP`: drop database before restoring.
 
 ### Tarball configuration
 * `TARBALL_PATH_SOURCE`: directory to backup/restore.

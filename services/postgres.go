@@ -66,11 +66,11 @@ var dropQuery = `DROP DATABASE "%s";`
 var createQuery = `CREATE DATABASE "%s" OWNER "%s";`
 
 var listDatabasesQuery = `COPY(SELECT datname FROM pg_database JOIN pg_authid ON pg_database.datdba = pg_authid.oid
-WHERE rolname = '%s') TO STDOUT`
+WHERE rolname = '%s' ORDER BY datname) TO STDOUT`
 
-var listUsersQuery = `COPY(SELECT usename FROM pg_catalog.pg_user) TO STDOUT;`
+var listUsersQuery = `COPY(SELECT usename FROM pg_catalog.pg_user ORDER BY usename) TO STDOUT;`
 
-var listSchemasQuery = `COPY( SELECT nspname FROM pg_catalog.pg_namespace) TO STDOUT;`
+var listSchemasQuery = `COPY(SELECT nspname FROM pg_catalog.pg_namespace ORDER BY nspname) TO STDOUT;`
 
 var maintenanceDatabase = "postgres"
 

@@ -63,6 +63,11 @@ var restoreFlags = []cli.Flag{
 		Usage:   "restore from this file instead of searching for the most recent",
 		EnvVars: []string{"RESTORE_FILE"},
 	}),
+	altsrc.NewStringFlag(&cli.StringFlag{
+		Name:    "restore-prefix",
+		Usage:   "name prefix to filter when restoring the backup",
+		EnvVars: []string{"RESTORE_PREFIX"},
+	}),
 }
 
 func backupCmd() *cli.Command {

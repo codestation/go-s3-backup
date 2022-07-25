@@ -120,7 +120,7 @@ func restoreTask(c *cli.Context, service services.Service, store stores.Storer) 
 		filename = key
 	} else {
 		// find the latest file in the store
-		filename, err = store.FindLatestBackup("", "")
+		filename, err = store.FindLatestBackup("", c.String("restore-prefix"))
 		if err != nil {
 			return fmt.Errorf("cannot find the latest backup: %v", err)
 		}
