@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"github.com/urfave/cli/v2"
 	"github.com/urfave/cli/v2/altsrc"
-	"megpoid.xyz/go/go-s3-backup/services"
+	"megpoid.dev/go/go-s3-backup/services"
 )
 
 var giteaFlags = []cli.Flag{

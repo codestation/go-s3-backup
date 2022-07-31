@@ -29,8 +29,8 @@ import (
 	"github.com/robfig/cron/v3"
 	"github.com/urfave/cli/v2"
 	"github.com/urfave/cli/v2/altsrc"
-	"megpoid.xyz/go/go-s3-backup/services"
-	"megpoid.xyz/go/go-s3-backup/stores"
+	"megpoid.dev/go/go-s3-backup/services"
+	"megpoid.dev/go/go-s3-backup/stores"
 	log "unknwon.dev/clog/v2"
 )
 

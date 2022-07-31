@@ -22,7 +22,7 @@ import (
 
 	"github.com/urfave/cli/v2"
 	"github.com/urfave/cli/v2/altsrc"
-	"megpoid.xyz/go/go-s3-backup/version"
+	"megpoid.dev/go/go-s3-backup/version"
 	log "unknwon.dev/clog/v2"
 )
 

@@ -19,7 +19,7 @@ package main
 import (
 	"github.com/urfave/cli/v2"
 	"github.com/urfave/cli/v2/altsrc"
-	"megpoid.xyz/go/go-s3-backup/stores"
+	"megpoid.dev/go/go-s3-backup/stores"
 )
 
 var s3Flags = []cli.Flag{

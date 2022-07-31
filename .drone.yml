@@ -9,9 +9,12 @@ platform:
 
 steps:
   - name: lint
-    image: golangci/golangci-lint:v1.46.0
+    image: golangci/golangci-lint:v1.47.2
     commands:
       - golangci-lint run --no-config -v --timeout 10m ./...
+    environment:
+      GOPROXY:
+        from_secret: goproxy_url
 
   - name: test
     image: golang:1.18
@@ -26,16 +29,16 @@ steps:
     image: ghcr.io/codestation/drone-docker
     settings:
       repos:
-        - registry.megpoid.xyz/codestation/go-s3-backup
+        - registry.megpoid.dev/codestation/go-s3-backup
         - codestation/go-s3-backup
       tags: latest
-      registry: registry.megpoid.xyz
+      registry: registry.megpoid.dev
       buildkit: true
       platforms:
         - linux/arm64
         - linux/amd64
       cache:
-        - registry.megpoid.xyz/codestation/go-s3-backup:${DRONE_BRANCH}-cache
+        - registry.megpoid.dev/codestation/go-s3-backup:${DRONE_BRANCH}-cache
       build_args:
         - CI_COMMIT_TAG=${DRONE_TAG}
       username:
@@ -52,14 +55,14 @@ steps:
   - name: build-branch
     image: ghcr.io/codestation/drone-docker
     settings:
-      repo: registry.megpoid.xyz/codestation/go-s3-backup
+      repo: registry.megpoid.dev/codestation/go-s3-backup
       tags: ${DRONE_BRANCH}
-      registry: registry.megpoid.xyz
+      registry: registry.megpoid.dev
       buildkit: true
       platforms:
         - linux/arm64
       cache:
-        - registry.megpoid.xyz/codestation/go-s3-backup:${DRONE_BRANCH}-cache
+        - registry.megpoid.dev/codestation/go-s3-backup:${DRONE_BRANCH}-cache
       build_args:
         - CI_COMMIT_TAG=${DRONE_TAG}
       username:

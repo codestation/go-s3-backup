@@ -19,8 +19,8 @@ RUN set -ex; \
    -X version.Tag=${CI_COMMIT_TAG}" \
   ./cmd/go-s3-backup
 
-FROM consul:1.12.0 AS consul
-FROM gitea/gitea:1.16.7 AS gitea
+FROM consul:1.12.3 AS consul
+FROM gitea/gitea:1.17.0 AS gitea
 FROM postgres:10-alpine AS postgres-10
 FROM postgres:11-alpine AS postgres-11
 FROM postgres:12-alpine AS postgres-12
@@ -28,7 +28,7 @@ FROM postgres:13-alpine AS postgres-13
 FROM postgres:14-alpine AS postgres-14
 
 FROM alpine:3.15
-LABEL maintainer="codestation <codestation404@gmail.com>"
+LABEL maintainer="codestation <codestation@megpoid.dev>"
 
 ENV GITEA_CUSTOM /data/gitea
 RUN apk add --no-cache ca-certificates tzdata mariadb-client linux-pam git libpq libedit
