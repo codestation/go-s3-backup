@@ -19,7 +19,6 @@ package stores
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path"
 
@@ -88,7 +87,7 @@ func (f *FilesystemConfig) Store(src, prefix, filename string) error {
 
 func (f *FilesystemConfig) getFileListing(basedir, namePrefix string) ([]string, error) {
 	fullBasedir := path.Join(f.SaveDir, basedir)
-	files, err := ioutil.ReadDir(fullBasedir)
+	files, err := os.ReadDir(fullBasedir)
 	if err != nil {
 		return nil, fmt.Errorf("cannot list contents of directory %s, %v", f.SaveDir, err)
 	}

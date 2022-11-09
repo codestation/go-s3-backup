@@ -1,7 +1,6 @@
 package services
 
 import (
-	"io/ioutil"
 	"os"
 	"path"
 	"testing"
@@ -11,7 +10,7 @@ import (
 
 func TestBackupRestore(t *testing.T) {
 	r := require.New(t)
-	tmp, err := ioutil.TempDir("", "archiver")
+	tmp, err := os.MkdirTemp("", "archiver")
 	r.NoError(err, "failed to create temp directory")
 
 	defer os.RemoveAll(tmp)
@@ -22,7 +21,7 @@ func TestBackupRestore(t *testing.T) {
 
 	filepath := path.Join(backupDir, "test.txt")
 	expected := []byte("test")
-	err = ioutil.WriteFile(filepath, expected, 0777)
+	err = os.WriteFile(filepath, expected, 0777)
 	r.NoError(err, "failed to create backup file")
 
 	tar := TarballConfig{
@@ -39,7 +38,7 @@ func TestBackupRestore(t *testing.T) {
 		err = tar.Restore(result.Path)
 		r.NoError(err, "failed to restore backup dir")
 
-		actual, err := ioutil.ReadFile(filepath)
+		actual, err := os.ReadFile(filepath)
 		r.NoError(err, "failed to read restored file")
 		r.Equal(expected, actual, "backup contents mismatch")
 	}

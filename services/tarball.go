@@ -18,10 +18,10 @@ package services
 
 import (
 	"fmt"
-	"github.com/mholt/archiver/v3"
-	"io/ioutil"
 	"os"
 	"path"
+
+	"github.com/mholt/archiver/v3"
 )
 
 // TarballConfig has the config options for the TarballConfig service
@@ -51,7 +51,7 @@ func (f *TarballConfig) Backup() (*BackupResults, error) {
 		}}}, nil
 	}
 
-	files, err := ioutil.ReadDir(path.Join(f.Path))
+	files, err := os.ReadDir(path.Join(f.Path))
 	if err != nil {
 		return nil, err
 	}

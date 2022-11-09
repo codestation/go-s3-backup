@@ -1,4 +1,4 @@
-FROM golang:1.18-alpine as builder
+FROM golang:1.19-alpine as builder
 
 ARG CI_COMMIT_TAG
 ARG GOPROXY
@@ -19,15 +19,16 @@ RUN set -ex; \
    -X version.Tag=${CI_COMMIT_TAG}" \
   ./cmd/go-s3-backup
 
-FROM consul:1.12.3 AS consul
-FROM gitea/gitea:1.17.0 AS gitea
+FROM consul:1.13.3 AS consul
+FROM gitea/gitea:1.17.3 AS gitea
 FROM postgres:10-alpine AS postgres-10
 FROM postgres:11-alpine AS postgres-11
 FROM postgres:12-alpine AS postgres-12
 FROM postgres:13-alpine AS postgres-13
 FROM postgres:14-alpine AS postgres-14
+FROM postgres:15-alpine AS postgres-15
 
-FROM alpine:3.15
+FROM alpine:3.16
 LABEL maintainer="codestation <codestation@megpoid.dev>"
 
 ENV GITEA_CUSTOM /data/gitea
@@ -40,6 +41,7 @@ COPY --from=postgres-11 /usr/local/bin/pg_dump /usr/local/bin/pg_restore /usr/lo
 COPY --from=postgres-12 /usr/local/bin/pg_dump /usr/local/bin/pg_restore /usr/local/bin/pg_dumpall /usr/local/bin/psql /usr/libexec/postgresql12/
 COPY --from=postgres-13 /usr/local/bin/pg_dump /usr/local/bin/pg_restore /usr/local/bin/pg_dumpall /usr/local/bin/psql /usr/libexec/postgresql13/
 COPY --from=postgres-14 /usr/local/bin/pg_dump /usr/local/bin/pg_restore /usr/local/bin/pg_dumpall /usr/local/bin/psql /usr/libexec/postgresql14/
+COPY --from=postgres-15 /usr/local/bin/pg_dump /usr/local/bin/pg_restore /usr/local/bin/pg_dumpall /usr/local/bin/psql /usr/libexec/postgresql15/
 COPY --from=builder /src/release/go-s3-backup /bin/go-s3-backup
 
 ENTRYPOINT ["/bin/go-s3-backup"]
