@@ -18,6 +18,7 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/urfave/cli/v2"
 	"github.com/urfave/cli/v2/altsrc"
 	"megpoid.dev/go/go-s3-backup/services"
@@ -92,6 +93,19 @@ var databaseFlags = []cli.Flag{
 		Name:    "database-ignore-exit-code",
 		Usage:   "ignore restore process exit code",
 		EnvVars: []string{"DATABASE_IGNORE_EXIT_CODE"},
+	}),
+}
+
+var mysqlFlags = []cli.Flag{
+	altsrc.NewBoolFlag(&cli.BoolFlag{
+		Name:    "mysql-split-databases",
+		Usage:   "make individual backups instead of a single one",
+		EnvVars: []string{"MYSQL_SPLIT_DATABASES"},
+	}),
+	altsrc.NewStringSliceFlag(&cli.StringSliceFlag{
+		Name:    "mysql-exclude-databases",
+		Usage:   "make backup of databases except the ones that matches the pattern",
+		EnvVars: []string{"MYSQL_EXCLUDE_DATABASES"},
 	}),
 }
 
@@ -209,17 +223,19 @@ func newGogsConfig(c *cli.Context) *services.GiteaConfig {
 
 func newMysqlConfig(c *cli.Context) *services.MySQLConfig {
 	return &services.MySQLConfig{
-		Host:           c.String("database-host"),
-		Port:           c.String("database-port"),
-		User:           c.String("database-user"),
-		Password:       fileOrString(c, "database-password"),
-		Database:       c.String("database-name"),
-		NamePrefix:     c.String("database-filename-prefix"),
-		NameAsPrefix:   c.Bool("database-name-as-prefix"),
-		Options:        c.String("database-options"),
-		Compress:       c.Bool("database-compress"),
-		SaveDir:        c.String("savedir"),
-		IgnoreExitCode: c.Bool("database-ignore-exit-code"),
+		Host:             c.String("database-host"),
+		Port:             c.String("database-port"),
+		User:             c.String("database-user"),
+		Password:         fileOrString(c, "database-password"),
+		Database:         c.String("database-name"),
+		NamePrefix:       c.String("database-filename-prefix"),
+		NameAsPrefix:     c.Bool("database-name-as-prefix"),
+		Options:          c.String("database-options"),
+		Compress:         c.Bool("database-compress"),
+		SaveDir:          c.String("savedir"),
+		SplitDatabases:   c.Bool("mysql-split-databases"),
+		ExcludeDatabases: c.StringSlice("mysql-exclude-databases"),
+		IgnoreExitCode:   c.Bool("database-ignore-exit-code"),
 	}
 }
 
@@ -306,11 +322,12 @@ func postgresCmd(parent string) *cli.Command {
 
 func mysqlCmd(parent string) *cli.Command {
 	name := "mysql"
+	flags := append(databaseFlags, mysqlFlags...)
 	return &cli.Command{
 		Name:   name,
 		Usage:  "connect to mysql service",
-		Flags:  databaseFlags,
-		Before: applyConfigValues(databaseFlags),
+		Flags:  flags,
+		Before: applyConfigValues(flags),
 		Subcommands: []*cli.Command{
 			s3Cmd(parent, name),
 			filesystemCmd(parent, name),

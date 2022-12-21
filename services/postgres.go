@@ -65,7 +65,7 @@ var dropQuery = `DROP DATABASE "%s";`
 
 var createQuery = `CREATE DATABASE "%s" OWNER "%s";`
 
-var listDatabasesQuery = `COPY(SELECT datname FROM pg_database JOIN pg_authid ON pg_database.datdba = pg_authid.oid
+var postgresListDatabasesQuery = `COPY(SELECT datname FROM pg_database JOIN pg_authid ON pg_database.datdba = pg_authid.oid
 WHERE rolname = '%s' ORDER BY datname) TO STDOUT`
 
 var listUsersQuery = `COPY(SELECT usename FROM pg_catalog.pg_user ORDER BY usename) TO STDOUT;`
@@ -434,7 +434,7 @@ func (p *PostgresConfig) listDatabases(user string) ([]string, error) {
 	outputWriter := bufio.NewWriter(&b)
 	app.OutputFile = outputWriter
 
-	listDatabases := append(args, "-c", fmt.Sprintf(listDatabasesQuery, user))
+	listDatabases := append(args, "-c", fmt.Sprintf(postgresListDatabasesQuery, user))
 	if err := app.CmdRun(psqlApp, listDatabases...); err != nil {
 		return nil, fmt.Errorf("psql error on database list, %w", err)
 	}
