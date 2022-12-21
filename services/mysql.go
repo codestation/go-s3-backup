@@ -54,7 +54,7 @@ var MysqlCmdApp = "/usr/bin/mysql"
 
 var mysqlListDatabasesQuery = "show databases"
 
-func (m *MySQLConfig) newBaseArgs() []string {
+func (m *MySQLConfig) newBaseArgs(skipOptions bool) []string {
 	args := []string{
 		"-h", m.Host,
 		"-P", m.Port,
@@ -65,11 +65,13 @@ func (m *MySQLConfig) newBaseArgs() []string {
 		args = append(args, "-p"+m.Password)
 	}
 
-	options := strings.Fields(m.Options)
+	if !skipOptions {
+		options := strings.Fields(m.Options)
 
-	// add extra options
-	if len(options) > 0 {
-		args = append(args, options...)
+		// add extra options
+		if len(options) > 0 {
+			args = append(args, options...)
+		}
 	}
 
 	return args
@@ -150,7 +152,7 @@ func (m *MySQLConfig) Backup() (*BackupResults, error) {
 func (m *MySQLConfig) backupDatabase(basedir, namePrefix string) (string, error) {
 	savePath := path.Join(m.SaveDir, basedir)
 	filepath := generateFilename(savePath, namePrefix)
-	args := m.newBaseArgs()
+	args := m.newBaseArgs(false)
 
 	if m.Database != "" {
 		args = append(args, "-B", m.Database)
@@ -194,7 +196,7 @@ func (m *MySQLConfig) backupDatabase(basedir, namePrefix string) (string, error)
 
 // Restore takes a database dump and restores it
 func (m *MySQLConfig) Restore(filepath string) error {
-	args := m.newBaseArgs()
+	args := m.newBaseArgs(false)
 	app := CmdConfig{}
 
 	if m.Database != "" {
@@ -234,7 +236,7 @@ func (m *MySQLConfig) Restore(filepath string) error {
 }
 
 func (m *MySQLConfig) listDatabases() ([]string, error) {
-	args := m.newBaseArgs()
+	args := m.newBaseArgs(true)
 	args = append(args, "-s", "--skip-column-names", "-r")
 	app := CmdConfig{}
 
