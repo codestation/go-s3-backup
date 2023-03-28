@@ -20,8 +20,8 @@ RUN set -ex; \
   ./cmd/go-s3-backup
 
 FROM consul:1.15.1 AS consul
-# gitea 1.19 at commit 428d26d4a8afe1b2777a992723168117d0bf9699 to include #23631 backport
-FROM gitea/gitea@sha256:ac0115531215fbfd47d7c0a5f41859504244b3df20e38af98a3266e0b46aa353 AS gitea
+# Include #23631 backport
+FROM gitea/gitea:1.19-dev AS gitea
 FROM postgres:11-alpine AS postgres-11
 FROM postgres:12-alpine AS postgres-12
 FROM postgres:13-alpine AS postgres-13
