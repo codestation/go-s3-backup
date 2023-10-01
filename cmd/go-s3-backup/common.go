@@ -47,8 +47,6 @@ func getService(c *cli.Context, service string) services.Service {
 		config = newPostgresConfig(c)
 	case "tarball":
 		config = newTarballConfig(c)
-	case "consul":
-		config = newConsulConfig(c)
 	default:
 		log.Fatal("Unsupported service: %s", service)
 	}

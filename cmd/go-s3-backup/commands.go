@@ -83,7 +83,6 @@ func backupCmd() *cli.Command {
 			postgresCmd(name),
 			mysqlCmd(name),
 			tarballCmd(name),
-			consulCmd(name),
 		},
 	}
 }
@@ -101,7 +100,6 @@ func restoreCmd() *cli.Command {
 			postgresCmd(name),
 			mysqlCmd(name),
 			tarballCmd(name),
-			consulCmd(name),
 		},
 	}
 }

@@ -285,12 +285,6 @@ func newTarballConfig(c *cli.Context) *services.TarballConfig {
 	}
 }
 
-func newConsulConfig(c *cli.Context) *services.ConsulConfig {
-	return &services.ConsulConfig{
-		SaveDir: c.String("savedir"),
-	}
-}
-
 func giteaCmd(parent string) *cli.Command {
 	name := "gitea"
 	return &cli.Command{
@@ -342,18 +336,6 @@ func tarballCmd(parent string) *cli.Command {
 		Usage:  "connect to tarball service",
 		Flags:  tarballFlags,
 		Before: applyConfigValues(tarballFlags),
-		Subcommands: []*cli.Command{
-			s3Cmd(parent, name),
-			filesystemCmd(parent, name),
-		},
-	}
-}
-
-func consulCmd(parent string) *cli.Command {
-	name := "consul"
-	return &cli.Command{
-		Name:  name,
-		Usage: "connect to consul service",
 		Subcommands: []*cli.Command{
 			s3Cmd(parent, name),
 			filesystemCmd(parent, name),
