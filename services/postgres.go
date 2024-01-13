@@ -58,12 +58,12 @@ type PostgresConfig struct {
 // PostgresBinaryPath points to the location where the postgres binaries are located
 var PostgresBinaryPath = "/usr/bin"
 
-var terminateQuery = `SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity
-WHERE pg_stat_activity.datname = '%s' AND pid <> pg_backend_pid();`
+var terminateQuery = `select pg_terminate_backend(pg_stat_activity.pid) from pg_stat_activity
+where pg_stat_activity.datname = '%s' and pid <> pg_backend_pid();`
 
-var dropQuery = `DROP DATABASE "%s";`
+var dropQuery = `drop database "%s";`
 
-var createQuery = `CREATE DATABASE "%s" OWNER "%s";`
+var createQuery = `create database "%s" owner "%s";`
 
 var postgresListDatabasesQuery = `COPY(SELECT datname FROM pg_database JOIN pg_authid ON pg_database.datdba = pg_authid.oid
 WHERE rolname = '%s' ORDER BY datname) TO STDOUT`
@@ -252,11 +252,12 @@ func (p *PostgresConfig) backupPerSchema() (*BackupResults, error) {
 
 func (p *PostgresConfig) getNamePrefix() string {
 	var prefix string
-	if p.NameAsPrefix && p.Database != "" {
+	switch {
+	case p.NameAsPrefix && p.Database != "":
 		prefix = p.Database
-	} else if p.NamePrefix != "" {
+	case p.NamePrefix != "":
 		prefix = p.NamePrefix
-	} else {
+	default:
 		prefix = "postgres-backup"
 	}
 
@@ -287,20 +288,21 @@ func (p *PostgresConfig) backupDatabase(basedir, namePrefix string, schemas ...s
 	}
 
 	// only allow custom format when dumping a single database
-	if p.Custom && p.Database != "" {
+	switch {
+	case p.Custom && p.Database != "":
 		filepath += ".dump"
 		args = append(args, "-f", filepath)
 		args = append(args, "-Fc")
-	} else if !p.Compress {
+	case !p.Compress:
 		filepath += ".sql"
 		args = append(args, "-f", filepath)
-	} else {
+	default:
 		filepath += ".sql.gz"
 	}
 
 	app := p.newPostgresCmd()
 
-	if err := os.MkdirAll(savePath, 0755); err != nil {
+	if err := os.MkdirAll(savePath, 0o755); err != nil {
 		return "", err
 	}
 
@@ -394,12 +396,16 @@ func (p *PostgresConfig) recreate() error {
 	app := p.newPostgresCmd()
 	psqlApp := path.Join(PostgresBinaryPath, "psql")
 
-	terminate := append(args, "-c", fmt.Sprintf(terminateQuery, p.Database))
+	var terminate []string
+	terminate = append(terminate, args...)
+	terminate = append(terminate, "-c", fmt.Sprintf(terminateQuery, p.Database))
 	if err := app.CmdRun(psqlApp, terminate...); err != nil {
 		return fmt.Errorf("psql error on terminate, %v", err)
 	}
 
-	remove := append(args, "-c", fmt.Sprintf(dropQuery, p.Database))
+	var remove []string
+	remove = append(remove, args...)
+	remove = append(remove, "-c", fmt.Sprintf(dropQuery, p.Database))
 	if err := app.CmdRun(psqlApp, remove...); err != nil {
 		return fmt.Errorf("psql error on drop, %v", err)
 	}
@@ -411,7 +417,9 @@ func (p *PostgresConfig) recreate() error {
 		owner = p.User
 	}
 
-	create := append(args, "-c", fmt.Sprintf(createQuery, p.Database, owner))
+	var create []string
+	create = append(create, args...)
+	create = append(create, "-c", fmt.Sprintf(createQuery, p.Database, owner))
 	if err := app.CmdRun(psqlApp, create...); err != nil {
 		return fmt.Errorf("psql error on create, %v", err)
 	}
@@ -434,7 +442,9 @@ func (p *PostgresConfig) listDatabases(user string) ([]string, error) {
 	outputWriter := bufio.NewWriter(&b)
 	app.OutputFile = outputWriter
 
-	listDatabases := append(args, "-c", fmt.Sprintf(postgresListDatabasesQuery, user))
+	var listDatabases []string
+	listDatabases = append(listDatabases, args...)
+	listDatabases = append(listDatabases, "-c", fmt.Sprintf(postgresListDatabasesQuery, user))
 	if err := app.CmdRun(psqlApp, listDatabases...); err != nil {
 		return nil, fmt.Errorf("psql error on database list, %w", err)
 	}
@@ -466,7 +476,9 @@ func (p *PostgresConfig) listUsers() ([]string, error) {
 	outputWriter := bufio.NewWriter(&b)
 	app.OutputFile = outputWriter
 
-	listUsers := append(args, "-c", listUsersQuery)
+	var listUsers []string
+	listUsers = append(listUsers, args...)
+	listUsers = append(listUsers, "-c", listUsersQuery)
 	if err := app.CmdRun(psqlApp, listUsers...); err != nil {
 		return nil, fmt.Errorf("psql error on user list, %w", err)
 	}
@@ -498,7 +510,9 @@ func (p *PostgresConfig) listSchemas(database string) ([]string, error) {
 	outputWriter := bufio.NewWriter(&b)
 	app.OutputFile = outputWriter
 
-	listSchemas := append(args, "-c", listSchemasQuery)
+	var listSchemas []string
+	listSchemas = append(listSchemas, args...)
+	listSchemas = append(listSchemas, "-c", listSchemasQuery)
 	if err := app.CmdRun(psqlApp, listSchemas...); err != nil {
 		return nil, fmt.Errorf("psql error on schema list, %w", err)
 	}

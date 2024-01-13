@@ -16,12 +16,12 @@ func TestStoreRestore(t *testing.T) {
 	defer os.RemoveAll(tmp)
 
 	backupDir := path.Join(tmp, "backup")
-	err = os.Mkdir(backupDir, 0755)
+	err = os.Mkdir(backupDir, 0o755)
 	r.NoError(err, "failed to create backup directory")
 
 	filepath := path.Join(backupDir, "test.txt")
 	expected := []byte("test")
-	err = os.WriteFile(filepath, expected, 0777)
+	err = os.WriteFile(filepath, expected, 0o777)
 	r.NoError(err, "failed to create backup file")
 
 	fs := FilesystemConfig{

@@ -46,7 +46,7 @@ func (f *FilesystemConfig) Store(src, prefix, filename string) error {
 		return nil
 	}
 
-	var removeSourceFile = false
+	removeSourceFile := false
 
 	srcFile, err := os.Open(src)
 	if err != nil {

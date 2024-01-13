@@ -106,11 +106,12 @@ func (f *TarballConfig) Backup() (*BackupResults, error) {
 
 func (f *TarballConfig) getNamePrefix(basedir string) string {
 	var name string
-	if f.Name != "" {
+	switch {
+	case f.Name != "":
 		name = f.Name + "-backup"
-	} else if basedir != "" {
+	case basedir != "":
 		name = path.Base(f.Path) + "_" + basedir + "-backup"
-	} else {
+	default:
 		name = path.Base(f.Path) + "-backup"
 	}
 
@@ -125,7 +126,7 @@ func (f *TarballConfig) backupFile(basedir, namePrefix string) (string, error) {
 		filepath += ".gz"
 	}
 
-	if err := os.MkdirAll(destPath, 0755); err != nil {
+	if err := os.MkdirAll(destPath, 0o755); err != nil {
 		return "", err
 	}
 

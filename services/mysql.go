@@ -79,11 +79,12 @@ func (m *MySQLConfig) newBaseArgs(skipOptions bool) []string {
 
 func (m *MySQLConfig) getNamePrefix() string {
 	var prefix string
-	if m.NameAsPrefix && m.Database != "" {
+	switch {
+	case m.NameAsPrefix && m.Database != "":
 		prefix = m.Database
-	} else if m.NamePrefix != "" {
+	case m.NamePrefix != "":
 		prefix = m.NamePrefix
-	} else {
+	default:
 		prefix = "mysql-backup"
 	}
 
@@ -169,7 +170,7 @@ func (m *MySQLConfig) backupDatabase(basedir, namePrefix string) (string, error)
 
 	app := CmdConfig{CensorArg: "-p"}
 
-	if err := os.MkdirAll(m.SaveDir, 0755); err != nil {
+	if err := os.MkdirAll(m.SaveDir, 0o755); err != nil {
 		return "", err
 	}
 
@@ -244,7 +245,10 @@ func (m *MySQLConfig) listDatabases() ([]string, error) {
 	outputWriter := bufio.NewWriter(&b)
 	app.OutputFile = outputWriter
 
-	listDatabases := append(args, "-e", mysqlListDatabasesQuery)
+	var listDatabases []string
+	listDatabases = append(listDatabases, args...)
+	listDatabases = append(listDatabases, "-e", mysqlListDatabasesQuery)
+
 	if err := app.CmdRun(MysqlCmdApp, listDatabases...); err != nil {
 		return nil, fmt.Errorf("mysqldump error on database list, %w", err)
 	}
@@ -252,7 +256,6 @@ func (m *MySQLConfig) listDatabases() ([]string, error) {
 	scanner := bufio.NewScanner(&b)
 	var databases []string
 	for scanner.Scan() {
-
 		databases = append(databases, scanner.Text())
 	}
 	if err := scanner.Err(); err != nil {

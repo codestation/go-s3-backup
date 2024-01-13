@@ -182,7 +182,6 @@ func runScheduler(c *cli.Context, task task) error {
 			break
 		}
 	})
-
 	if err != nil {
 		return err
 	}

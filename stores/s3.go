@@ -62,9 +62,9 @@ func (s *S3Config) Store(filepath, prefix, filename string) error {
 	}
 
 	defer func(f *os.File) {
-		err := f.Close()
-		if err != nil {
-			log.Error(err.Error())
+		closeErr := f.Close()
+		if closeErr != nil {
+			log.Error(closeErr.Error())
 		}
 	}(f)
 
@@ -103,7 +103,6 @@ func (s *S3Config) getFileListing(basedir, namePrefix string, svc *s3.S3) ([]str
 		// make sure that the prefix ends with "/"
 		Prefix: aws.String(path.Clean(path.Join(s.Prefix, basedir)) + "/"),
 	}, func(p *s3.ListObjectsV2Output, last bool) (shouldContinue bool) {
-
 		for _, obj := range p.Contents {
 			if !strings.HasSuffix(aws.StringValue(obj.Key), "/") {
 				// ignore files not created by this program
@@ -136,7 +135,7 @@ func (s *S3Config) RemoveOlderBackups(basedir, namePrefix string, keep int) erro
 
 	if count > 0 {
 		var items s3.Delete
-		var objs = make([]*s3.ObjectIdentifier, count)
+		objs := make([]*s3.ObjectIdentifier, count)
 
 		for i, file := range files[:count] {
 			objs[i] = &s3.ObjectIdentifier{Key: aws.String(file)}
@@ -147,8 +146,8 @@ func (s *S3Config) RemoveOlderBackups(basedir, namePrefix string, keep int) erro
 
 		out, err := svc.DeleteObjects(&s3.DeleteObjectsInput{
 			Bucket: aws.String(s.Bucket),
-			Delete: &items})
-
+			Delete: &items,
+		})
 		if err != nil {
 			return fmt.Errorf("couldn't delete the S3 objects, %v", err)
 		}

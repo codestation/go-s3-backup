@@ -63,7 +63,7 @@ func (g *GiteaConfig) Backup() (*BackupResults, error) {
 
 	app := g.newGiteaCmd()
 
-	if err := os.MkdirAll(g.SaveDir, 0755); err != nil {
+	if err := os.MkdirAll(g.SaveDir, 0o755); err != nil {
 		return nil, err
 	}
 

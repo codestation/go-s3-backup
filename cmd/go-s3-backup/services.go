@@ -301,7 +301,9 @@ func giteaCmd(parent string) *cli.Command {
 
 func postgresCmd(parent string) *cli.Command {
 	name := "postgres"
-	flags := append(databaseFlags, postgresFlags...)
+	var flags []cli.Flag
+	flags = append(flags, databaseFlags...)
+	flags = append(flags, postgresFlags...)
 	return &cli.Command{
 		Name:   name,
 		Usage:  "connect to postgres service",
@@ -316,7 +318,9 @@ func postgresCmd(parent string) *cli.Command {
 
 func mysqlCmd(parent string) *cli.Command {
 	name := "mysql"
-	flags := append(databaseFlags, mysqlFlags...)
+	var flags []cli.Flag
+	flags = append(flags, databaseFlags...)
+	flags = append(flags, mysqlFlags...)
 	return &cli.Command{
 		Name:   name,
 		Usage:  "connect to mysql service",

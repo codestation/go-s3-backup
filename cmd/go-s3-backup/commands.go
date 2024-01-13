@@ -72,7 +72,9 @@ var restoreFlags = []cli.Flag{
 
 func backupCmd() *cli.Command {
 	name := "backup"
-	flags := append(defaultFlags, backupFlags...)
+	var flags []cli.Flag
+	flags = append(flags, defaultFlags...)
+	flags = append(flags, backupFlags...)
 	return &cli.Command{
 		Name:   name,
 		Usage:  "run a backup task",
@@ -89,7 +91,9 @@ func backupCmd() *cli.Command {
 
 func restoreCmd() *cli.Command {
 	name := "restore"
-	flags := append(defaultFlags, restoreFlags...)
+	var flags []cli.Flag
+	flags = append(flags, defaultFlags...)
+	flags = append(flags, restoreFlags...)
 	return &cli.Command{
 		Name:   "restore",
 		Usage:  "run a restore task",
