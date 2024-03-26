@@ -32,7 +32,7 @@ FROM alpine:3.19
 LABEL maintainer="codestation <codestation@megpoid.dev>"
 
 ENV GITEA_CUSTOM /data/gitea
-RUN apk add --no-cache ca-certificates tzdata mariadb-client linux-pam git libpq libedit
+RUN apk add --no-cache ca-certificates tzdata mariadb-client linux-pam git libpq libedit zstd-libs lz4-libs
 
 COPY --from=gitea /app/gitea /app/gitea
 COPY --from=postgres-10 /usr/local/bin/pg_dump /usr/local/bin/pg_restore /usr/local/bin/pg_dumpall /usr/local/bin/psql /usr/libexec/postgresql10/
