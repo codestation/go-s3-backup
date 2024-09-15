@@ -9,7 +9,7 @@ platform:
 
 steps:
   - name: lint
-    image: golangci/golangci-lint:v1.55.2
+    image: golangci/golangci-lint:v1.61.0
     commands:
       - golangci-lint run --no-config -v --timeout 10m ./...
     environment:
@@ -17,7 +17,7 @@ steps:
         from_secret: goproxy_url
 
   - name: test
-    image: golang:1.21
+    image: golang:1.23
     commands:
       - go test -coverprofile cover.out -v ./...
       - go tool cover -func cover.out
