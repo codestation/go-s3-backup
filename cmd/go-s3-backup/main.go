@@ -22,6 +22,7 @@ import (
 
 	"github.com/urfave/cli/v2"
 	"github.com/urfave/cli/v2/altsrc"
+	"golang.org/x/term"
 	"megpoid.dev/go/go-s3-backup/version"
 )
 
@@ -45,6 +46,11 @@ func main() {
 			Usage:   "load config from yaml file",
 			EnvVars: []string{"CONFIG_FILE"},
 		},
+		&cli.BoolFlag{
+			Name:    "debug",
+			Usage:   "enable debug logging",
+			EnvVars: []string{"DEBUG"},
+		},
 	}
 
 	app.Commands = []*cli.Command{
@@ -53,6 +59,15 @@ func main() {
 	}
 
 	app.Before = func(c *cli.Context) error {
+		isTerminal := term.IsTerminal(int(os.Stdout.Fd()))
+		if !isTerminal {
+			slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, nil)))
+		}
+
+		if c.Bool("debug") {
+			slog.SetLogLoggerLevel(slog.LevelDebug)
+		}
+
 		slog.Info("go-s3-backup started",
 			slog.String("version", version.Tag),
 			slog.String("commit", version.Revision),
