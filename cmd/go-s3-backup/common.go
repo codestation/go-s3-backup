@@ -19,6 +19,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"log/slog"
 	"math/rand"
 	"os"
 	"os/signal"
@@ -31,7 +32,6 @@ import (
 	"github.com/urfave/cli/v2/altsrc"
 	"megpoid.dev/go/go-s3-backup/services"
 	"megpoid.dev/go/go-s3-backup/stores"
-	log "unknwon.dev/clog/v2"
 )
 
 type task func(c *cli.Context) error
@@ -48,7 +48,8 @@ func getService(c *cli.Context, service string) services.Service {
 	case "tarball":
 		config = newTarballConfig(c)
 	default:
-		log.Fatal("Unsupported service: %s", service)
+		slog.Error("Unsupported service", "service", service)
+		os.Exit(1)
 	}
 
 	return config
@@ -62,7 +63,8 @@ func getStore(c *cli.Context, store string) stores.Storer {
 	case "filesystem":
 		config = newFilesystemConfig(c)
 	default:
-		log.Fatal("Unsupported store: %s", store)
+		slog.Error("Unsupported store", "store", store)
+		os.Exit(1)
 	}
 
 	return config
@@ -82,7 +84,8 @@ func runTask(c *cli.Context, command string, serviceName string, storeName strin
 			return restoreTask(c, service, store)
 		})
 	default:
-		log.Fatal("Unsupported command: %s", command)
+		slog.Error("Unsupported command", "command", command)
+		os.Exit(1)
 	}
 	return nil
 }
@@ -94,7 +97,7 @@ func backupTask(c *cli.Context, service services.Service, store stores.Storer) e
 	}
 
 	for _, result := range results.Entries {
-		log.Trace("Backup saved to %s: %s", result.DirPrefix, result.Path)
+		slog.Debug("Backup saved", "basedir", result.DirPrefix, "path", result.Path)
 		filename := path.Base(result.Path)
 		if err = store.Store(result.Path, result.DirPrefix, filename); err != nil {
 			return fmt.Errorf("couldn't upload file to store: %v", err)
@@ -143,17 +146,17 @@ func runScheduler(c *cli.Context, task task) error {
 	schedule := c.String("schedule")
 
 	if schedule == "" || schedule == "none" {
-		log.Trace("Running task directly")
+		slog.Debug("Running task directly")
 		return task(c)
 	}
 
-	log.Trace("Starting scheduled backup task")
+	slog.Debug("Starting scheduled backup task")
 	timeoutchan := make(chan bool, 1)
 
 	_, err := cr.AddFunc(schedule, func() {
 		delay := c.Int("random-delay")
 		if delay <= 0 {
-			log.Warn("Schedule random delay was set to a number <= 0, using 1 as default")
+			slog.Warn("Schedule random delay was set to a number <= 0, using 1 as default")
 			delay = 1
 		}
 
@@ -162,22 +165,22 @@ func runScheduler(c *cli.Context, task task) error {
 		// run immediately is no delay is configured
 		if seconds == 0 {
 			if err := task(c); err != nil {
-				log.Error("Failed to run scheduled task: %v", err)
+				slog.Error("Failed to run scheduled task", "error", err)
 			}
 			return
 		}
 
-		log.Trace("Waiting for %d seconds before starting scheduled job", seconds)
+		slog.Debug("Waiting before starting scheduled job", "seconds", seconds)
 
 		select {
 		case <-timeoutchan:
-			log.Trace("Random timeout cancelled")
+			slog.Debug("Random timeout cancelled")
 			break
 		case <-time.After(time.Duration(seconds) * time.Second):
-			log.Trace("Running scheduled task")
+			slog.Debug("Running scheduled task")
 
 			if err := task(c); err != nil {
-				log.Error("Failed to run scheduled task: %v", err)
+				slog.Error("Failed to run scheduled task", "error", err)
 			}
 			break
 		}
@@ -195,7 +198,7 @@ func runScheduler(c *cli.Context, task task) error {
 	timeoutchan <- true
 	close(timeoutchan)
 
-	log.Trace("Stopping scheduled task")
+	slog.Debug("Received signal, stopping scheduled task")
 	ctx := cr.Stop()
 	<-ctx.Done()
 
@@ -206,14 +209,14 @@ func fileOrString(c *cli.Context, name string) string {
 	if filepath := c.String(name + "-file"); filepath != "" {
 		f, err := os.Open(filepath)
 		if err != nil {
-			log.Error("Cannot open password file: %v", err)
+			slog.Error("Cannot open file", "filepath", filepath, "error", err)
 			return ""
 		}
 
 		defer func(f *os.File) {
 			err := f.Close()
 			if err != nil {
-				log.Error(err.Error())
+				slog.Error("Cannot close file", "filepath", filepath, "error", err)
 			}
 		}(f)
 
@@ -222,7 +225,7 @@ func fileOrString(c *cli.Context, name string) string {
 			return scanner.Text()
 		}
 
-		log.Warn("Using empty password file")
+		slog.Warn("Empty file", "filepath", filepath)
 		return ""
 	}
 

@@ -21,12 +21,11 @@ import (
 	"bytes"
 	"compress/gzip"
 	"fmt"
+	"log/slog"
 	"os"
 	"os/exec"
 	"path"
 	"strings"
-
-	log "unknwon.dev/clog/v2"
 )
 
 // PostgresConfig has the config options for the PostgresConfig service
@@ -172,12 +171,12 @@ func (p *PostgresConfig) backupPerUser() (*BackupResults, error) {
 				for _, exclude := range p.ExcludeDatabases {
 					matched, err := path.Match(exclude, database)
 					if err != nil {
-						log.Error("Invalid pattern %s, skipping", exclude)
+						slog.Error("Invalid pattern, skipping", "pattern", exclude)
 						found = true
 						break
 					}
 					if matched {
-						log.Info("Excluding database %s that match excluded pattern %s", database, exclude)
+						slog.Info("Excluding database that match excluded pattern", "database", database, "pattern", exclude)
 						found = true
 						break
 					}
@@ -366,7 +365,7 @@ func (p *PostgresConfig) Restore(filepath string) error {
 	}
 
 	if p.Drop {
-		log.Info("Recreating database %s", p.Database)
+		slog.Info("Recreating database", "name", p.Database)
 		if err := p.recreate(); err != nil {
 			return fmt.Errorf("couldn't recreate database, %v", err)
 		}
@@ -376,7 +375,7 @@ func (p *PostgresConfig) Restore(filepath string) error {
 		serr, ok := err.(*exec.ExitError)
 
 		if ok && p.IgnoreExitCode {
-			log.Info("Ignored exit code of restore process: %v", serr)
+			slog.Info("Ignored exit code of restore process", "error", serr)
 		} else {
 			return fmt.Errorf("couldn't execute %s, %v", appPath, err)
 		}

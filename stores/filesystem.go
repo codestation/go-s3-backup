@@ -19,10 +19,9 @@ package stores
 import (
 	"fmt"
 	"io"
+	"log/slog"
 	"os"
 	"path"
-
-	log "unknwon.dev/clog/v2"
 )
 
 // FilesystemConfig has the config options for the FilesystemConfig service
@@ -35,13 +34,13 @@ func (f *FilesystemConfig) Store(src, prefix, filename string) error {
 	dest := path.Clean(path.Join(f.SaveDir, prefix, filename))
 
 	if src == dest {
-		log.Trace("Using the same path as source and destination, do nothing")
+		slog.Debug("Using the same path as source and destination, do nothing")
 		return nil
 	}
 
 	err := os.Rename(dest, src)
 	if err != nil {
-		log.Warn("Cannot rename %s to %s, trying to copy instead", src, dest)
+		slog.Warn("Cannot rename file, trying to copy instead", "source", src, "destination", dest)
 	} else {
 		return nil
 	}
@@ -59,7 +58,7 @@ func (f *FilesystemConfig) Store(src, prefix, filename string) error {
 		// if there aren't any errors on the file copy then delete the source file
 		if removeSourceFile {
 			if err = os.Remove(src); err != nil {
-				log.Warn("Cannot remove source file %s", src)
+				slog.Warn("Cannot remove source file", "name", src)
 			}
 		}
 	}()
@@ -125,13 +124,13 @@ func (f *FilesystemConfig) RemoveOlderBackups(basedir, namePrefix string, keep i
 			fullpath := path.Clean(file)
 			err = os.Remove(fullpath)
 			if err != nil {
-				log.Error("Failed to remove file %s", fullpath)
+				slog.Error("Failed to remove file", "name", fullpath)
 			} else {
 				deleted++
 			}
 		}
 
-		log.Trace("Deleted %d objects from %s", deleted, path.Join(f.SaveDir, basedir))
+		slog.Debug("Deleted objects from filesystem", "count", deleted, "path", path.Join(f.SaveDir, basedir))
 	}
 
 	return nil

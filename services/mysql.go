@@ -21,12 +21,11 @@ import (
 	"bytes"
 	"compress/gzip"
 	"fmt"
+	"log/slog"
 	"os"
 	"os/exec"
 	"path"
 	"strings"
-
-	log "unknwon.dev/clog/v2"
 )
 
 // MySQLConfig has the config options for the MySQLConfig service
@@ -109,12 +108,12 @@ func (m *MySQLConfig) Backup() (*BackupResults, error) {
 				for _, exclude := range m.ExcludeDatabases {
 					matched, err := path.Match(exclude, database)
 					if err != nil {
-						log.Error("Invalid pattern %s, skipping", exclude)
+						slog.Error("Invalid pattern, skipping", "pattern", exclude)
 						found = true
 						break
 					}
 					if matched {
-						log.Info("Excluding database %s that match excluded pattern %s", database, exclude)
+						slog.Info("Excluding database that match excluded pattern", "database", database, "pattern", exclude)
 						found = true
 						break
 					}
@@ -227,7 +226,7 @@ func (m *MySQLConfig) Restore(filepath string) error {
 		serr, ok := err.(*exec.ExitError)
 
 		if ok && m.IgnoreExitCode {
-			log.Info("Ignored exit code of restore process: %v", serr)
+			slog.Info("Ignored exit code of restore process", "error", serr)
 		} else {
 			return fmt.Errorf("couldn't execute %s, %v", MysqlCmdApp, err)
 		}
