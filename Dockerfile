@@ -27,6 +27,7 @@ FROM postgres:13-alpine AS postgres-13
 FROM postgres:14-alpine AS postgres-14
 FROM postgres:15-alpine AS postgres-15
 FROM postgres:16-alpine AS postgres-16
+FROM postgres:17-alpine AS postgres-17
 
 FROM alpine:3.19
 LABEL maintainer="codestation <codestation@megpoid.dev>"
@@ -42,6 +43,7 @@ COPY --from=postgres-13 /usr/local/bin/pg_dump /usr/local/bin/pg_restore /usr/lo
 COPY --from=postgres-14 /usr/local/bin/pg_dump /usr/local/bin/pg_restore /usr/local/bin/pg_dumpall /usr/local/bin/psql /usr/libexec/postgresql14/
 COPY --from=postgres-15 /usr/local/bin/pg_dump /usr/local/bin/pg_restore /usr/local/bin/pg_dumpall /usr/local/bin/psql /usr/libexec/postgresql15/
 COPY --from=postgres-16 /usr/local/bin/pg_dump /usr/local/bin/pg_restore /usr/local/bin/pg_dumpall /usr/local/bin/psql /usr/libexec/postgresql16/
+COPY --from=postgres-17 /usr/local/bin/pg_dump /usr/local/bin/pg_restore /usr/local/bin/pg_dumpall /usr/local/bin/psql /usr/libexec/postgresql17/
 COPY --from=builder /src/release/go-s3-backup /bin/go-s3-backup
 
 ENTRYPOINT ["/bin/go-s3-backup"]
