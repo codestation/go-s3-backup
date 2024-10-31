@@ -17,19 +17,22 @@ limitations under the License.
 package main
 
 import (
-	"fmt"
+	"log/slog"
 	"os"
 
 	"github.com/urfave/cli/v2"
 	"github.com/urfave/cli/v2/altsrc"
+	"golang.org/x/term"
 	"megpoid.dev/go/go-s3-backup/version"
-	log "unknwon.dev/clog/v2"
 )
 
-const versionFormatter = `go-s3-backup version: %s, commit: %s, date: %s, clean build: %t`
-
 func printVersion(c *cli.Context) {
-	_, _ = fmt.Fprintf(c.App.Writer, versionFormatter, version.Tag, version.Revision, version.LastCommit, !version.Modified)
+	slog.Info("go-s3-backup started",
+		slog.String("version", version.Tag),
+		slog.String("commit", version.Revision),
+		slog.Time("date", version.LastCommit),
+		slog.Bool("clean_build", !version.Modified),
+	)
 }
 
 func main() {
@@ -43,6 +46,11 @@ func main() {
 			Usage:   "load config from yaml file",
 			EnvVars: []string{"CONFIG_FILE"},
 		},
+		&cli.BoolFlag{
+			Name:    "debug",
+			Usage:   "enable debug logging",
+			EnvVars: []string{"DEBUG"},
+		},
 	}
 
 	app.Commands = []*cli.Command{
@@ -51,11 +59,21 @@ func main() {
 	}
 
 	app.Before = func(c *cli.Context) error {
-		if err := log.NewConsole(); err != nil {
-			return err
+		isTerminal := term.IsTerminal(int(os.Stdout.Fd()))
+		if !isTerminal {
+			slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, nil)))
 		}
 
-		log.Info(versionFormatter, version.Tag, version.Revision, version.LastCommit, !version.Modified)
+		if c.Bool("debug") {
+			slog.SetLogLoggerLevel(slog.LevelDebug)
+		}
+
+		slog.Info("go-s3-backup started",
+			slog.String("version", version.Tag),
+			slog.String("commit", version.Revision),
+			slog.Time("date", version.LastCommit),
+			slog.Bool("clean_build", !version.Modified),
+		)
 
 		if c.String("config") != "" {
 			cfg, err := altsrc.NewYamlSourceFromFile(c.String("config"))
@@ -72,9 +90,9 @@ func main() {
 	}
 
 	if err := app.Run(os.Args); err != nil {
-		log.Fatal("Unrecoverable error: %v", err)
+		slog.Error("Unrecoverable error", "error", err)
+		os.Exit(1)
 	}
 
-	log.Info("Shutdown complete")
-	log.Stop()
+	slog.Info("Shutdown complete")
 }

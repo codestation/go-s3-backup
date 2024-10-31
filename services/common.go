@@ -20,6 +20,7 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"log/slog"
 	"os"
 	"os/exec"
 	"path"
@@ -28,8 +29,6 @@ import (
 	"strings"
 	"syscall"
 	"time"
-
-	log "unknwon.dev/clog/v2"
 )
 
 type BackupResults struct {
@@ -70,13 +69,13 @@ func (app *CmdConfig) CmdRun(name string, arg ...string) error {
 		cmd.SysProcAttr = &syscall.SysProcAttr{}
 		cmd.SysProcAttr.Credential = app.Credential
 	} else if euid != 0 {
-		log.Info("Not running as root, starting %s with UID %d", name, os.Geteuid())
+		slog.Info("Not running as root, starting process as user", "name", name, "uid", os.Geteuid())
 	}
 
 	if app.InputFile == nil && app.OutputFile == nil {
 		cmd.Stdout = os.Stdout
 		args := strings.ReplaceAll(strings.Join(censorArg(arg, app.CensorArg), " "), "\n", " ")
-		log.Trace("Running %s %s", name, args)
+		slog.Debug("Running process", "name", name, "args", args)
 		return cmd.Run()
 	}
 
@@ -93,7 +92,7 @@ func (app *CmdConfig) CmdRun(name string, arg ...string) error {
 
 		reader := bufio.NewReader(outPipe)
 
-		log.Trace("Sending command stdout to file")
+		slog.Debug("Sending command stdout to file")
 
 		go func() {
 			_, err := io.Copy(app.OutputFile, reader)
@@ -110,7 +109,7 @@ func (app *CmdConfig) CmdRun(name string, arg ...string) error {
 			return fmt.Errorf("cannot create stdin pipe: %v", err)
 		}
 
-		log.Trace("Sending file to command stdin")
+		slog.Debug("Sending file to command stdin")
 
 		go func() {
 			_, err := io.Copy(inPipe, app.InputFile)
@@ -122,7 +121,7 @@ func (app *CmdConfig) CmdRun(name string, arg ...string) error {
 	}
 
 	args := strings.ReplaceAll(strings.Join(censorArg(arg, app.CensorArg), " "), "\n", " ")
-	log.Trace("Running %s %s", name, args)
+	slog.Debug("Running process", "name", name, "args", args)
 
 	if err := cmd.Start(); err != nil {
 		return fmt.Errorf("cannot start process: %v", err)
@@ -155,7 +154,7 @@ func getEnvInt(key string, def int) int {
 			return val
 		}
 
-		log.Warn("Cannot parse env key %s with value %s", key, value)
+		slog.Warn("Cannot parse env", "key", key, "value", value)
 	}
 
 	return def

@@ -18,6 +18,7 @@ package stores
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
 	"path"
 	"sort"
@@ -27,7 +28,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
-	log "unknwon.dev/clog/v2"
 )
 
 // S3Config has the config options for the S3 service
@@ -64,15 +64,15 @@ func (s *S3Config) Store(filepath, prefix, filename string) error {
 	defer func(f *os.File) {
 		closeErr := f.Close()
 		if closeErr != nil {
-			log.Error(closeErr.Error())
+			slog.Error("Cannot close file", "path", filepath, "error", closeErr)
 		}
 	}(f)
 
 	if !s.KeepAfterUpload {
 		defer func() {
-			log.Info("Removing source file %s", filepath)
+			slog.Info("Removing source file", "path", filepath)
 			if err = os.Remove(filepath); err != nil {
-				log.Warn("Cannot remove file %s, %v", filepath, err)
+				slog.Warn("Cannot remove file", "path", filepath, "error", err)
 			}
 		}()
 	}
@@ -89,7 +89,7 @@ func (s *S3Config) Store(filepath, prefix, filename string) error {
 		return fmt.Errorf("failed to upload file, %v", err)
 	}
 
-	log.Trace("File uploaded to %s", res.Location)
+	slog.Debug("File uploaded", "location", res.Location)
 
 	return nil
 }
@@ -139,7 +139,7 @@ func (s *S3Config) RemoveOlderBackups(basedir, namePrefix string, keep int) erro
 
 		for i, file := range files[:count] {
 			objs[i] = &s3.ObjectIdentifier{Key: aws.String(file)}
-			log.Trace("Marked to delete: s3://%s/%s", s.Bucket, file)
+			slog.Debug("Marked to delete", "bucket", s.Bucket, "file", file)
 		}
 
 		items.SetObjects(objs)
@@ -152,7 +152,7 @@ func (s *S3Config) RemoveOlderBackups(basedir, namePrefix string, keep int) erro
 			return fmt.Errorf("couldn't delete the S3 objects, %v", err)
 		}
 
-		log.Trace("Deleted %d objects from S3", len(out.Deleted))
+		slog.Debug("Deleted objects from S3", "count", len(out.Deleted))
 	}
 
 	return nil
@@ -195,12 +195,11 @@ func (s *S3Config) Retrieve(s3path string) (string, error) {
 		Bucket: aws.String(s.Bucket),
 		Key:    aws.String(s3path),
 	})
-
 	if err != nil {
 		return "", fmt.Errorf("failed to download S3 object, %v", err)
 	}
 
-	log.Trace("File downloaded to %s\n", filepath)
+	slog.Debug("File downloaded", "location", filepath)
 	s.retrievedFile = filepath
 
 	return filepath, nil
@@ -210,7 +209,7 @@ func (s *S3Config) Retrieve(s3path string) (string, error) {
 func (s *S3Config) Close() {
 	if s.retrievedFile != "" {
 		if err := os.Remove(s.retrievedFile); err != nil {
-			log.Warn("Cannot remove file %s", s.retrievedFile)
+			slog.Warn("Cannot remove file", "path", s.retrievedFile, "error", err)
 		}
 
 		s.retrievedFile = ""

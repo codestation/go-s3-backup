@@ -1,4 +1,4 @@
-FROM golang:1.21-alpine as builder
+FROM golang:1.23-alpine as builder
 
 ARG CI_COMMIT_TAG
 ARG GOPROXY
@@ -19,9 +19,7 @@ RUN set -ex; \
    -X version.Tag=${CI_COMMIT_TAG}" \
   ./cmd/go-s3-backup
 
-FROM gitea/gitea:1.21.3 AS gitea
-FROM postgres:10-alpine AS postgres-10
-FROM postgres:11-alpine AS postgres-11
+FROM gitea/gitea:1.22.2 AS gitea
 FROM postgres:12-alpine AS postgres-12
 FROM postgres:13-alpine AS postgres-13
 FROM postgres:14-alpine AS postgres-14
@@ -29,15 +27,13 @@ FROM postgres:15-alpine AS postgres-15
 FROM postgres:16-alpine AS postgres-16
 FROM postgres:17-alpine AS postgres-17
 
-FROM alpine:3.19
+FROM alpine:3.20
 LABEL maintainer="codestation <codestation@megpoid.dev>"
 
 ENV GITEA_CUSTOM /data/gitea
 RUN apk add --no-cache ca-certificates tzdata mariadb-client linux-pam git libpq libedit zstd-libs lz4-libs
 
 COPY --from=gitea /app/gitea /app/gitea
-COPY --from=postgres-10 /usr/local/bin/pg_dump /usr/local/bin/pg_restore /usr/local/bin/pg_dumpall /usr/local/bin/psql /usr/libexec/postgresql10/
-COPY --from=postgres-11 /usr/local/bin/pg_dump /usr/local/bin/pg_restore /usr/local/bin/pg_dumpall /usr/local/bin/psql /usr/libexec/postgresql11/
 COPY --from=postgres-12 /usr/local/bin/pg_dump /usr/local/bin/pg_restore /usr/local/bin/pg_dumpall /usr/local/bin/psql /usr/libexec/postgresql12/
 COPY --from=postgres-13 /usr/local/bin/pg_dump /usr/local/bin/pg_restore /usr/local/bin/pg_dumpall /usr/local/bin/psql /usr/libexec/postgresql13/
 COPY --from=postgres-14 /usr/local/bin/pg_dump /usr/local/bin/pg_restore /usr/local/bin/pg_dumpall /usr/local/bin/psql /usr/libexec/postgresql14/
