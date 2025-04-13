@@ -2,7 +2,7 @@ steps:
   lint:
     image: golangci/golangci-lint:v2.0.2
     commands:
-      - golangci-lint run --no-config -v --timeout 10m ./...
+      - golangci-lint run -v --timeout 10m ./...
     environment:
       GOPROXY:
         from_secret: goproxy_url
