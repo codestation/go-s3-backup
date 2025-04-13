@@ -24,20 +24,6 @@ import (
 	"go.megpoid.dev/go-s3-backup/services"
 )
 
-var giteaFlags = []cli.Flag{
-	altsrc.NewStringFlag(&cli.StringFlag{
-		Name:    "gitea-config",
-		Usage:   "gitea config path",
-		EnvVars: []string{"GOGS_CONFIG"},
-	}),
-	altsrc.NewStringFlag(&cli.StringFlag{
-		Name:    "gitea-data",
-		Usage:   "gitea data path",
-		Value:   "/data",
-		EnvVars: []string{"GOGS_DATA"},
-	}),
-}
-
 var databaseFlags = []cli.Flag{
 	altsrc.NewStringFlag(&cli.StringFlag{
 		Name:    "database-host",
@@ -213,14 +199,6 @@ var tarballFlags = []cli.Flag{
 	}),
 }
 
-func newGogsConfig(c *cli.Context) *services.GiteaConfig {
-	return &services.GiteaConfig{
-		ConfigPath: c.String("gitea-config"),
-		DataPath:   c.String("gitea-data"),
-		SaveDir:    c.String("savedir"),
-	}
-}
-
 func newMysqlConfig(c *cli.Context) *services.MySQLConfig {
 	return &services.MySQLConfig{
 		Host:             c.String("database-host"),
@@ -282,20 +260,6 @@ func newTarballConfig(c *cli.Context) *services.TarballConfig {
 		BackupPerDir: c.Bool("tarball-backup-per-dir"),
 		BackupDirs:   c.StringSlice("tarball-backup-dirs"),
 		ExcludeDirs:  c.StringSlice("tarball-backup-exclude-dirs"),
-	}
-}
-
-func giteaCmd(parent string) *cli.Command {
-	name := "gitea"
-	return &cli.Command{
-		Name:   name,
-		Usage:  "connect to gitea service",
-		Flags:  giteaFlags,
-		Before: applyConfigValues(giteaFlags),
-		Subcommands: []*cli.Command{
-			s3Cmd(parent, name),
-			filesystemCmd(parent, name),
-		},
 	}
 }
 

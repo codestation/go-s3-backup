@@ -19,7 +19,6 @@ RUN set -ex; \
    -X version.Tag=${CI_COMMIT_TAG}" \
   ./cmd/go-s3-backup
 
-FROM gitea/gitea:1.23.7 AS gitea
 FROM postgres:12.22-alpine AS postgres-12
 FROM postgres:13.20-alpine AS postgres-13
 FROM postgres:14.17-alpine AS postgres-14
@@ -30,10 +29,8 @@ FROM postgres:17.4-alpine AS postgres-17
 FROM alpine:3.21
 LABEL maintainer="codestation <codestation@megpoid.dev>"
 
-ENV GITEA_CUSTOM /data/gitea
-RUN apk add --no-cache ca-certificates tzdata mariadb-client linux-pam git libpq libedit zstd-libs lz4-libs
+RUN apk add --no-cache ca-certificates tzdata mariadb-client libpq zstd-libs lz4-libs
 
-COPY --from=gitea /app/gitea /app/gitea
 COPY --from=postgres-12 /usr/local/bin/pg_dump /usr/local/bin/pg_restore /usr/local/bin/pg_dumpall /usr/local/bin/psql /usr/libexec/postgresql12/
 COPY --from=postgres-13 /usr/local/bin/pg_dump /usr/local/bin/pg_restore /usr/local/bin/pg_dumpall /usr/local/bin/psql /usr/libexec/postgresql13/
 COPY --from=postgres-14 /usr/local/bin/pg_dump /usr/local/bin/pg_restore /usr/local/bin/pg_dumpall /usr/local/bin/psql /usr/libexec/postgresql14/

@@ -6,9 +6,7 @@ This application can be used to make regular backups of various applications and
 
 * PostgreSQL
 * MySQL/MariaDB
-* Gitea
 * Tarball
-* Consul
 
 ## Supported stores
 * S3
@@ -32,10 +30,6 @@ The schedule function can also be used on restore if you need to test your backu
 ### Restore related configuration
 * `RESTORE_FILE`: Restore directly from this filename instead of searching for the most recent one. Only used with the `restore` command.
 * `RESTORE_PREFIX`: Filename prefix to filter when restoring
-
-### Gitea configuration
-* `GITEA_CONFIG`: custom location of the gogs config file.
-* `GITEA_DATA`: location of the Gogs data directory.
 
 ### Database common config
 * `DATABASE_HOST`: database host.
