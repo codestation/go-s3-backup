@@ -41,7 +41,7 @@ type BackupResult struct {
 	Path       string
 }
 
-// Service represents the methods to backup/restore a service
+// Service represents the methods to back up/restore a service
 type Service interface {
 	Backup() (*BackupResults, error)
 	Restore(path string) error
@@ -113,7 +113,9 @@ func (app *CmdConfig) CmdRun(name string, arg ...string) error {
 
 		go func() {
 			_, err := io.Copy(inPipe, app.InputFile)
-			inPipe.Close()
+			if errPipe := inPipe.Close(); errPipe != nil {
+				slog.Error("Error closing stdin pipe", "error", errPipe)
+			}
 			doneRead <- err
 		}()
 	} else {

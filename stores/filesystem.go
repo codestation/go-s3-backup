@@ -53,7 +53,9 @@ func (f *FilesystemConfig) Store(src, prefix, filename string) error {
 	}
 
 	defer func() {
-		srcFile.Close()
+		if err := srcFile.Close(); err != nil {
+			slog.Warn("Cannot close source file", "name", src)
+		}
 
 		// if there aren't any errors on the file copy then delete the source file
 		if removeSourceFile {
