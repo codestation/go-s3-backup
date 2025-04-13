@@ -1,0 +1,35 @@
+steps:
+  lint:
+    image: golangci/golangci-lint:v1.61.0
+    commands:
+      - golangci-lint run --no-config -v --timeout 10m ./...
+    environment:
+      GOPROXY:
+        from_secret: goproxy_url
+
+  test:
+    image: golang:1.24
+    commands:
+      - go test -coverprofile cover.out -v ./...
+      - go tool cover -func cover.out
+    environment:
+      GOPROXY:
+        from_secret: goproxy_url
+
+  build:
+    image: woodpeckerci/plugin-docker-buildx:5.2.2
+    settings:
+      registry: registry.megpoid.dev
+      repo: registry.megpoid.dev/codestation/go-s3-backup
+      tags: latest
+      build_args:
+        - CI_COMMIT_TAG=${CI_COMMIT_TAG}
+      config:
+        from_secret: registry_credentials
+
+when:
+  event:
+    - push
+    - manual
+  branch:
+    - master
