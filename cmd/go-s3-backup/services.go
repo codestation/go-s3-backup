@@ -150,7 +150,7 @@ var postgresFlags = []cli.Flag{
 		Name:    "postgres-version",
 		Usage:   "postgres version for the pg_dump/pg_restore/psql tools",
 		EnvVars: []string{"POSTGRES_VERSION"},
-		Value:   "14",
+		Value:   "17",
 	}),
 	altsrc.NewStringFlag(&cli.StringFlag{
 		Name:    "postgres-binary-path",
