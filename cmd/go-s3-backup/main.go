@@ -22,8 +22,8 @@ import (
 
 	"github.com/urfave/cli/v2"
 	"github.com/urfave/cli/v2/altsrc"
+	"go.megpoid.dev/go-s3-backup/version"
 	"golang.org/x/term"
-	"megpoid.dev/go/go-s3-backup/version"
 )
 
 func printVersion(c *cli.Context) {

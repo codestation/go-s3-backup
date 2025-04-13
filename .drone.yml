@@ -17,7 +17,7 @@ steps:
         from_secret: goproxy_url
 
   - name: test
-    image: golang:1.23
+    image: golang:1.24
     commands:
       - go test -coverprofile cover.out -v ./...
       - go tool cover -func cover.out

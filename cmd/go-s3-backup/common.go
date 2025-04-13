@@ -30,8 +30,8 @@ import (
 	"github.com/robfig/cron/v3"
 	"github.com/urfave/cli/v2"
 	"github.com/urfave/cli/v2/altsrc"
-	"megpoid.dev/go/go-s3-backup/services"
-	"megpoid.dev/go/go-s3-backup/stores"
+	"go.megpoid.dev/go-s3-backup/services"
+	"go.megpoid.dev/go-s3-backup/stores"
 )
 
 type task func(c *cli.Context) error

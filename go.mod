@@ -1,6 +1,6 @@
-module megpoid.dev/go/go-s3-backup
+module go.megpoid.dev/go-s3-backup
 
-go 1.23
+go 1.24
 
 require (
 	github.com/aws/aws-sdk-go v1.55.5

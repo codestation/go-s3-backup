@@ -21,7 +21,7 @@ import (
 
 	"github.com/urfave/cli/v2"
 	"github.com/urfave/cli/v2/altsrc"
-	"megpoid.dev/go/go-s3-backup/services"
+	"go.megpoid.dev/go-s3-backup/services"
 )
 
 var giteaFlags = []cli.Flag{
