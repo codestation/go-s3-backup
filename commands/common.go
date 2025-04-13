@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package main
+package commands
 
 import (
 	"bufio"
@@ -28,23 +28,22 @@ import (
 	"time"
 
 	"github.com/robfig/cron/v3"
-	"github.com/urfave/cli/v2"
-	"github.com/urfave/cli/v2/altsrc"
+	"github.com/spf13/viper"
 	"go.megpoid.dev/go-s3-backup/services"
 	"go.megpoid.dev/go-s3-backup/stores"
 )
 
-type task func(c *cli.Context) error
+type task func() error
 
-func getService(c *cli.Context, service string) services.Service {
+func GetService(service string) services.Service {
 	var config services.Service
 	switch service {
 	case "mysql":
-		config = newMysqlConfig(c)
+		config = newMysqlConfig()
 	case "postgres":
-		config = newPostgresConfig(c)
+		config = newPostgresConfig()
 	case "tarball":
-		config = newTarballConfig(c)
+		config = newTarballConfig()
 	default:
 		slog.Error("Unsupported service", "service", service)
 		os.Exit(1)
@@ -53,13 +52,13 @@ func getService(c *cli.Context, service string) services.Service {
 	return config
 }
 
-func getStore(c *cli.Context, store string) stores.Storer {
+func GetStore(store string) stores.Storer {
 	var config stores.Storer
 	switch store {
 	case "s3":
-		config = newS3Config(c)
+		config = newS3Config()
 	case "filesystem":
-		config = newFilesystemConfig(c)
+		config = newFilesystemConfig()
 	default:
 		slog.Error("Unsupported store", "store", store)
 		os.Exit(1)
@@ -68,18 +67,18 @@ func getStore(c *cli.Context, store string) stores.Storer {
 	return config
 }
 
-func runTask(c *cli.Context, command string, serviceName string, storeName string) error {
-	service := getService(c, serviceName)
-	store := getStore(c, storeName)
+func RunTask(command string, serviceName string, storeName string) error {
+	service := GetService(serviceName)
+	store := GetStore(storeName)
 
 	switch command {
 	case "backup":
-		return runScheduler(c, func(c *cli.Context) error {
-			return backupTask(c, service, store)
+		return runScheduler(func() error {
+			return backupTask(service, store)
 		})
 	case "restore":
-		return runScheduler(c, func(c *cli.Context) error {
-			return restoreTask(c, service, store)
+		return runScheduler(func() error {
+			return restoreTask(service, store)
 		})
 	default:
 		slog.Error("Unsupported command", "command", command)
@@ -88,7 +87,7 @@ func runTask(c *cli.Context, command string, serviceName string, storeName strin
 	return nil
 }
 
-func backupTask(c *cli.Context, service services.Service, store stores.Storer) error {
+func backupTask(service services.Service, store stores.Storer) error {
 	results, err := service.Backup()
 	if err != nil {
 		return fmt.Errorf("service backup failed: %v", err)
@@ -101,7 +100,7 @@ func backupTask(c *cli.Context, service services.Service, store stores.Storer) e
 			return fmt.Errorf("couldn't upload file to store: %v", err)
 		}
 
-		err = store.RemoveOlderBackups(result.DirPrefix, result.NamePrefix, c.Int("max-backups"))
+		err = store.RemoveOlderBackups(result.DirPrefix, result.NamePrefix, viper.GetInt("max-backups"))
 		if err != nil {
 			return fmt.Errorf("couldn't remove old backups from store: %v", err)
 		}
@@ -110,16 +109,16 @@ func backupTask(c *cli.Context, service services.Service, store stores.Storer) e
 	return nil
 }
 
-func restoreTask(c *cli.Context, service services.Service, store stores.Storer) error {
+func restoreTask(service services.Service, store stores.Storer) error {
 	var err error
 	var filename string
 
-	if key := c.String("restore-file"); key != "" {
+	if key := viper.GetString("restore-file"); key != "" {
 		// restore directly from this file
 		filename = key
 	} else {
 		// find the latest file in the store
-		filename, err = store.FindLatestBackup("", c.String("restore-prefix"))
+		filename, err = store.FindLatestBackup("", viper.GetString("restore-prefix"))
 		if err != nil {
 			return fmt.Errorf("cannot find the latest backup: %v", err)
 		}
@@ -139,20 +138,20 @@ func restoreTask(c *cli.Context, service services.Service, store stores.Storer) 
 	return nil
 }
 
-func runScheduler(c *cli.Context, task task) error {
+func runScheduler(task task) error {
 	cr := cron.New()
-	schedule := c.String("schedule")
+	schedule := viper.GetString("schedule")
 
 	if schedule == "" || schedule == "none" {
 		slog.Debug("Running task directly")
-		return task(c)
+		return task()
 	}
 
 	slog.Debug("Starting scheduled backup task")
 	timeoutchan := make(chan bool, 1)
 
 	_, err := cr.AddFunc(schedule, func() {
-		delay := c.Int("random-delay")
+		delay := viper.GetInt("schedule-random-delay")
 		if delay <= 0 {
 			slog.Warn("Schedule random delay was set to a number <= 0, using 1 as default")
 			delay = 1
@@ -162,7 +161,7 @@ func runScheduler(c *cli.Context, task task) error {
 
 		// run immediately is no delay is configured
 		if seconds == 0 {
-			if err := task(c); err != nil {
+			if err := task(); err != nil {
 				slog.Error("Failed to run scheduled task", "error", err)
 			}
 			return
@@ -177,7 +176,7 @@ func runScheduler(c *cli.Context, task task) error {
 		case <-time.After(time.Duration(seconds) * time.Second):
 			slog.Debug("Running scheduled task")
 
-			if err := task(c); err != nil {
+			if err := task(); err != nil {
 				slog.Error("Failed to run scheduled task", "error", err)
 			}
 			break
@@ -203,8 +202,8 @@ func runScheduler(c *cli.Context, task task) error {
 	return nil
 }
 
-func fileOrString(c *cli.Context, name string) string {
-	if filepath := c.String(name + "-file"); filepath != "" {
+func fileOrString(name string) string {
+	if filepath := viper.GetString(name + "-file"); filepath != "" {
 		f, err := os.Open(filepath)
 		if err != nil {
 			slog.Error("Cannot open file", "filepath", filepath, "error", err)
@@ -227,21 +226,5 @@ func fileOrString(c *cli.Context, name string) string {
 		return ""
 	}
 
-	return c.String(name)
-}
-
-func applyConfigValues(flags []cli.Flag) cli.BeforeFunc {
-	return func(c *cli.Context) error {
-		config := c.App.Metadata["config"]
-		if config != nil {
-			cfg, ok := config.(altsrc.InputSourceContext)
-			if ok {
-				return altsrc.ApplyInputSourceValues(c, cfg, flags)
-			}
-
-			return fmt.Errorf("invalid config type for metadata")
-		}
-
-		return nil
-	}
+	return viper.GetString(name)
 }

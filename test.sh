@@ -1,0 +1,12 @@
+go run main.go backup postgres s3
+go run main.go backup postgres filesystem
+go run main.go backup mysql s3
+go run main.go backup mysql filesystem
+go run main.go backup tarball s3
+go run main.go backup tarball filesystem
+go run main.go restore postgres s3
+go run main.go restore postgres filesystem
+go run main.go restore mysql s3
+go run main.go restore mysql filesystem
+go run main.go restore tarball s3
+go run main.go restore tarball filesystem

@@ -25,7 +25,6 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -145,21 +144,6 @@ func (app *CmdConfig) CmdRun(name string, arg ...string) error {
 	}
 
 	return nil
-}
-
-func getEnvInt(key string, def int) int {
-	value := os.Getenv(key)
-
-	if value != "" {
-		val, err := strconv.Atoi(value)
-		if err == nil {
-			return val
-		}
-
-		slog.Warn("Cannot parse env", "key", key, "value", value)
-	}
-
-	return def
 }
 
 func generateFilename(dir, prefix string) string {

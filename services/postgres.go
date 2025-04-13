@@ -39,6 +39,8 @@ type PostgresConfig struct {
 	NameAsPrefix     bool
 	Options          string
 	Compress         bool
+	BinaryPath       string
+	Version          string
 	Custom           bool
 	SaveDir          string
 	IgnoreExitCode   bool
@@ -51,7 +53,6 @@ type PostgresConfig struct {
 	BackupPerSchema  bool
 	BackupSchemas    []string
 	ExcludeSchemas   []string
-	Version          string
 }
 
 // PostgresBinaryPath points to the location where the postgres binaries are located
