@@ -12,10 +12,15 @@ x-postgres: &postgres-env
   DATABASE_USER: test
   DATABASE_PASSWORD: secret
 
+x-mariadb: &mariadb-env
+  DATABASE_HOST: mariadb
+  DATABASE_PORT: 3306
+  DATABASE_USER: root
+  DATABASE_PASSWORD: secret
+
 x-test_1: &test1-env
   <<: [*s3-env, *postgres-env]
   S3_PREFIX: backups/postgres
-  DATABASE_COMPRESS: 1
   DATABASE_NAME: test_schemas
   POSTGRES_CUSTOM_FORMAT: 1
   SCHEDULE: none
@@ -23,7 +28,6 @@ x-test_1: &test1-env
 x-test_2: &test2-env
   <<: [*s3-env, *postgres-env]
   S3_PREFIX: backups/postgres_schemas
-  DATABASE_COMPRESS: 1
   DATABASE_NAME: test_schemas
   DATABASE_NAME_AS_PREFIX: 1
   POSTGRES_BACKUP_PER_SCHEMA: 1
@@ -32,11 +36,31 @@ x-test_2: &test2-env
 
 x-test_3: &test3-env
   <<: [*s3-env, *postgres-env]
-  S3_PREFIX: backups/postgres
-  DATABASE_COMPRESS: 1
-  DATABASE_NAME: test_schemas
-  POSTGRES_BACKUP_PER_SCHEMA: 1
+  S3_PREFIX: backups/postgres_all
+  DATABASE_USER: postgres
+  DATABASE_NAME_AS_PREFIX: 1
   POSTGRES_CUSTOM_FORMAT: 1
+  POSTGRES_BACKUP_PER_USER: 1
+  POSTGRES_EXCLUDE_DATABASES: '*_demo'
+  POSTGRES_BACKUP_USERS: foo,bar,baz
+  SCHEDULE: none
+
+x-test_4: &test4-env
+  <<: [*s3-env, *postgres-env]
+  S3_PREFIX: backups/postgres_users
+  DATABASE_USER: postgres
+  DATABASE_NAME_AS_PREFIX: 1
+  POSTGRES_CUSTOM_FORMAT: 1
+  POSTGRES_BACKUP_PER_USER: 1
+  POSTGRES_EXCLUDE_DATABASES: 'postgres,foo,baz'
+  POSTGRES_BACKUP_USERS: foo,bar,baz
+  SCHEDULE: none
+
+x-test_5: &test5-env
+  <<: [*s3-env, *mariadb-env]
+  S3_PREFIX: backups/mariadb
+  DATABASE_NAME: test_foo
+  DATABASE_NAME_AS_PREFIX: 1
   SCHEDULE: none
 
 x-test: &backup-test
@@ -71,6 +95,16 @@ services:
     <<: *backup-test
     command: backup postgres s3
     environment: *test3-env
+
+  test_4:
+    <<: *backup-test
+    command: backup postgres s3
+    environment: *test4-env
+
+  test_5:
+    <<: *backup-test
+    command: backup mysql s3
+    environment: *test5-env
 
   postgres:
     image: postgres:17.4
