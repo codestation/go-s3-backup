@@ -17,7 +17,7 @@ RUN set -ex; \
     -trimpath \
     -ldflags "-w -s \
    -X version.Tag=${CI_COMMIT_TAG}" \
-  ./cmd/go-s3-backup
+  .
 
 FROM postgres:12.22-alpine AS postgres-12
 FROM postgres:13.20-alpine AS postgres-13
