@@ -1,4 +1,4 @@
-FROM golang:1.24-alpine as builder
+FROM golang:1.24-alpine AS builder
 
 ARG CI_COMMIT_TAG
 ARG GOPROXY
@@ -29,7 +29,7 @@ FROM postgres:17.4-alpine AS postgres-17
 FROM alpine:3.21
 LABEL maintainer="codestation <codestation@megpoid.dev>"
 
-RUN apk add --no-cache ca-certificates tzdata mariadb-client libpq zstd-libs lz4-libs
+RUN apk add --no-cache ca-certificates tzdata mariadb-client libpq libedit zstd-libs lz4-libs
 
 COPY --from=postgres-12 /usr/local/bin/pg_dump /usr/local/bin/pg_restore /usr/local/bin/pg_dumpall /usr/local/bin/psql /usr/libexec/postgresql12/
 COPY --from=postgres-13 /usr/local/bin/pg_dump /usr/local/bin/pg_restore /usr/local/bin/pg_dumpall /usr/local/bin/psql /usr/libexec/postgresql13/

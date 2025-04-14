@@ -63,6 +63,23 @@ x-test_5: &test5-env
   DATABASE_NAME_AS_PREFIX: 1
   SCHEDULE: none
 
+x-test-6: &test6-env
+  <<: [*s3-env]
+  S3_PREFIX: backups/tarball_single
+  SCHEDULE: none
+  TARBALL_PATH_SOURCE: /data
+  TARBALL_NAME_PREFIX: demo
+  TARBALL_COMPRESS: 1
+
+x-test-7: &test7-env
+  <<: [*s3-env]
+  S3_PREFIX: backups/tarball_multi
+  SCHEDULE: none
+  TARBALL_BACKUP_PER_DIR: 1
+  TARBALL_PATH_SOURCE: /data
+  TARBALL_NAME_PREFIX: demo
+  TARBALL_COMPRESS: 1
+
 x-test: &backup-test
   build:
     context: .
@@ -77,6 +94,7 @@ x-test: &backup-test
       condition: service_healthy
   volumes:
     - go:/go
+    - ./tests/files:/data
   networks:
     - test
 
@@ -105,6 +123,16 @@ services:
     <<: *backup-test
     command: backup mysql s3
     environment: *test5-env
+
+  test_6:
+    <<: *backup-test
+    command: backup tarball s3
+    environment: *test6-env
+
+  test_7:
+    <<: *backup-test
+    command: backup tarball s3
+    environment: *test7-env
 
   postgres:
     image: postgres:17.4
