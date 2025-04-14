@@ -18,10 +18,21 @@ package commands
 
 import (
 	"fmt"
+	"log/slog"
 
 	"github.com/spf13/viper"
 	"go.megpoid.dev/go-s3-backup/services"
 )
+
+// https://github.com/spf13/viper/issues/380#issuecomment-1916465489
+func getStringSlice(key string) []string {
+	var h []string
+	if err := viper.UnmarshalKey(key, &h); err != nil {
+		slog.Error("Failed to unmarshal key", "key", key, "error", err)
+		return []string{}
+	}
+	return h
+}
 
 func newMysqlConfig() *services.MySQLConfig {
 	return &services.MySQLConfig{
@@ -38,7 +49,7 @@ func newMysqlConfig() *services.MySQLConfig {
 		IgnoreExitCode: viper.GetBool("database-ignore-exit-code"),
 		// mysql config
 		SplitDatabases:   viper.GetBool("mysql-split-databases"),
-		ExcludeDatabases: viper.GetStringSlice("mysql-exclude-databases"),
+		ExcludeDatabases: getStringSlice("mysql-exclude-databases"),
 		// default config
 		SaveDir: viper.GetString("save-dir"),
 	}
@@ -68,13 +79,13 @@ func newPostgresConfig() *services.PostgresConfig {
 		Custom:           viper.GetBool("postgres-custom-format"),
 		Drop:             viper.GetBool("postgres-drop"),
 		Owner:            viper.GetString("postgres-owner"),
-		ExcludeDatabases: viper.GetStringSlice("postgres-exclude-databases"),
+		ExcludeDatabases: getStringSlice("postgres-exclude-databases"),
 		BackupPerUser:    viper.GetBool("postgres-backup-per-user"),
-		BackupUsers:      viper.GetStringSlice("postgres-backup-users"),
-		ExcludeUsers:     viper.GetStringSlice("postgres-backup-exclude-users"),
+		BackupUsers:      getStringSlice("postgres-backup-users"),
+		ExcludeUsers:     getStringSlice("postgres-backup-exclude-users"),
 		BackupPerSchema:  viper.GetBool("postgres-backup-per-schema"),
-		BackupSchemas:    viper.GetStringSlice("postgres-backup-schemas"),
-		ExcludeSchemas:   viper.GetStringSlice("postgres-backup-exclude-schemas"),
+		BackupSchemas:    getStringSlice("postgres-backup-schemas"),
+		ExcludeSchemas:   getStringSlice("postgres-backup-exclude-schemas"),
 		// default config
 		SaveDir: viper.GetString("save-dir"),
 	}
@@ -88,8 +99,8 @@ func newTarballConfig() *services.TarballConfig {
 		Compress:     viper.GetBool("tarball-compress"),
 		Prefix:       viper.GetString("tarball-path-prefix"),
 		BackupPerDir: viper.GetBool("tarball-backup-per-dir"),
-		BackupDirs:   viper.GetStringSlice("tarball-backup-dirs"),
-		ExcludeDirs:  viper.GetStringSlice("tarball-backup-exclude-dirs"),
+		BackupDirs:   getStringSlice("tarball-backup-dirs"),
+		ExcludeDirs:  getStringSlice("tarball-backup-exclude-dirs"),
 		// default config
 		SaveDir: viper.GetString("save-dir"),
 	}
