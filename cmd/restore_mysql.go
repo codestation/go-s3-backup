@@ -25,7 +25,7 @@ var restoreMysqlCmd = &cobra.Command{
 	Use:     "mysql",
 	Short:   "Connect to mysql/mariadb service",
 	GroupID: "service",
-	PreRun: func(cmd *cobra.Command, _ []string) {
+	PersistentPreRun: func(cmd *cobra.Command, _ []string) {
 		cobra.CheckErr(viper.BindPFlags(cmd.Flags()))
 	},
 }
@@ -36,8 +36,8 @@ func init() {
 	databaseFs := LoadDatabaseFlags(restoreMysqlCmd.Name())
 	mysqlFs := LoadMySQLFlags(restoreMysqlCmd.Name())
 
-	restoreMysqlCmd.Flags().AddFlagSet(databaseFs)
-	restoreMysqlCmd.Flags().AddFlagSet(mysqlFs)
+	restoreMysqlCmd.PersistentFlags().AddFlagSet(databaseFs)
+	restoreMysqlCmd.PersistentFlags().AddFlagSet(mysqlFs)
 
 	restoreMysqlGroup := &cobra.Group{
 		ID:    "store",

@@ -25,7 +25,7 @@ var restoreTarballCmd = &cobra.Command{
 	Use:     "tarball",
 	Short:   "Connect to tarball service",
 	GroupID: "service",
-	PreRun: func(cmd *cobra.Command, _ []string) {
+	PersistentPreRun: func(cmd *cobra.Command, _ []string) {
 		cobra.CheckErr(viper.BindPFlags(cmd.Flags()))
 	},
 }
@@ -33,7 +33,7 @@ var restoreTarballCmd = &cobra.Command{
 func init() {
 	restoreCmd.AddCommand(restoreTarballCmd)
 	tarballFs := LoadTarballFlags(restoreTarballCmd.Name())
-	restoreTarballCmd.Flags().AddFlagSet(tarballFs)
+	restoreTarballCmd.PersistentFlags().AddFlagSet(tarballFs)
 
 	restoreTarballGroup := &cobra.Group{
 		ID:    "store",

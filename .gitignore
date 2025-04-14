@@ -1,2 +1,4 @@
 .idea/
 .vscode/
+.env
+.go-s3-backup.yaml

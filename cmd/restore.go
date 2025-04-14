@@ -25,7 +25,7 @@ var restoreCmd = &cobra.Command{
 	Use:     "restore",
 	Short:   "Run a restore task",
 	GroupID: "command",
-	PreRun: func(cmd *cobra.Command, _ []string) {
+	PersistentPreRun: func(cmd *cobra.Command, _ []string) {
 		cobra.CheckErr(viper.BindPFlags(cmd.Flags()))
 	},
 }
@@ -36,8 +36,8 @@ func init() {
 	defaultFs := LoadDefaultFlags(restoreCmd.Name())
 	restoreFs := LoadRestoreFlags(restoreCmd.Name())
 
-	restoreCmd.Flags().AddFlagSet(defaultFs)
-	restoreCmd.Flags().AddFlagSet(restoreFs)
+	restoreCmd.PersistentFlags().AddFlagSet(defaultFs)
+	restoreCmd.PersistentFlags().AddFlagSet(restoreFs)
 
 	restoreGroup := &cobra.Group{
 		ID:    "service",

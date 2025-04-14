@@ -25,7 +25,7 @@ var backupPostgresCmd = &cobra.Command{
 	Use:     "postgres",
 	Short:   "Connect to postgres service",
 	GroupID: "service",
-	PreRun: func(cmd *cobra.Command, _ []string) {
+	PersistentPreRun: func(cmd *cobra.Command, _ []string) {
 		cobra.CheckErr(viper.BindPFlags(cmd.Flags()))
 	},
 }
@@ -36,8 +36,8 @@ func init() {
 	databaseFs := LoadDatabaseFlags(backupPostgresCmd.Name())
 	postgresFs := LoadPostgresFlags(backupPostgresCmd.Name())
 
-	backupPostgresCmd.Flags().AddFlagSet(databaseFs)
-	backupPostgresCmd.Flags().AddFlagSet(postgresFs)
+	backupPostgresCmd.PersistentFlags().AddFlagSet(databaseFs)
+	backupPostgresCmd.PersistentFlags().AddFlagSet(postgresFs)
 
 	backupPostgresGroup := &cobra.Group{
 		ID:    "store",
