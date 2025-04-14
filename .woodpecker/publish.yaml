@@ -1,6 +1,6 @@
 steps:
   lint:
-    image: golangci/golangci-lint:v2.0.2
+    image: golangci/golangci-lint:v2.1.1
     commands:
       - golangci-lint run -v --timeout 10m ./...
     environment:
@@ -21,7 +21,9 @@ steps:
     settings:
       registry: registry.megpoid.dev
       repo: registry.megpoid.dev/codestation/go-s3-backup
-      tags: latest
+      tags:
+        - latest
+        - "1.0.${CI_PIPELINE_NUMBER}-dev"
       build_args:
         - CI_COMMIT_TAG=${CI_COMMIT_TAG}
       config:
