@@ -48,6 +48,7 @@ func newMysqlConfig() *services.MySQLConfig {
 		Compress:       viper.GetBool("database-compress"),
 		IgnoreExitCode: viper.GetBool("database-ignore-exit-code"),
 		// mysql config
+		SkipSSL:          viper.GetBool("mysql-skip-ssl"),
 		SplitDatabases:   viper.GetBool("mysql-split-databases"),
 		ExcludeDatabases: getStringSlice("mysql-exclude-databases"),
 		// default config

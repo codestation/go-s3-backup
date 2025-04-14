@@ -58,6 +58,7 @@ func LoadDatabaseFlags(name string) *pflag.FlagSet {
 
 func LoadMySQLFlags(name string) *pflag.FlagSet {
 	fs := pflag.NewFlagSet(name, pflag.ContinueOnError)
+	fs.Bool("mysql-skip-ssl", true, "Skip SSL connection")
 	fs.Bool("mysql-split-databases", false, "Make individual backups instead of a single one")
 	fs.StringSlice("mysql-exclude-databases", nil, "Make backup of databases except the ones that matches the pattern")
 	return fs

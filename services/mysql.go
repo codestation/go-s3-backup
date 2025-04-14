@@ -40,16 +40,17 @@ type MySQLConfig struct {
 	Options          string
 	Compress         bool
 	SaveDir          string
+	SkipSSL          bool
 	SplitDatabases   bool
 	ExcludeDatabases []string
 	IgnoreExitCode   bool
 }
 
 // MysqlDumpApp points to the mysqldump binary location
-var MysqlDumpApp = "/usr/bin/mysqldump"
+var MysqlDumpApp = "/usr/bin/mariadb-dump"
 
 // MysqlCmdApp points to the mysql binary location
-var MysqlCmdApp = "/usr/bin/mysql"
+var MysqlCmdApp = "/usr/bin/mariadb"
 
 var mysqlListDatabasesQuery = "show databases"
 
@@ -58,6 +59,10 @@ func (m *MySQLConfig) newBaseArgs(skipOptions bool) []string {
 		"-h", m.Host,
 		"-P", m.Port,
 		"-u", m.User,
+	}
+
+	if m.SkipSSL {
+		args = append(args, "--skip-ssl")
 	}
 
 	if m.Password != "" {
