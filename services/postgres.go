@@ -236,6 +236,8 @@ func (p *PostgresConfig) backupPerSchema() (*BackupResults, error) {
 			}
 		}
 
+		slog.Info("Backing up schema", "name", schema)
+
 		namePrefix := p.getNamePrefix() + "_" + schema
 		baseDir := path.Join(p.Database, schema)
 		filepath, err := p.backupDatabase(baseDir, namePrefix, schema)

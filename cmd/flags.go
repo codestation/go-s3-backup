@@ -86,7 +86,6 @@ func LoadTarballFlags(name string) *pflag.FlagSet {
 	fs.String("tarball-name-prefix", "", "Backup file prefix")
 	fs.String("tarball-path-source", "", "Path to backup/restore")
 	fs.Bool("tarball-compress", false, "Compress tarball with gzip")
-	fs.String("tarball-path-prefix", "", "Backup path prefix")
 	fs.Bool("tarball-backup-per-dir", false, "Backup each folder individually")
 	fs.StringSlice("tarball-backup-dirs", nil, "Backup each folder individually")
 	fs.StringSlice("tarball-backup-exclude-dirs", nil, "Make backups for directories excluding these dirs")

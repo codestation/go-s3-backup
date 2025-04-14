@@ -98,7 +98,6 @@ func newTarballConfig() *services.TarballConfig {
 		Name:         viper.GetString("tarball-name-prefix"),
 		Path:         viper.GetString("tarball-path-source"),
 		Compress:     viper.GetBool("tarball-compress"),
-		Prefix:       viper.GetString("tarball-path-prefix"),
 		BackupPerDir: viper.GetBool("tarball-backup-per-dir"),
 		BackupDirs:   getStringSlice("tarball-backup-dirs"),
 		ExcludeDirs:  getStringSlice("tarball-backup-exclude-dirs"),

@@ -17,11 +17,14 @@ limitations under the License.
 package services
 
 import (
+	"context"
 	"fmt"
+	"io"
 	"os"
 	"path"
+	"path/filepath"
 
-	"github.com/mholt/archiver/v3"
+	"github.com/mholt/archives"
 )
 
 // TarballConfig has the config options for the TarballConfig service
@@ -30,7 +33,6 @@ type TarballConfig struct {
 	Path         string
 	Compress     bool
 	SaveDir      string
-	Prefix       string
 	BackupPerDir bool
 	BackupDirs   []string
 	ExcludeDirs  []string
@@ -119,25 +121,49 @@ func (f *TarballConfig) getNamePrefix(basedir string) string {
 }
 
 func (f *TarballConfig) backupFile(basedir, namePrefix string) (string, error) {
-	destPath := path.Join(f.SaveDir, basedir, f.Prefix)
-	filepath := generateFilename(destPath, namePrefix) + ".tar"
+	destPath := path.Join(f.SaveDir, basedir)
+	filePath := generateFilename(destPath, namePrefix) + ".tar"
+
+	format := archives.CompressedArchive{Archival: archives.Tar{}}
 
 	if f.Compress {
-		filepath += ".gz"
+		format.Compression = archives.Gz{}
+		filePath += ".gz"
 	}
 
 	if err := os.MkdirAll(destPath, 0o755); err != nil {
 		return "", err
 	}
 
-	srcPath := path.Join(f.Path, basedir, f.Prefix)
+	srcPath := path.Join(f.Path, basedir)
 
-	err := archiver.Archive([]string{srcPath}, filepath)
-	if err != nil {
-		return "", fmt.Errorf("cannot create tarball on %s, %v", filepath, err)
+	ctx := context.TODO()
+
+	options := &archives.FromDiskOptions{
+		FollowSymlinks: false,
 	}
 
-	return filepath, nil
+	files, err := archives.FilesFromDisk(ctx, options, map[string]string{
+		srcPath + string(os.PathSeparator): "",
+	})
+	if err != nil {
+		return "", fmt.Errorf("cannot prepare tarball files on %s, %v", filePath, err)
+	}
+
+	cleanFilePath := filepath.Clean(filePath)
+
+	out, err := os.Create(cleanFilePath)
+	if err != nil {
+		return "", err
+	}
+	defer out.Close()
+
+	err = format.Archive(ctx, out, files)
+	if err != nil {
+		return "", fmt.Errorf("cannot create tarball on %s, %v", filePath, err)
+	}
+
+	return cleanFilePath, nil
 }
 
 // Restore extracts a tarball to the specified directory
@@ -147,10 +173,72 @@ func (f *TarballConfig) Restore(filepath string) error {
 		return fmt.Errorf("failed to empty directory contents before restoring: %v", err)
 	}
 
-	err = archiver.Unarchive(filepath, path.Dir(f.Path))
+	err = Unarchive(filepath, path.Dir(f.Path))
 	if err != nil {
 		return fmt.Errorf("cannot unpack backup: %v", err)
 	}
 
 	return nil
+}
+
+func Unarchive(source, destination string) error {
+	ctx := context.TODO()
+
+	// Open the source archive file
+	archive, err := os.Open(source)
+	if err != nil {
+		return err
+	}
+
+	// Identify the archive file's format
+	format, archiveReader, _ := archives.Identify(ctx, "", archive)
+
+	dirMap := make(map[string]bool)
+
+	// Check if the format is an extractor. If not, skip the archive file.
+	extractor, ok := format.(archives.Extractor)
+
+	if !ok {
+		return nil
+	}
+
+	return extractor.Extract(ctx, archiveReader, func(_ context.Context, archiveFile archives.FileInfo) error {
+		fileName := archiveFile.NameInArchive
+		newPath := filepath.Join(destination, fileName)
+
+		if archiveFile.IsDir() {
+			dirMap[newPath] = true
+
+			return os.MkdirAll(newPath, 0o755) // #nosec
+		}
+
+		fileDir := filepath.Dir(newPath)
+		_, seenDir := dirMap[fileDir]
+
+		if !seenDir {
+			dirMap[fileDir] = true
+
+			_ = os.MkdirAll(fileDir, 0o755) // #nosec
+		}
+
+		cleanNewPath := filepath.Clean(newPath)
+
+		newFile, err := os.OpenFile(cleanNewPath,
+			os.O_CREATE|os.O_WRONLY,
+			archiveFile.Mode())
+		if err != nil {
+			return err
+		}
+		defer newFile.Close()
+
+		archiveFileTemp, err := archiveFile.Open()
+		if err != nil {
+			return err
+		}
+		defer archiveFileTemp.Close()
+
+		_, err = io.Copy(newFile, archiveFileTemp)
+
+		return err
+	})
 }
