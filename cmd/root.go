@@ -90,4 +90,6 @@ func initConfig() {
 	}
 
 	cobra.EnableTraverseRunHooks = true
+
+	InitLogger()
 }
