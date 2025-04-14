@@ -1,0 +1,163 @@
+x-s3: &s3-env
+  AWS_ACCESS_KEY_ID: ${S3_ACCESS_KEY:-minio}
+  AWS_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:-secretpass}
+  S3_ENDPOINT: http://minio:9000
+  S3_BUCKET: test
+  S3_REGION: us-east-1
+  S3_FORCE_PATH_STYLE: 1
+
+x-postgres: &postgres-env
+  DATABASE_HOST: postgres
+  DATABASE_PORT: 5432
+  DATABASE_USER: test
+  DATABASE_PASSWORD: secret
+
+x-test_1: &test1-env
+  <<: [*s3-env, *postgres-env]
+  S3_PREFIX: backups/postgres
+  DATABASE_COMPRESS: 1
+  DATABASE_NAME: test_schemas
+  POSTGRES_CUSTOM_FORMAT: 1
+  SCHEDULE: none
+
+x-test_2: &test2-env
+  <<: [*s3-env, *postgres-env]
+  S3_PREFIX: backups/postgres_schemas
+  DATABASE_COMPRESS: 1
+  DATABASE_NAME: test_schemas
+  DATABASE_NAME_AS_PREFIX: 1
+  POSTGRES_BACKUP_PER_SCHEMA: 1
+  POSTGRES_CUSTOM_FORMAT: 1
+  SCHEDULE: none
+
+x-test_3: &test3-env
+  <<: [*s3-env, *postgres-env]
+  S3_PREFIX: backups/postgres
+  DATABASE_COMPRESS: 1
+  DATABASE_NAME: test_schemas
+  POSTGRES_BACKUP_PER_SCHEMA: 1
+  POSTGRES_CUSTOM_FORMAT: 1
+  SCHEDULE: none
+
+x-test: &backup-test
+  build:
+    context: .
+    dockerfile: Dockerfile
+  restart: no
+  depends_on:
+    postgres:
+      condition: service_healthy
+    mariadb:
+      condition: service_healthy
+    minio:
+      condition: service_healthy
+  volumes:
+    - go:/go
+  networks:
+    - test
+
+services:
+  test_1:
+    <<: *backup-test
+    command: backup postgres s3
+    environment: *test1-env
+
+  test_2:
+    <<: *backup-test
+    command: backup postgres s3
+    environment: *test2-env
+
+  test_3:
+    <<: *backup-test
+    command: backup postgres s3
+    environment: *test3-env
+
+  postgres:
+    image: postgres:17.4
+    stop_signal: SIGINT
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-postgres} -d $${POSTGRES_DB:-postgres}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_interval: 1s
+    networks:
+      - test
+    volumes:
+      - postgres:/var/lib/postgresql/data
+      - ./tests/test_postgres.sql:/docker-entrypoint-initdb.d/test.sql
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secret}
+
+  mariadb:
+    image: mariadb:10.11
+    ports:
+      - "${MARIADB_PORT:-3306}:3306"
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root --password=$${MARIADB_ROOT_PASSWORD} || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_interval: 1s
+    networks:
+      - test
+    volumes:
+      - mariadb:/var/lib/mysql
+      - ./tests/test_mariadb.sql:/docker-entrypoint-initdb.d/test.sql
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:-secret}
+
+  minio:
+    image: quay.io/minio/minio:RELEASE.2025-04-03T14-56-28Z
+    command:
+      - server
+      - --console-address
+      - :9090
+      - /data
+    ports:
+      - "${MINIO_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9090}:9090"
+    healthcheck:
+      test: 'curl -f http://localhost:9000/minio/health/live'
+      interval: 1s
+      timeout: 1s
+      retries: 5
+      start_interval: 1s
+    volumes:
+      - minio:/data
+    environment:
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY:-minio}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_ACCESS_KEY:-secretpass}
+      MINIO_UPDATE: off
+    networks:
+      - test
+    restart: on-failure
+
+  minio-init:
+    image: quay.io/minio/mc:RELEASE.2025-03-12T17-29-24Z
+    entrypoint: >
+      sh -c "
+      /usr/bin/mc alias set local http://minio:9000 $${MINIO_ROOT_USER} $${MINIO_ROOT_PASSWORD} && \
+      /usr/bin/mc mb -p local/$${MINIO_BUCKET} && \
+      /usr/bin/mc anonymous set download local/$${MINIO_BUCKET}"
+    restart: on-failure
+    environment:
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY:-minio}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_ACCESS_KEY:-secretpass}
+      MINIO_BUCKET: ${S3_BUCKET:-test}
+    depends_on:
+      minio:
+        condition: service_healthy
+    networks:
+      - test
+
+volumes:
+  go:
+  postgres:
+  mariadb:
+  minio:
+
+networks:
+  test:
