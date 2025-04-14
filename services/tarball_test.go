@@ -50,6 +50,12 @@ func TestBackupRestore(t *testing.T) {
 	results, err := tar.Backup()
 	r.NoError(err, "failed to create backup tarball")
 
+	err = os.RemoveAll(backupDir)
+	r.NoError(err, "failed to remove backup directory")
+
+	err = os.Mkdir(backupDir, 0o755)
+	r.NoError(err, "failed to create backup directory")
+
 	for _, result := range results.Entries {
 		err = tar.Restore(result.Path)
 		r.NoError(err, "failed to restore backup dir")

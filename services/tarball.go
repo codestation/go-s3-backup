@@ -143,8 +143,10 @@ func (f *TarballConfig) backupFile(basedir, namePrefix string) (string, error) {
 		FollowSymlinks: false,
 	}
 
+	basePath := path.Base(srcPath)
+
 	files, err := archives.FilesFromDisk(ctx, options, map[string]string{
-		srcPath + string(os.PathSeparator): "",
+		srcPath + string(os.PathSeparator): basePath,
 	})
 	if err != nil {
 		return "", fmt.Errorf("cannot prepare tarball files on %s, %v", filePath, err)
