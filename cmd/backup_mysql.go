@@ -25,6 +25,7 @@ var backupMysqlCmd = &cobra.Command{
 	Use:     "mysql",
 	Short:   "Connect to mysql/mariadb service",
 	GroupID: "service",
+	Aliases: []string{"mariadb"},
 	PersistentPreRun: func(cmd *cobra.Command, _ []string) {
 		cobra.CheckErr(viper.BindPFlags(cmd.Flags()))
 	},

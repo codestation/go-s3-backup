@@ -28,6 +28,7 @@ var backupMysqlFilesystemCmd = &cobra.Command{
 	Use:     "filesystem",
 	Short:   "Connect to filesystem service",
 	GroupID: "store",
+	Aliases: []string{"fs"},
 	PreRun: func(cmd *cobra.Command, _ []string) {
 		cobra.CheckErr(viper.BindPFlags(cmd.Flags()))
 	},
