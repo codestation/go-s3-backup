@@ -20,13 +20,13 @@ RUN set -ex; \
   .
 
 FROM postgres:12.22-alpine AS postgres-12
-FROM postgres:13.20-alpine AS postgres-13
-FROM postgres:14.17-alpine AS postgres-14
-FROM postgres:15.12-alpine AS postgres-15
-FROM postgres:16.8-alpine AS postgres-16
-FROM postgres:17.4-alpine AS postgres-17
+FROM postgres:13.21-alpine AS postgres-13
+FROM postgres:14.18-alpine AS postgres-14
+FROM postgres:15.13-alpine AS postgres-15
+FROM postgres:16.9-alpine AS postgres-16
+FROM postgres:17.5-alpine AS postgres-17
 
-FROM alpine:3.21
+FROM alpine:3.22
 LABEL maintainer="codestation <codestation@megpoid.dev>"
 
 RUN apk add --no-cache ca-certificates tzdata mariadb-client libpq libedit zstd-libs lz4-libs

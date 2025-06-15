@@ -1,6 +1,6 @@
 steps:
   lint:
-    image: golangci/golangci-lint:v2.1.1
+    image: golangci/golangci-lint:v2.1.6
     commands:
       - golangci-lint run -v --timeout 10m ./...
     environment:
@@ -17,15 +17,14 @@ steps:
         from_secret: goproxy_url
 
   build:
-    image: woodpeckerci/plugin-docker-buildx:5.2.2
+    image: woodpeckerci/plugin-docker-buildx:6.0.1
     settings:
       registry: registry.megpoid.dev
       repo: registry.megpoid.dev/codestation/go-s3-backup
       tags:
         - latest
-        - "1.0.${CI_PIPELINE_NUMBER}-dev"
-      build_args:
-        - CI_COMMIT_TAG=${CI_COMMIT_TAG}
+        - '${CI_COMMIT_BRANCH}'
+        - '${CI_COMMIT_BRANCH}-${CI_COMMIT_SHA:0:10}'
       config:
         from_secret: registry_credentials
 
