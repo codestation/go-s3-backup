@@ -24,9 +24,13 @@ import (
 	"sort"
 	"strings"
 
+	//nolint:staticcheck // AWS SDK for Go v2 migration is planned; retain v1 until it is complete.
 	"github.com/aws/aws-sdk-go/aws"
+	//nolint:staticcheck // AWS SDK for Go v2 migration is planned; retain v1 until it is complete.
 	"github.com/aws/aws-sdk-go/aws/session"
+	//nolint:staticcheck // AWS SDK for Go v2 migration is planned; retain v1 until it is complete.
 	"github.com/aws/aws-sdk-go/service/s3"
+	//nolint:staticcheck // AWS SDK for Go v2 migration is planned; retain v1 until it is complete.
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 )
 
